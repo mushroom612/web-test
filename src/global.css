@@ -1,0 +1,234 @@
+/* ╔════════════════════════════════════════════════════════════════════════╗
+   ║                         RESET CSS GLOBAL                               ║
+   ╚════════════════════════════════════════════════════════════════════════╝ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--surface-page);
+  color: var(--text-primary);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+/* ╔════════════════════════════════════════════════════════════════════════╗
+   ║                         CORES - PALETA BASE                            ║
+   ╚════════════════════════════════════════════════════════════════════════╝ */
+
+:root {
+  /* ── Cores - Verde ─────────────────────────────────────────────────── */
+  --color-green-50: #f5f9f0;
+  --color-green-100: #e9f5df;
+  --color-green-200: #d4ecbf;
+  --color-green-300: #bde09f;
+  --color-green-400: #a6d380;
+  --color-green-500: #89bf58;
+  --color-green-600: #6aa33c;
+  --color-green-700: #4e8726;
+  --color-green-800: #3d6b1e;
+  --color-green-900: #2d5016;
+
+  /* ── Cores - Azul ──────────────────────────────────────────────────── */
+  --color-blue-50: #f3f8fe;
+  --color-blue-100: #e7f1fc;
+  --color-blue-200: #b8d9f7;
+  --color-blue-300: #89baf0;
+  --color-blue-400: #5a9ae8;
+  --color-blue-500: #2b7ae0;
+  --color-blue-600: #1a66c9;
+  --color-blue-700: #134fa8;
+  --color-blue-800: #0e3d85;
+  --color-blue-900: #0a2e63;
+
+  /* ── Cores - Neutro ────────────────────────────────────────────────── */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #ececec;
+  --color-neutral-200: #d4d4d4;
+  --color-neutral-300: #ababab;
+  --color-neutral-400: #8a8a8a;
+  --color-neutral-500: #6b6b6b;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
+
+  /* ── Cores - Semânticas ────────────────────────────────────────────── */
+  --color-semantic-error: #b91c1c;
+  --color-semantic-warning: #b45309;
+  --color-semantic-success: #2d5016;
+  --color-semantic-info: #1e40af;
+
+  /* ╔════════════════════════════════════════════════════════════════════════╗
+     ║                       TOKENS SEMÂNTICOS - SUPERFÍCIES                 ║
+     ╚════════════════════════════════════════════════════════════════════════╝ */
+
+  --surface-page: var(--color-neutral-100);
+  --surface-primary: var(--color-neutral-0);
+  --surface-secondary: var(--color-green-50);
+  --surface-tertiary: var(--color-green-100);
+  --surface-quaternary: var(--color-green-200);
+  --surface-elevated: var(--color-neutral-0);
+  --surface-inverse: var(--color-neutral-900);
+
+  /* ── Texto ─────────────────────────────────────────────────────────── */
+  --text-primary: var(--color-neutral-900);
+  --text-secondary: var(--color-neutral-600);
+  --text-tertiary: var(--color-neutral-500);
+  --text-inverse: var(--color-neutral-0);
+  --text-accent: var(--color-green-800);
+  --text-link: var(--color-blue-700);
+
+  /* ╔════════════════════════════════════════════════════════════════════════╗
+     ║                           ESPAÇAMENTO                                  ║
+     ╚════════════════════════════════════════════════════════════════════════╝ */
+
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+
+  /* ╔════════════════════════════════════════════════════════════════════════╗
+     ║                           BORDER RADIUS                                ║
+     ╚════════════════════════════════════════════════════════════════════════╝ */
+
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-2xl: 24px;
+  --border-radius-full: 9999px;
+
+  /* ╔════════════════════════════════════════════════════════════════════════╗
+     ║                             TIPOGRAFIA                                 ║
+     ╚════════════════════════════════════════════════════════════════════════╝ */
+
+  /* ── Tamanho de Fonte ──────────────────────────────────────────────── */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+
+  /* ── Altura da Linha ───────────────────────────────────────────────── */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+
+  /* ╔════════════════════════════════════════════════════════════════════════╗
+     ║                         COMPONENTES - BOTÃO                            ║
+     ╚════════════════════════════════════════════════════════════════════════╝ */
+
+  /* ── Botão Primário ────────────────────────────────────────────────── */
+  --btn-primary-bg: var(--color-green-700);
+  --btn-primary-bg-hover: var(--color-green-800);
+  --btn-primary-text: var(--color-neutral-0);
+  --btn-primary-radius: var(--border-radius-xl);
+  --btn-primary-padding-x: var(--spacing-5);
+  --btn-primary-padding-y: var(--spacing-3);
+  --btn-primary-border-color: var(--color-green-700);
+
+  /* ── Botão Secundário ──────────────────────────────────────────────── */
+  --btn-secondary-bg: var(--color-green-100);
+  --btn-secondary-bg-hover: var(--color-green-200);
+  --btn-secondary-text: var(--color-green-900);
+  --btn-secondary-radius: var(--border-radius-xl);
+
+  /* ── Botão Ghost ───────────────────────────────────────────────────── */
+  --btn-ghost-bg: transparent;
+  --btn-ghost-bg-hover: var(--color-green-100);
+  --btn-ghost-text: var(--color-green-700);
+  --btn-ghost-text-hover: var(--color-green-800);
+
+  /* ╔════════════════════════════════════════════════════════════════════════╗
+     ║                         COMPONENTES - INPUT                            ║
+     ╚════════════════════════════════════════════════════════════════════════╝ */
+
+  --input-bg: var(--color-neutral-100);
+  --input-bg-hover: var(--color-neutral-50);
+  --input-bg-focus: var(--color-neutral-0);
+  --input-border-color: transparent;
+  --input-border-color-hover: var(--color-neutral-200);
+  --input-border-color-focus: var(--color-green-500);
+  --input-border-color-active: var(--color-green-600);
+  --input-radius: var(--border-radius-md);
+  --input-placeholder: var(--color-neutral-500);
+
+  /* ╔════════════════════════════════════════════════════════════════════════╗
+     ║                         COMPONENTES - CARD                             ║
+     ╚════════════════════════════════════════════════════════════════════════╝ */
+
+  --card-bg: var(--color-neutral-0);
+  --card-radius-mobile: var(--border-radius-xl);
+  --card-radius-desktop: var(--border-radius-2xl);
+  --card-padding-mobile: var(--spacing-5);
+  --card-padding-desktop: var(--spacing-8);
+
+  /* ╔════════════════════════════════════════════════════════════════════════╗
+     ║                         COMPONENTES - STATUS                           ║
+     ╚════════════════════════════════════════════════════════════════════════╝ */
+
+  --status-radius: var(--border-radius-full);
+  --status-success-bg: var(--color-green-100);
+  --status-success-text: var(--color-green-900);
+  --status-info-bg: var(--color-blue-100);
+  --status-info-text: var(--color-blue-900);
+  --status-warning-bg: #fef3c7;
+  --status-warning-text: var(--color-semantic-warning);
+  --status-error-bg: #fee2e2;
+  --status-error-text: var(--color-semantic-error);
+
+  /* ╔════════════════════════════════════════════════════════════════════════╗
+     ║                         COMPONENTES - TOAST                            ║
+     ╚════════════════════════════════════════════════════════════════════════╝ */
+
+  --toast-bg: var(--color-green-800);
+  --toast-text: var(--color-neutral-0);
+  --toast-radius: var(--border-radius-full);
+
+  /* ╔════════════════════════════════════════════════════════════════════════╗
+     ║                         COMPONENTES - FOCUS                            ║
+     ╚════════════════════════════════════════════════════════════════════════╝ */
+
+  --focus-outline-color: var(--color-green-600);
+  --focus-outline-width: 3px;
+  --focus-outline-offset: 2px;
+}
