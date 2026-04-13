@@ -1,13 +1,19 @@
 
-import "./global.css";
-import Aside from "./components/Aside";
-// import Header from "./components/Header";
+import './global.css';
+import { BrowserRouter as Router, useRoutes } from 'react-router-dom';
+import { routes } from './router/routes';
+
 function App() {
+  const element = useRoutes(routes);
+  return element;
+}
+
+function AppWrapper() {
   return (
-    <>
-      <Aside/>
-    </>
+    <Router>
+      <App />
+    </Router>
   );
 }
 
-export default App;
+export default AppWrapper;

@@ -1,0 +1,250 @@
+.dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Seção de Métricas */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.metricCard {
+  background-color: var(--surface-primary);
+  border-radius: var(--card-radius-desktop);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.metricContent {
+  margin-bottom: 16px;
+}
+
+.metricValue {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--btn-primary-bg);
+  margin-bottom: 8px;
+}
+
+.metricLabel {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.metricFooter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trendUp {
+  color: #22c55e;
+}
+
+.trendDown {
+  color: #ef4444;
+}
+
+.trend {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Grid de Conteúdo */
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Seção de Feedbacks */
+.feedbackSection {
+  background-color: var(--surface-primary);
+  border-radius: var(--card-radius-desktop);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.feedbackList {
+  margin-bottom: 16px;
+}
+
+.feedbackActions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.primaryBtn {
+  flex: 1;
+  padding: 10px 16px;
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primaryBtn:hover {
+  background-color: var(--color-green-800);
+}
+
+.ghostBtn {
+  flex: 1;
+  padding: 10px 16px;
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ghostBtn:hover {
+  background-color: var(--color-green-100);
+  border-color: var(--btn-primary-bg);
+}
+
+.newUsersIndicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--status-success-bg);
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.indicatorIcon {
+  font-size: 24px;
+}
+
+.indicatorValue {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-green-900);
+}
+
+.indicatorLabel {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--color-green-900);
+}
+
+/* Seção de Estatísticas */
+.statsSection {
+  background-color: var(--surface-primary);
+  border-radius: var(--card-radius-desktop);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.chart {
+  margin-top: 16px;
+}
+
+.chartTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.barContainer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 200px;
+  gap: 12px;
+}
+
+.barItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.barOuter {
+  width: 100%;
+  height: 150px;
+  background-color: #f0f0f0;
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+}
+
+.barInner {
+  width: 100%;
+  background: linear-gradient(180deg, var(--btn-primary-bg), var(--color-green-100));
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s ease;
+}
+
+.barInner:hover {
+  background: var(--btn-primary-bg);
+}
+
+.barLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1024px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .feedbackActions {
+    flex-direction: column;
+  }
+
+  .primaryBtn,
+  .ghostBtn {
+    flex: initial;
+  }
+}
