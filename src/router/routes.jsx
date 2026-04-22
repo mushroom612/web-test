@@ -61,5 +61,6 @@ export const routes = [
         element: <Auditoria />
       }
     ]
-  }
+  },
+ 
 ];

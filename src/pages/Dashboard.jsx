@@ -30,7 +30,7 @@ export function Dashboard() {
 
       {/* Seção de Feedbacks e Estatísticas */}
       <div className={styles.contentGrid}>
-        {/* Coluna de Feedbacks */}
+       
         <div className={styles.feedbackSection}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Feedback</h2>
@@ -57,7 +57,7 @@ export function Dashboard() {
         </div>
 
         {/* Coluna de Estatísticas */}
-        <div className={styles.statsSection}>
+        {/* <div className={styles.statsSection}>
           <h2 className={styles.sectionTitle}>Estatísticas</h2>
 
           <div className={styles.chart}>
@@ -78,7 +78,7 @@ export function Dashboard() {
               ))}
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

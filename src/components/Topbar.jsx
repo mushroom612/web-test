@@ -40,7 +40,7 @@ export function Topbar() {
           </button>
         </div>
 
-        <div className={styles.userSection}>
+        <div className={styles.userSection}> 
           <div className={styles.userProfile}>
             <span className={styles.userAvatar}>{adminUser.avatar}</span>
             <span className={styles.userName}>{adminUser.name}</span>

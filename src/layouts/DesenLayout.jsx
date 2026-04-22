@@ -1,9 +1,9 @@
 import { Outlet } from 'react-router-dom';
 import { Aside } from '../components/Aside';
 import { Topbar } from '../components/Topbar';
-import styles from './AdminLayout.module.css';
+import styles from './DesenLayout.module.css';
 
-export function AdminLayout() {
+export function DesenLayout() {
   return (
     <div className={styles.container}>
       <Aside />

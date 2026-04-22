@@ -28,3 +28,12 @@ export function StatusBadge({ status, type = 'status' }) {
     </span>
   );
 }
+
+//   --status-success-bg: var(--color-green-100);
+//   --status-success-text: var(--color-green-900);
+//   --status-info-bg: var(--color-blue-100);
+//   --status-info-text: var(--color-blue-900);
+//   --status-warning-bg: #fef3c7;
+//   --status-warning-text: var(--color-semantic-warning);
+//   --status-error-bg: #fee2e2;
+//   --status-error-text: var(--color-semantic-error);
