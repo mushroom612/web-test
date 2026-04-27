@@ -11,7 +11,14 @@ export function StatusBadge({ status, type = 'status' }) {
     'Sugestão': { bg: '#e9f5df', text: '#2d5016' },
     'Denúncia': { bg: '#fee2e2', text: '#b91c1c' },
     'Resolvido': { bg: '#d1fae5', text: '#047857' },
-    'Arquivado': { bg: '#ede9fe', text: '#5b21b6' }
+    'Arquivado': { bg: '#ede9fe', text: '#5b21b6' },
+    'Aberta': { bg: '#dbeafe', text: '#0369a1' },
+    'Em espera': { bg: '#fef3c7', text: '#92400e' },
+    'Aberto': { bg: '#dbeafe', text: '#0369a1' },
+    'Em análise': { bg: '#fef3c7', text: '#92400e' },
+    'Aguardando verificação': { bg: '#fef3c7', text: '#92400e' },
+    'Suspenso': { bg: '#fee2e2', text: '#b91c1c' },
+    'Temporário': { bg: '#fef3c7', text: '#92400e' }
   };
 
   const style = statusStyles[status] || statusStyles['Pendente'];

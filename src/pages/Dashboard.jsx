@@ -41,19 +41,6 @@ export function Dashboard() {
               <FeedbackCard key={feedback.id} feedback={feedback} />
             ))}
           </div>
-
-          <div className={styles.feedbackActions}>
-            <button className={styles.ghostBtn}>📊 Gerar relatório com IA</button>
-            <button className={styles.primaryBtn}>Ver todos →</button>
-          </div>
-
-          <div className={styles.newUsersIndicator}>
-            <div className={styles.indicatorIcon}>📈</div>
-            <div>
-              <p className={styles.indicatorValue}>78</p>
-              <p className={styles.indicatorLabel}>novos usuários nesta semana</p>
-            </div>
-          </div>
         </div>
 
         {/* Coluna de Estatísticas */}

@@ -1,9 +1,10 @@
 // Dados mockados para o painel administrativo CaronaCity
+// Baseado no modelo do banco de dados (insert.sql)
 
 export const adminUser = {
-  id: 1,
-  name: 'João Silva',
-  email: 'joao.silva@universidad.edu.br',
+  id: 6,
+  name: 'Admin Sistema',
+  email: 'admin@sistema.inova.br',
   role: 'Desenvolvedor',
   avatar: '👨‍💼'
 };
@@ -12,33 +13,33 @@ export const metricsData = [
   {
     id: 1,
     label: 'Total de Usuários',
-    value: '1.243',
+    value: '10',
     icon: 'Users',
-    trend: '+12%',
+    trend: '+2',
     trendUp: true
   },
   {
     id: 2,
     label: 'Caronas Realizadas',
-    value: '847',
+    value: '6',
     icon: 'Car',
-    trend: '+8%',
+    trend: '+1',
     trendUp: true
   },
   {
     id: 3,
     label: 'Denúncias Pendentes',
-    value: '12',
+    value: '1',
     icon: 'AlertCircle',
-    trend: '+3',
+    trend: '+0',
     trendUp: false
   },
   {
     id: 4,
     label: 'Novos Usuários (Semana)',
-    value: '78',
+    value: '4',
     icon: 'TrendingUp',
-    trend: '+5%',
+    trend: '+2',
     trendUp: true
   }
 ];
@@ -46,211 +47,278 @@ export const metricsData = [
 export const feedbacksData = [
   {
     id: 1,
-    userName: 'Maria Costa',
-    userEmail: 'maria.costa@universidad.edu.br',
+    userName: 'Mariana Souza',
+    userEmail: 'mariana.souza@aluno.inova.br',
     avatar: '👩‍🎓',
-    text: 'Excelente aplicativo! Consegui encontrar carona facilmente e o motorista foi muito educado. Recomendo!',
+    text: 'Seria ótimo ter um filtro de caronas por horário de saída mais específico.',
     type: 'Sugestão',
-    date: '2024-04-10'
+    date: '2024-04-12'
   },
   {
     id: 2,
-    userName: 'Pedro Santos',
-    userEmail: 'pedro.santos@universidad.edu.br',
+    userName: 'Lucas Pereira',
+    userEmail: 'lucas.pereira@aluno.inova.br',
     avatar: '👨‍🎓',
-    text: 'Tive um problema com um motorista que não apareceu no ponto de encontro. Gostaria de reportar este incidente.',
+    text: 'O usuário Carlos Silva cancelou a carona em cima da hora sem nenhum aviso.',
     type: 'Denúncia',
-    date: '2024-04-09'
+    date: '2024-04-12'
   },
   {
     id: 3,
-    userName: 'Ana Silva',
-    userEmail: 'ana.silva@universidad.edu.br',
-    avatar: '👩‍🎓',
-    text: 'Seria interessante adicionar um sistema de recompensas para usuários que fazem viagens regularmente.',
+    userName: 'Carlos Silva',
+    userEmail: 'carlos.silva@aluno.inova.br',
+    avatar: '👨‍🎓',
+    text: 'Poderia ter uma opção de carona recorrente para quem vai ao mesmo lugar todo dia.',
     type: 'Sugestão',
-    date: '2024-04-08'
+    date: '2024-04-12'
+  },
+  {
+    id: 4,
+    userName: 'Pedro Santos',
+    userEmail: 'pedro.santos@uni.saber.br',
+    avatar: '👨‍🎓',
+    text: 'Encontrei um usuário com comprovante de matrícula claramente falsificado.',
+    type: 'Denúncia',
+    date: '2024-04-07'
   }
 ];
 
 export const usersData = [
   {
     id: 1,
-    name: 'Marina Oliveira',
-    email: 'marina.oliveira@universidad.edu.br',
-    avatar: '👩‍🎓',
+    name: 'Carlos Silva',
+    email: 'carlos.silva@aluno.inova.br',
+    avatar: '👨‍🎓',
     type: 'Motorista',
     status: 'Ativo',
-    lastAccess: '2024-04-12 14:30',
-    ipLogin: '192.168.1.101'
+    lastAccess: '2024-04-12 10:00',
+    ipLogin: '192.168.1.101',
+    school: 'Faculdade Tecnológica Inova',
+    course: 'Análise e Desenvolvimento de Sistemas'
   },
   {
     id: 2,
-    name: 'Carlos Mendes',
-    email: 'carlos.mendes@universidad.edu.br',
-    avatar: '👨‍🎓',
+    name: 'Mariana Souza',
+    email: 'mariana.souza@aluno.inova.br',
+    avatar: '👩‍🎓',
     type: 'Passageiro',
     status: 'Ativo',
-    lastAccess: '2024-04-12 13:15',
-    ipLogin: '192.168.1.102'
+    lastAccess: '2024-04-12 10:00',
+    ipLogin: '192.168.1.102',
+    school: 'Faculdade Tecnológica Inova',
+    course: 'Análise e Desenvolvimento de Sistemas'
   },
   {
     id: 3,
-    name: 'Juliana Ferreira',
-    email: 'juliana.ferreira@universidad.edu.br',
-    avatar: '👩‍🎓',
-    type: 'Ambos',
+    name: 'Pedro Santos',
+    email: 'pedro.santos@uni.saber.br',
+    avatar: '👨‍🎓',
+    type: 'Motorista',
     status: 'Ativo',
-    lastAccess: '2024-04-11 18:45',
-    ipLogin: '192.168.1.103'
+    lastAccess: '2023-10-01 08:00',
+    ipLogin: '192.168.1.103',
+    school: 'Universidade Estadual do Saber',
+    course: 'Direito'
   },
   {
     id: 4,
-    name: 'Roberto Gomes',
-    email: 'roberto.gomes@universidad.edu.br',
-    avatar: '👨‍🎓',
-    type: 'Motorista',
+    name: 'Ana Oliveira',
+    email: 'ana.oliveira@aluno.inova.br',
+    avatar: '👩‍🎓',
+    type: 'Ambos',
     status: 'Inativo',
-    lastAccess: '2024-03-30 10:20',
-    ipLogin: '192.168.1.104'
+    lastAccess: null,
+    ipLogin: '192.168.1.104',
+    school: 'Faculdade Tecnológica Inova',
+    course: 'Análise e Desenvolvimento de Sistemas'
   },
   {
     id: 5,
-    name: 'Beatriz Lima',
-    email: 'beatriz.lima@universidad.edu.br',
-    avatar: '👩‍🎓',
-    type: 'Passageiro',
-    status: 'Pendente',
-    lastAccess: '2024-04-12 09:00',
-    ipLogin: '192.168.1.105'
+    name: 'Lucas Pereira',
+    email: 'lucas.pereira@aluno.inova.br',
+    avatar: '👨‍🎓',
+    type: 'Motorista',
+    status: 'Ativo',
+    lastAccess: '2024-04-12 10:00',
+    ipLogin: '192.168.1.105',
+    school: 'Faculdade Tecnológica Inova',
+    course: 'Análise e Desenvolvimento de Sistemas'
   },
   {
     id: 6,
-    name: 'Daniel Costa',
-    email: 'daniel.costa@universidad.edu.br',
-    avatar: '👨‍🎓',
-    type: 'Ambos',
+    name: 'Admin Sistema',
+    email: 'admin@sistema.inova.br',
+    avatar: '👨‍💼',
+    type: 'Administrador',
     status: 'Ativo',
-    lastAccess: '2024-04-12 16:30',
-    ipLogin: '192.168.1.106'
+    lastAccess: '2024-12-01 09:00',
+    ipLogin: '192.168.1.106',
+    school: 'Faculdade Tecnológica Inova',
+    course: 'Sistema'
   },
   {
     id: 7,
-    name: 'Sophia Alves',
-    email: 'sophia.alves@universidad.edu.br',
-    avatar: '👩‍🎓',
-    type: 'Motorista',
-    status: 'Ativo',
-    lastAccess: '2024-04-12 11:45',
-    ipLogin: '192.168.1.107'
+    name: 'Novo Aluno',
+    email: 'novo.aluno@aluno.inova.br',
+    avatar: '👨‍🎓',
+    type: 'Temporário',
+    status: 'Pendente',
+    lastAccess: null,
+    ipLogin: null,
+    school: 'Faculdade Tecnológica Inova',
+    course: 'Não definido'
   },
   {
     id: 8,
-    name: 'Lucas Ribeiro',
-    email: 'lucas.ribeiro@universidad.edu.br',
+    name: 'Pendente OTP',
+    email: 'pendente.otp@aluno.inova.br',
     avatar: '👨‍🎓',
-    type: 'Passageiro',
-    status: 'Ativo',
-    lastAccess: '2024-04-12 15:00',
-    ipLogin: '192.168.1.108'
+    type: 'Pendente',
+    status: 'Aguardando verificação',
+    lastAccess: null,
+    ipLogin: null,
+    school: 'Faculdade Tecnológica Inova',
+    course: 'Não definido'
   },
   {
     id: 9,
-    name: 'Fernanda Martins',
-    email: 'fernanda.martins@universidad.edu.br',
-    avatar: '👩‍🎓',
-    type: 'Ambos',
-    status: 'Ativo',
-    lastAccess: '2024-04-12 14:20',
-    ipLogin: '192.168.1.109'
+    name: 'Fábio Suspenso',
+    email: 'fabio.suspenso@aluno.inova.br',
+    avatar: '👨‍🎓',
+    type: 'Motorista',
+    status: 'Suspenso',
+    lastAccess: null,
+    ipLogin: null,
+    school: 'Faculdade Tecnológica Inova',
+    course: 'Não definido'
   },
   {
     id: 10,
-    name: 'Ricardo Souza',
-    email: 'ricardo.souza@universidad.edu.br',
+    name: 'Temp Veículo',
+    email: 'temp.veiculo@aluno.inova.br',
     avatar: '👨‍🎓',
     type: 'Motorista',
-    status: 'Ativo',
-    lastAccess: '2024-04-10 12:30',
-    ipLogin: '192.168.1.110'
+    status: 'Temporário',
+    lastAccess: null,
+    ipLogin: null,
+    school: 'Faculdade Tecnológica Inova',
+    course: 'Não definido'
   }
 ];
 
 export const suggestionsData = [
   {
     id: 1,
-    userName: 'Maria Costa',
+    userName: 'Mariana Souza',
     avatar: '👩‍🎓',
-    text: 'Excelente aplicativo! Consegui encontrar carona facilmente.',
+    text: 'Seria ótimo ter um filtro de caronas por horário de saída mais específico.',
     type: 'Sugestão',
-    date: '2024-04-10',
-    status: 'Pendente'
+    date: '2024-04-12',
+    status: 'Resolvido',
+    response: 'Obrigado pela sugestão! Já está no nosso backlog para a próxima sprint.'
   },
   {
     id: 2,
-    userName: 'Pedro Santos',
+    userName: 'Lucas Pereira',
     avatar: '👨‍🎓',
-    text: 'Tive um problema com um motorista que não apareceu.',
+    text: 'O usuário Carlos Silva cancelou a carona em cima da hora sem nenhum aviso.',
     type: 'Denúncia',
-    date: '2024-04-09',
-    status: 'Resolvido'
+    date: '2024-04-12',
+    status: 'Em análise',
+    response: null
   },
   {
     id: 3,
-    userName: 'Ana Silva',
-    avatar: '👩‍🎓',
-    text: 'Sistema de recompensas seria interessante.',
+    userName: 'Carlos Silva',
+    avatar: '👨‍🎓',
+    text: 'Poderia ter uma opção de carona recorrente para quem vai ao mesmo lugar todo dia.',
     type: 'Sugestão',
-    date: '2024-04-08',
-    status: 'Pendente'
+    date: '2024-04-12',
+    status: 'Pendente',
+    response: null
   },
   {
     id: 4,
-    userName: 'Lucas Ferreira',
+    userName: 'Pedro Santos',
     avatar: '👨‍🎓',
-    text: 'App está muito lento às vezes.',
+    text: 'Encontrei um usuário com comprovante de matrícula claramente falsificado.',
     type: 'Denúncia',
     date: '2024-04-07',
-    status: 'Arquivado'
+    status: 'Resolvido',
+    response: 'Denúncia verificada e confirmada. O usuário foi suspenso. Obrigado pelo aviso.'
   }
 ];
 
 export const ridesData = [
   {
     id: 'R001',
-    driver: 'Marina Oliveira',
-    passengers: ['Carlos Mendes', 'Beatriz Lima'],
-    origin: 'Campus Centro',
-    destination: 'Campus Tecnológico',
-    time: '2024-04-12 14:30',
-    status: 'Concluída'
+    driver: 'Carlos Silva',
+    passengers: ['Mariana Souza', 'Lucas Pereira'],
+    origin: 'Rua das Flores, 123, Centro, São Paulo',
+    destination: 'Estação Metrô Consolação, São Paulo',
+    originPoint: 'Saída - Casa do Carlos',
+    destinationPoint: 'Metrô Consolação',
+    time: '2024-04-13 07:30',
+    status: 'Aberta',
+    vagasDisponiveis: 3,
+    description: 'Ida p/ faculdade - Saio do centro, passo na Consolação'
   },
   {
     id: 'R002',
-    driver: 'Roberto Gomes',
-    passengers: ['Daniel Costa'],
-    origin: 'Estação Metrô',
-    destination: 'Campus Centro',
-    time: '2024-04-12 15:45',
-    status: 'Em andamento'
+    driver: 'Carlos Silva',
+    passengers: [],
+    origin: 'Rua das Flores, 123, Centro, São Paulo',
+    destination: 'Faculdade Tecnológica Inova',
+    time: '2024-04-13 07:30',
+    status: 'Em espera',
+    vagasDisponiveis: 0,
+    description: 'Ida p/ faculdade - Saio do centro'
   },
   {
     id: 'R003',
-    driver: 'Sophia Alves',
-    passengers: ['Lucas Ribeiro', 'Fernanda Martins'],
-    origin: 'Campus Tecnológico',
-    destination: 'Shopping Center',
-    time: '2024-04-12 16:15',
-    status: 'Concluída'
+    driver: 'Pedro Santos',
+    passengers: [],
+    origin: 'Rua da Paz, 88, Vila Nova, Campinas',
+    destination: 'Faculdade',
+    originPoint: 'Saída - Casa do Pedro',
+    time: '2024-04-13 18:00',
+    status: 'Aberta',
+    vagasDisponiveis: 1,
+    description: 'Volta p/ Vila Nova - só 1 passageiro na moto',
+    vehicle: 'Honda CG 160 - Azul'
   },
   {
     id: 'R004',
-    driver: 'Ricardo Souza',
-    passengers: ['Maria Costa'],
-    origin: 'Campus Centro',
-    destination: 'Casa Estudante',
-    time: '2024-04-11 13:20',
-    status: 'Cancelada'
+    driver: 'Lucas Pereira',
+    passengers: ['Carlos Silva'],
+    origin: 'Rua Nova, 200, Pinheiros, São Paulo',
+    destination: 'Av. Faria Lima, 1000, São Paulo',
+    time: '2024-04-13 07:45',
+    status: 'Aberta',
+    vagasDisponiveis: 2,
+    description: 'Ida p/ faculdade - Saio de Pinheiros'
+  },
+  {
+    id: 'R005',
+    driver: 'Carlos Silva',
+    passengers: ['Lucas Pereira'],
+    origin: 'Rua das Flores, 123, Centro, São Paulo',
+    destination: 'Faculdade Tecnológica Inova',
+    time: '2024-04-05 07:30',
+    status: 'Concluída',
+    vagasDisponiveis: 0,
+    description: 'Ida p/ faculdade - Carona da semana passada'
+  },
+  {
+    id: 'R006',
+    driver: 'Carlos Silva',
+    passengers: [],
+    origin: 'Rua das Flores, 123, Centro, São Paulo',
+    destination: 'Faculdade Tecnológica Inova',
+    time: '2024-04-14 07:30',
+    status: 'Cancelada',
+    vagasDisponiveis: 3,
+    description: 'Ida p/ faculdade - Cancelei por imprevisto'
   }
 ];
 
@@ -305,33 +373,33 @@ export const recentReports = [
 export const contractsData = [
   {
     id: 1,
-    userName: 'Marina Oliveira',
+    userName: 'Carlos Silva',
     contractType: 'Termos de Serviço',
-    acceptDate: '2024-02-15',
+    acceptDate: '2023-01-15',
     version: 'v2.0',
     status: 'Ativo'
   },
   {
     id: 2,
-    userName: 'Carlos Mendes',
+    userName: 'Mariana Souza',
     contractType: 'Política de Privacidade',
-    acceptDate: '2024-03-10',
+    acceptDate: '2023-02-20',
     version: 'v2.1',
     status: 'Ativo'
   },
   {
     id: 3,
-    userName: 'Juliana Ferreira',
+    userName: 'Pedro Santos',
     contractType: 'Acordo de Responsabilidade',
-    acceptDate: '2024-01-20',
+    acceptDate: '2022-08-10',
     version: 'v1.5',
-    status: 'Expirado'
+    status: 'Ativo'
   },
   {
     id: 4,
-    userName: 'Roberto Gomes',
+    userName: 'Lucas Pereira',
     contractType: 'Termos de Serviço',
-    acceptDate: '2024-04-01',
+    acceptDate: '2023-09-01',
     version: 'v2.0',
     status: 'Ativo'
   }
@@ -340,34 +408,34 @@ export const contractsData = [
 export const auditLogData = [
   {
     id: 1,
-    date: '2024-04-12 14:30',
-    admin: 'João Silva',
-    action: 'Remoção de Usuário',
-    description: 'Usuário Roberto Gomes removido da plataforma',
+    date: '2024-04-12 10:00',
+    admin: 'Admin Sistema',
+    action: 'Cadastro de Usuário',
+    description: 'Usuário Carlos Silva cadastrado na plataforma',
     ip: '192.168.1.50'
   },
   {
     id: 2,
-    date: '2024-04-12 13:15',
-    admin: 'João Silva',
+    date: '2024-04-12 10:15',
+    admin: 'Admin Sistema',
     action: 'Envio de Notificação',
     description: 'Notificação enviada para 150 usuários',
     ip: '192.168.1.50'
   },
   {
     id: 3,
-    date: '2024-04-11 18:45',
-    admin: 'Ana Martins',
-    action: 'Geração de Relatório',
-    description: 'Relatório Geral exportado em PDF',
-    ip: '192.168.1.51'
+    date: '2024-04-07 12:45',
+    admin: 'Admin Sistema',
+    action: 'Suspensão de Usuário',
+    description: 'Usuário com comprovante falsificado foi suspenso',
+    ip: '192.168.1.50'
   },
   {
     id: 4,
-    date: '2024-04-11 17:20',
-    admin: 'João Silva',
-    action: 'Resolução de Denúncia',
-    description: 'Denúncia de usuário resolvida',
+    date: '2024-04-05 08:30',
+    admin: 'Admin Sistema',
+    action: 'Aplicação de Penalidade',
+    description: 'Penalidade tipo 1 aplicada a usuário por cancelamento recorrente',
     ip: '192.168.1.50'
   }
 ];

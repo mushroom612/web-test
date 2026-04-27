@@ -33,7 +33,7 @@ export function Login() {
               type="email"
               id="email"
               className={styles.input}
-              placeholder="seu.email@universidad.edu.br"
+              placeholder="admin@sistema.inova.br"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

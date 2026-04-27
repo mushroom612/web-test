@@ -105,6 +105,32 @@
   color: var(--btn-primary-bg);
 }
 
+.description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: inline-block;
+  max-width: 200px;
+  word-break: break-word;
+}
+
+.location {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.vagas {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: var(--color-green-100);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--btn-primary-bg);
+}
+
 .noResults {
   text-align: center;
   padding: 40px 20px;

@@ -140,6 +140,34 @@
   color: var(--btn-primary-bg);
 }
 
+.typeAndStatus {
+  display: flex;
+  gap: 8px;
+}
+
+.responseSection {
+  background-color: var(--surface-page);
+  border-left: 3px solid var(--btn-primary-bg);
+  padding: 12px;
+  border-radius: 4px;
+  margin: 12px 0;
+}
+
+.responseLabel {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.responseText {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
 .noResults {
   text-align: center;
   padding: 40px 20px;

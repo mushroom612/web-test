@@ -42,9 +42,10 @@ export function Usuarios() {
             <tr>
               <th className={styles.colName}>Nome</th>
               <th className={styles.colType}>Tipo</th>
+              <th className={styles.colSchool}>Escola</th>
+              <th className={styles.colCourse}>Curso</th>
               <th className={styles.colStatus}>Status</th>
-              <th className={styles.colAccess}>Último Acesso</th>
-              <th className={styles.colIP}>IP de Login</th>
+
               <th className={styles.colActions}>Ações</th>
             </tr>
           </thead>
@@ -63,12 +64,14 @@ export function Usuarios() {
                 <td className={styles.cellType}>
                   <span className={styles.typeLabel}>{user.type}</span>
                 </td>
+                <td className={styles.cellSchool}>
+                  <span className={styles.schoolLabel}>{user.school}</span>
+                </td>
+                <td className={styles.cellCourse}>
+                  <span className={styles.courseLabel}>{user.course}</span>
+                </td>
                 <td className={styles.cellStatus}>
                   <StatusBadge status={user.status} />
-                </td>
-                <td className={styles.cellAccess}>{user.lastAccess}</td>
-                <td className={styles.cellIP}>
-                  <code className={styles.ipCode}>{user.ipLogin}</code>
                 </td>
                 <td className={styles.cellActions}>
                   <button className={styles.iconBtn} title="Editar">

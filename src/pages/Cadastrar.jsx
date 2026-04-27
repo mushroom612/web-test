@@ -1,16 +1,49 @@
 import { useState } from 'react';
+import { Building2, MapPin, Mail, Users, Trash2, Edit2 } from 'lucide-react';
+import { usersData } from '../data/mockData';
+import { StatusBadge } from '../components/StatusBadge';
 import styles from './Cadastrar.module.css';
 
 export function Cadastrar() {
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    registration: '',
-    course: '',
-    institution: '',
-    type: 'Passageiro',
-    password: ''
+    schoolName: '',
+    address: '',
+    emailDomain: '',
+    maxUsers: '',
+    description: ''
   });
+
+  const [institutions, setInstitutions] = useState([
+    {
+      id: 1,
+      name: 'Faculdade Tecnológica Inova',
+      address: 'Av. Paulista, 1000, São Paulo - SP',
+      emailDomain: 'inova.edu.br',
+      maxUsers: 100,
+      description: 'Instituição focada em tecnologia e inovação'
+    },
+    {
+      id: 2,
+      name: 'Universidade Estadual do Saber',
+      address: 'Rua dos Estudos, 500, Campinas - SP',
+      emailDomain: 'saber.edu.br',
+      maxUsers: 50,
+      description: 'Universidade com excelência em ensino'
+    },
+    {
+      id: 3,
+      name: 'Instituto Federal do Oeste',
+      address: 'Rua da Ciência, 300, Araçatuba - SP',
+      emailDomain: null,
+      maxUsers: null,
+      description: 'Instituto com foco em educação profissional'
+    }
+  ]);
+
+  // Agrupar usuários por instituição
+  const getUsersBySchool = (schoolName) => {
+    return usersData.filter(user => user.school === schoolName);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,151 +55,139 @@ export function Cadastrar() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Formulário enviado:', formData);
-    alert('Usuário cadastrado com sucesso!');
+    
+    const newInstitution = {
+      id: institutions.length + 1,
+      name: formData.schoolName,
+      address: formData.address,
+      emailDomain: formData.emailDomain || null,
+      maxUsers: formData.maxUsers ? parseInt(formData.maxUsers) : null,
+      description: formData.description
+    };
+
+    setInstitutions([...institutions, newInstitution]);
+    alert('Instituição cadastrada com sucesso!');
     setFormData({
-      fullName: '',
-      email: '',
-      registration: '',
-      course: '',
-      institution: '',
-      type: 'Passageiro',
-      password: ''
+      schoolName: '',
+      address: '',
+      emailDomain: '',
+      maxUsers: '',
+      description: ''
     });
+  };
+
+  const handleDeleteInstitution = (id) => {
+    if (window.confirm('Tem certeza que deseja deletar esta instituição?')) {
+      setInstitutions(institutions.filter(inst => inst.id !== id));
+    }
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Cadastrar Usuário</h1>
-        <p className={styles.subtitle}>Adicione um novo usuário ao sistema</p>
+        <h1 className={styles.title}>Cadastrar Instituição</h1>
+        <p className={styles.subtitle}>Adicione uma nova instituição ao sistema para que seus estudantes possam se registrar</p>
       </div>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <div className={styles.formGrid}>
-          <div className={styles.formGroup}>
-            <label htmlFor="fullName" className={styles.label}>
-              Nome Completo
-            </label>
-            <input
-              type="text"
-              id="fullName"
-              name="fullName"
-              className={styles.input}
-              placeholder="Digite o nome completo"
-              value={formData.fullName}
-              onChange={handleChange}
-              required
-            />
-          </div>
+      <div className={styles.contentGrid}>
+        {/* Formulário de Cadastro */}
+        <div className={styles.formSection}>
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <div className={styles.formGrid}>
+              <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="schoolName" className={styles.label}>
+                  <Building2 size={16} /> Nome da Instituição
+                </label>
+                <input
+                  type="text"
+                  id="schoolName"
+                  name="schoolName"
+                  className={styles.input}
+                  placeholder="Ex: Faculdade Tecnológica Inova"
+                  value={formData.schoolName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="email" className={styles.label}>
-              E-mail Institucional
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className={styles.input}
-              placeholder="usuario@universidad.edu.br"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
+              <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="address" className={styles.label}>
+                  <MapPin size={16} /> Endereço
+                </label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  className={styles.input}
+                  placeholder="Ex: Av. Paulista, 1000, São Paulo - SP"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="registration" className={styles.label}>
-              Matrícula
-            </label>
-            <input
-              type="text"
-              id="registration"
-              name="registration"
-              className={styles.input}
-              placeholder="2024001234"
-              value={formData.registration}
-              onChange={handleChange}
-              required
-            />
-          </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="emailDomain" className={styles.label}>
+                  <Mail size={16} /> Domínio de E-mail
+                </label>
+                <input
+                  type="text"
+                  id="emailDomain"
+                  name="emailDomain"
+                  className={styles.input}
+                  placeholder="Ex: inova.edu.br"
+                  value={formData.emailDomain}
+                  onChange={handleChange}
+                />
+                <span className={styles.fieldHint}>Deixe vazio se não houver restrição de domínio</span>
+              </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="course" className={styles.label}>
-              Curso
-            </label>
-            <input
-              type="text"
-              id="course"
-              name="course"
-              className={styles.input}
-              placeholder="Engenharia de Software"
-              value={formData.course}
-              onChange={handleChange}
-              required
-            />
-          </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="maxUsers" className={styles.label}>
+                  <Users size={16} /> Limite Máximo de Usuários
+                </label>
+                <input
+                  type="number"
+                  id="maxUsers"
+                  name="maxUsers"
+                  className={styles.input}
+                  placeholder="Ex: 100"
+                  value={formData.maxUsers}
+                  onChange={handleChange}
+                  min="1"
+                />
+                <span className={styles.fieldHint}>Deixe vazio para sem limite</span>
+              </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="institution" className={styles.label}>
-              Instituição
-            </label>
-            <input
-              type="text"
-              id="institution"
-              name="institution"
-              className={styles.input}
-              placeholder="Universidade XYZ"
-              value={formData.institution}
-              onChange={handleChange}
-              required
-            />
-          </div>
+              <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="description" className={styles.label}>
+                  Descrição (Opcional)
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  className={styles.textarea}
+                  placeholder="Informações adicionais sobre a instituição"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={4}
+                />
+              </div>
+            </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="type" className={styles.label}>
-              Tipo de Usuário
-            </label>
-            <select
-              id="type"
-              name="type"
-              className={styles.select}
-              value={formData.type}
-              onChange={handleChange}
-            >
-              <option value="Passageiro">Passageiro</option>
-              <option value="Motorista">Motorista</option>
-              <option value="Ambos">Ambos</option>
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="password" className={styles.label}>
-              Senha
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className={styles.input}
-              placeholder="Digite a senha"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
+            <div className={styles.formActions}>
+              <button type="submit" className={styles.submitBtn}>
+                Cadastrar Instituição
+              </button>
+              <button type="reset" className={styles.cancelBtn}>
+                Limpar
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
 
-        <div className={styles.formActions}>
-          <button type="submit" className={styles.submitBtn}>
-            Salvar
-          </button>
-          <button type="reset" className={styles.cancelBtn}>
-            Cancelar
-          </button>
-        </div>
-      </form>
+         
     </div>
   );
 }

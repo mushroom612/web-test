@@ -18,7 +18,7 @@ export function Sugestoes() {
       </div>
 
       <div className={styles.filterTabs}>
-        {['Todos', 'Sugestões', 'Denúncias'].map((type) => (
+        {['Todos', 'Sugestão', 'Denúncia'].map((type) => (
           <button
             key={type}
             className={`${styles.filterBtn} ${filterType === type ? styles.active : ''}`}
@@ -40,14 +40,22 @@ export function Sugestoes() {
                   <span className={styles.date}>{item.date}</span>
                 </div>
               </div>
-              <StatusBadge status={item.type} />
+              <div className={styles.typeAndStatus}>
+                <StatusBadge status={item.type} />
+                <StatusBadge status={item.status} />
+              </div>
             </div>
             <p className={styles.text}>{item.text}</p>
+            {item.response && (
+              <div className={styles.responseSection}>
+                <p className={styles.responseLabel}>Resposta do Admin:</p>
+                <p className={styles.responseText}>{item.response}</p>
+              </div>
+            )}
             <div className={styles.cardFooter}>
-              <StatusBadge status={item.status} />
               <div className={styles.actions}>
-                <button className={styles.secondaryBtn}>Resolver</button>
-                <button className={styles.secondaryBtn}>Arquivar</button>
+                <button className={styles.secondaryBtn}>Editar</button>
+                <button className={styles.secondaryBtn}>Responder</button>
               </div>
             </div>
           </div>

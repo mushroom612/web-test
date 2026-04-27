@@ -1,5 +1,5 @@
 .container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -20,11 +20,22 @@
   color: var(--text-secondary);
 }
 
-.form {
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.formSection {
   background-color: var(--surface-primary);
   border-radius: var(--card-radius-desktop);
-  padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+}
+
+.form {
+  width: 100%;
 }
 
 .formGrid {
@@ -44,11 +55,18 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.label svg {
+  color: var(--btn-primary-bg);
 }
 
 .input,
-.select {
+.select,
+.textarea {
   padding: 10px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
@@ -60,7 +78,8 @@
 }
 
 .input:focus,
-.select:focus {
+.select:focus,
+.textarea:focus {
   outline: none;
   border-color: var(--btn-primary-bg);
   box-shadow: 0 0 0 3px rgba(78, 135, 38, 0.1);
@@ -68,6 +87,18 @@
 
 .select {
   cursor: pointer;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.fieldHint {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
 }
 
 .formActions {
@@ -112,17 +143,279 @@
   border-color: var(--btn-primary-bg);
 }
 
+/* Seção de Instituições */
+
+.institutionsSection {
+  margin-top: 48px;
+}
+
+.sectionTitle {
+  margin: 0 0 24px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.institutionsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.institutionCard {
+  background-color: var(--surface-primary);
+  border-radius: var(--card-radius-desktop);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.institutionCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border-color: var(--btn-primary-bg);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.institutionInfo {
+  flex: 1;
+}
+
+.institutionName {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.institutionAddress {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.institutionAddress svg {
+  flex-shrink: 0;
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+}
+
+.iconBtn:hover {
+  background-color: var(--color-green-100);
+  color: var(--btn-primary-bg);
+}
+
+.cardContent {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 16px;
+}
+
+.description {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.institutionDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.detailLabel {
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 120px;
+}
+
+.detailValue {
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+.studentsSection {
+  margin-top: 0;
+}
+
+.studentsTitle {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.studentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.studentItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px;
+  background-color: var(--surface-page);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.studentInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.studentAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--color-green-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.studentName {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.studentEmail {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.studentMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.courseLabel {
+  padding: 2px 6px;
+  background-color: var(--color-green-100);
+  border-radius: 3px;
+  color: var(--btn-primary-bg);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.noStudents {
+  text-align: center;
+  padding: 16px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-style: italic;
+  background-color: var(--surface-page);
+  border-radius: 6px;
+}
+
+@media (max-width: 1024px) {
+  .institutionsList {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
   .formGrid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
 
-  .form {
+  .formSection {
     padding: 16px;
   }
 
+  .institutionsList {
+    grid-template-columns: 1fr;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+  }
+
+  .institutionsList {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
   .formActions {
     flex-direction: column;
+  }
+
+  .submitBtn,
+  .cancelBtn {
+    flex: none;
+    width: 100%;
+  }
+
+  .cardActions {
+    flex-wrap: wrap;
+  }
+
+  .studentMeta {
+    flex-wrap: wrap;
   }
 }
