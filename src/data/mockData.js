@@ -450,6 +450,40 @@ export const chartData = [
   { day: 'Dom', rides: 38 }
 ];
 
+export const penaltiesData = {
+  5: [
+    {
+      pen_id: 1,
+      pen_tipo: 2,
+      pen_motivo: 'Comportamento inadequado com motorista.',
+      pen_aplicado_em: '2026-03-31T10:00:00.000Z',
+      pen_expira_em: '2026-04-29T10:00:00.000Z',
+      pen_aplicado_por: 6,
+      pen_ativo: 1
+    }
+  ],
+  9: [
+    {
+      pen_id: 2,
+      pen_tipo: 1,
+      pen_motivo: 'Cancelamento de última hora recorrente.',
+      pen_aplicado_em: '2026-04-01T12:00:00.000Z',
+      pen_expira_em: '2026-04-28T12:00:00.000Z',
+      pen_aplicado_por: 6,
+      pen_ativo: 1
+    },
+    {
+      pen_id: 3,
+      pen_tipo: 3,
+      pen_motivo: 'Reincidência após penalidade anterior.',
+      pen_aplicado_em: '2026-01-10T09:00:00.000Z',
+      pen_expira_em: '2026-02-10T09:00:00.000Z',
+      pen_aplicado_por: 6,
+      pen_ativo: 0
+    }
+  ]
+};
+
 export const notificationData = {
   count: 3,
   items: [

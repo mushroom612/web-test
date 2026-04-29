@@ -9,7 +9,8 @@ import {
   MessageSquare,
   Bell,
   Shield,
-  LogOut
+  LogOut,
+  Ban
 } from 'lucide-react';
 import { adminUser } from '../data/mockData';
 import styles from './Aside.module.css';
@@ -19,32 +20,42 @@ export function Aside() {
     window.location.href = '/';
   };
 
-  const menuSections = [
+  const isDeveloper = adminUser.role === 'Desenvolvedor';
+
+  const allMenuSections = [
     {
       title: 'VISÃO GERAL',
       items: [
-        { icon: Home, label: 'Dashboard', path: '/dashboard' },
-        { icon: BarChart3, label: 'Relatórios', path: '/relatorios' }
+        { icon: Home, label: 'Dashboard', path: '/dashboard', developerOnly: false },
+        { icon: BarChart3, label: 'Relatórios', path: '/relatorios', developerOnly: false }
       ]
     },
     {
       title: 'USUÁRIOS',
       items: [
-        { icon: Search, label: 'Procurar Usuário', path: '/usuarios' },
-        { icon: Plus, label: 'Cadastrar', path: '/cadastrar' }
+        { icon: Search, label: 'Procurar Usuário', path: '/usuarios', developerOnly: true },
+        { icon: Plus, label: 'Cadastrar', path: '/cadastrar', developerOnly: true },
+        { icon: Ban, label: 'Penalidades', path: '/penalidades', developerOnly: false }
       ]
     },
     {
       title: 'OPERAÇÕES',
       items: [
-        { icon: Car, label: 'Registros de Carona', path: '/caronas' },
-        { icon: FileText, label: 'Contratos', path: '/contratos' },
-        { icon: MessageSquare, label: 'Sugestões/Denúncias', path: '/sugestoes' },
-        { icon: Bell, label: 'Emitir Notificação', path: '/notificacoes' },
-        { icon: Shield, label: 'Auditoria', path: '/auditoria' }
+        { icon: Car, label: 'Registros de Carona', path: '/caronas', developerOnly: false },
+        { icon: FileText, label: 'Contratos', path: '/contratos', developerOnly: true },
+        { icon: MessageSquare, label: 'Sugestões/Denúncias', path: '/sugestoes', developerOnly: false },
+        { icon: Bell, label: 'Emitir Notificação', path: '/notificacoes', developerOnly: true },
+        { icon: Shield, label: 'Auditoria', path: '/auditoria', developerOnly: false }
       ]
     }
   ];
+
+  const menuSections = allMenuSections
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => isDeveloper || !item.developerOnly)
+    }))
+    .filter(section => section.items.length > 0);
 
   return (
     <aside className={styles.aside}>

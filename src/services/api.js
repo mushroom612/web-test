@@ -87,5 +87,35 @@ export const api = {
       body: JSON.stringify(profileData)
     });
     return handleResponse(res);
+  },
+
+  // Penalidades
+  async getPenalidades(userId, { ativas, page, limit } = {}) {
+    const params = new URLSearchParams();
+    if (ativas !== undefined) params.set('ativas', ativas);
+    if (page)  params.set('page', page);
+    if (limit) params.set('limit', limit);
+    const query = params.toString() ? `?${params}` : '';
+    const res = await fetch(`${BASE_URL}/api/admin/usuarios/${userId}/penalidades${query}`, {
+      headers: authHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  async applyPenalidade(userId, { pen_tipo, pen_duracao, pen_motivo }) {
+    const res = await fetch(`${BASE_URL}/api/admin/usuarios/${userId}/penalidades`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ pen_tipo, pen_duracao, pen_motivo })
+    });
+    return handleResponse(res);
+  },
+
+  async removePenalidade(penId) {
+    const res = await fetch(`${BASE_URL}/api/admin/penalidades/${penId}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    return handleResponse(res);
   }
 };
