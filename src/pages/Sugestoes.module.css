@@ -4,12 +4,12 @@
 }
 
 .header {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-6);
 }
 
 .title {
   margin: 0;
-  font-size: 24px;
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -17,20 +17,20 @@
 .filterTabs {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-6);
   background-color: var(--surface-primary);
-  padding: 4px;
-  border-radius: 8px;
+  padding: var(--spacing-1);
+  border-radius: var(--border-radius-md);
   width: fit-content;
 }
 
 .filterBtn {
-  padding: 8px 16px;
+  padding: var(--spacing-2) var(--spacing-4);
   background-color: transparent;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
@@ -56,39 +56,28 @@
   width: 1px;
   height: 20px;
   background-color: var(--color-neutral-200);
-  margin: 0 2px;
+  margin: 0 var(--spacing-1);
 }
 
 .archiveBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: var(--border-radius-full);
-  font-size: 11px;
-  font-weight: 700;
-  background-color: var(--color-neutral-200);
-  color: var(--text-secondary);
+  display: none;
 }
 
 .archiveBadgeActive {
-  background-color: rgba(255, 255, 255, 0.25);
-  color: var(--btn-primary-text);
+  display: none;
 }
 
 .archiveBanner {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
   background-color: var(--surface-secondary);
   border: 1px solid var(--color-green-200);
   border-radius: var(--border-radius-md);
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin-bottom: 16px;
+  margin-bottom: var(--spacing-4);
 }
 
 .archiveBanner svg {
@@ -99,13 +88,13 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-3);
 }
 
 .suggestionCard {
   background-color: var(--surface-primary);
   border-radius: var(--card-radius-desktop);
-  padding: 16px;
+  padding: var(--spacing-4);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
@@ -113,13 +102,13 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-3);
 }
 
 .userInfo {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--spacing-3);
   flex: 1;
 }
 
@@ -141,44 +130,44 @@
 
 .name {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .date {
   display: block;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
-  margin-top: 2px;
+  margin-top: var(--spacing-1);
 }
 
 .text {
-  margin: 0 0 12px;
-  font-size: 14px;
+  margin: 0 0 var(--spacing-3);
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
 }
 
 .cardFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 12px;
-  border-top: 1px solid #e0e0e0;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-neutral-200);
 }
 
 .actions {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-2);
 }
 
 .secondaryBtn {
-  padding: 6px 12px;
+  padding: var(--spacing-2) var(--spacing-3);
   background-color: var(--surface-page);
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 13px;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-primary);
   cursor: pointer;
@@ -186,64 +175,66 @@
 }
 
 .secondaryBtn:hover {
-  background-color: var(--color-green-100);
+  background-color: var(--surface-secondary);
   border-color: var(--btn-primary-bg);
   color: var(--btn-primary-bg);
 }
 
 .typeAndStatus {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-2);
+  align-items: center;
 }
 
 .responseSection {
   background-color: var(--surface-page);
   border-left: 3px solid var(--btn-primary-bg);
-  padding: 12px;
-  border-radius: 4px;
-  margin: 12px 0;
+  padding: var(--spacing-3);
+  border-radius: var(--border-radius-sm);
+  margin: var(--spacing-3) 0;
 }
 
 .responseLabel {
-  margin: 0 0 8px;
-  font-size: 12px;
+  margin: 0 0 var(--spacing-2);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .responseText {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-xs);
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
 }
 
 .noResults {
   text-align: center;
-  padding: 40px 20px;
+  padding: var(--spacing-10) var(--spacing-5);
   color: var(--text-secondary);
 }
 
 .cardSelected {
   border: 2px solid var(--btn-primary-bg);
-  box-shadow: 0 0 0 3px rgba(78, 135, 38, 0.08);
+  box-shadow: 0 0 0 var(--focus-outline-width) rgba(78, 135, 38, 0.08);
 }
 
 .replyArea {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e0e0e0;
+  margin-top: var(--spacing-3);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-neutral-200);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-2);
 }
 
 .replyLabel {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -256,47 +247,47 @@
 
 .replyInput {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: var(--spacing-3);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   background-color: var(--color-neutral-0);
   font-family: inherit;
   resize: vertical;
   transition: border-color 0.2s, box-shadow 0.2s;
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
 }
 
 .replyInput:focus {
   outline: none;
   border-color: var(--btn-primary-bg);
-  box-shadow: 0 0 0 3px rgba(78, 135, 38, 0.1);
+  box-shadow: 0 0 0 var(--focus-outline-width) rgba(78, 135, 38, 0.1);
 }
 
 .replyActions {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-2);
   justify-content: flex-end;
 }
 
 .sendBtn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
   background-color: var(--btn-primary-bg);
   color: var(--btn-primary-text);
   border: none;
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .sendBtn:hover:not(:disabled) {
-  background-color: var(--color-green-800);
+  background-color: var(--btn-primary-bg-hover);
 }
 
 .sendBtn:disabled {
@@ -307,12 +298,12 @@
 .archiveBtn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
   background-color: transparent;
   border: 1px solid var(--color-neutral-200);
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
@@ -320,7 +311,7 @@
 }
 
 .archiveBtn:hover {
-  background-color: var(--color-neutral-100);
+  background-color: var(--surface-secondary);
   border-color: var(--color-neutral-300);
   color: var(--text-primary);
 }
@@ -328,12 +319,12 @@
 .unarchiveBtn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
   background-color: var(--color-green-50);
   border: 1px solid var(--color-green-200);
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--color-green-800);
   cursor: pointer;
@@ -354,7 +345,7 @@
   .cardFooter {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: var(--spacing-3);
   }
 
   .actions {
@@ -364,4 +355,41 @@
   .secondaryBtn {
     flex: 1;
   }
+}
+
+.statusSelector {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.statusSelect {
+  appearance: none;
+  padding: var(--spacing-2) 24px var(--spacing-2) var(--spacing-3);
+  background-color: var(--surface-page);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.statusSelect:hover {
+  border-color: var(--btn-primary-bg);
+  background-color: var(--surface-secondary);
+}
+
+.statusSelect:focus {
+  outline: none;
+  border-color: var(--btn-primary-bg);
+  box-shadow: 0 0 0 var(--focus-outline-width) rgba(78, 135, 38, 0.1);
+}
+
+.selectIcon {
+  position: absolute;
+  right: var(--spacing-2);
+  pointer-events: none;
+  color: var(--text-secondary);
 }

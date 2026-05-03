@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { suggestionsData } from '../data/mockData';
 import { StatusBadge } from '../components/StatusBadge';
-import { Send, MessageSquare, Archive, ArchiveRestore } from 'lucide-react';
+import { Send, MessageSquare, Archive, ArchiveRestore, ChevronDown } from 'lucide-react';
 import styles from './Sugestoes.module.css';
 
 export function Sugestoes() {
@@ -11,6 +11,7 @@ export function Sugestoes() {
   const [responses, setResponses] = useState({});
   const [sentIds, setSentIds] = useState(new Set());
   const [archivedIds, setArchivedIds] = useState(new Set());
+  const [statusMap, setStatusMap] = useState({});
 
   const isArchiveView = filterType === 'Arquivados';
 
@@ -20,8 +21,6 @@ export function Sugestoes() {
     if (isArchived) return false;
     return filterType === 'Todos' || item.type === filterType;
   });
-
-  const archivedCount = archivedIds.size;
 
   function handleSelectItem(id) {
     if (selectedId === id) {
@@ -57,6 +56,10 @@ export function Sugestoes() {
     });
   }
 
+  function handleStatusChange(id, newStatus) {
+    setStatusMap(prev => ({ ...prev, [id]: newStatus }));
+  }
+
   function handleFilterChange(type) {
     setFilterType(type);
     setSelectedId(null);
@@ -86,11 +89,6 @@ export function Sugestoes() {
         >
           <Archive size={13} />
           Arquivados
-          {archivedCount > 0 && (
-            <span className={`${styles.archiveBadge} ${isArchiveView ? styles.archiveBadgeActive : ''}`}>
-              {archivedCount}
-            </span>
-          )}
         </button>
       </div>
 
@@ -107,6 +105,7 @@ export function Sugestoes() {
           const savedResponse = responses[item.id] ?? item.response;
           const wasSent = sentIds.has(item.id);
           const isArchived = archivedIds.has(item.id);
+          const currentStatus = statusMap[item.id] ?? item.status;
 
           return (
             <div
@@ -123,7 +122,18 @@ export function Sugestoes() {
                 </div>
                 <div className={styles.typeAndStatus}>
                   <StatusBadge status={item.type} />
-                  <StatusBadge status={item.status} />
+                  <div className={styles.statusSelector}>
+                    <select
+                      className={styles.statusSelect}
+                      value={currentStatus}
+                      onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                    >
+                      <option value="Pendente">Pendente</option>
+                      <option value="Em análise">Em análise</option>
+                      <option value="Resolvido">Resolvido</option>
+                    </select>
+                    <ChevronDown className={styles.selectIcon} size={14} />
+                  </div>
                 </div>
               </div>
 

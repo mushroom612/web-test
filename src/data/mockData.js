@@ -373,35 +373,58 @@ export const recentReports = [
 export const contractsData = [
   {
     id: 1,
-    userName: 'Carlos Silva',
+    institutionName: 'Faculdade Tecnológica Inova',
     contractType: 'Termos de Serviço',
-    acceptDate: '2023-01-15',
+    signDate: '2024-01-10',
+    expiryDate: '2025-01-10',
     version: 'v2.0',
-    status: 'Ativo'
+    status: 'Ativo',
+    description: 'Contrato de uso da plataforma CaronaCity para estudantes e funcionários',
+    contactPerson: 'Prof. João da Silva'
   },
   {
     id: 2,
-    userName: 'Mariana Souza',
-    contractType: 'Política de Privacidade',
-    acceptDate: '2023-02-20',
-    version: 'v2.1',
-    status: 'Ativo'
+    institutionName: 'IFSP - Campus São Paulo',
+    contractType: 'Acordo de Responsabilidade Civil',
+    signDate: '2023-06-15',
+    expiryDate: '2024-06-15',
+    version: 'v1.8',
+    status: 'Vencido',
+    description: 'Termo de responsabilidade e segurança para uso da plataforma de caronas',
+    contactPerson: 'Dra. Maria Santos'
   },
   {
     id: 3,
-    userName: 'Pedro Santos',
-    contractType: 'Acordo de Responsabilidade',
-    acceptDate: '2022-08-10',
-    version: 'v1.5',
-    status: 'Ativo'
+    institutionName: 'Universidade Federal de São Paulo',
+    contractType: 'Política de Privacidade',
+    signDate: '2024-02-20',
+    expiryDate: '2025-02-20',
+    version: 'v2.1',
+    status: 'Ativo',
+    description: 'Conformidade com LGPD e políticas de proteção de dados dos usuários',
+    contactPerson: 'Eng. Carlos Rodrigues'
   },
   {
     id: 4,
-    userName: 'Lucas Pereira',
+    institutionName: 'Senac São Paulo',
     contractType: 'Termos de Serviço',
-    acceptDate: '2023-09-01',
+    signDate: '2024-03-05',
+    expiryDate: '2026-03-05',
     version: 'v2.0',
-    status: 'Ativo'
+    status: 'Pendente de Assinatura',
+    description: 'Contrato em revisão para assinatura dos representantes da instituição',
+    contactPerson: 'Coordenadoria Administrativo'
+  },
+  {
+    id: 5,
+    institutionName: 'Escola Técnica Estadual Professor Camargo',
+    contractType: 'Acordo de Responsabilidade Civil',
+    signDate: '2023-11-22',
+    expiryDate: '2024-11-22',
+    version: 'v1.5',
+    status: 'Vencido',
+    description: 'Responsabilidades e obrigações institucionais na plataforma',
+    contactPerson: 'Secretário de Educação'
   }
 ];
 
