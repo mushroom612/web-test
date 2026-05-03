@@ -1,18 +1,29 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Car, Eye, EyeOff } from 'lucide-react';
+import { api } from '../services/api';
 import styles from './Login.module.css';
 
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Sem validação real, redireciona para o dashboard
-    navigate('/dashboard');
+    setError('');
+    setLoading(true);
+    try {
+      await api.login(email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Email ou senha inválidos.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,8 +73,10 @@ export function Login() {
             </div>
           </div>
 
-          <button type="submit" className={styles.submitBtn}>
-            Entrar
+          {error && <p className={styles.errorMsg}>{error}</p>}
+
+          <button type="submit" className={styles.submitBtn} disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 

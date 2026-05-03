@@ -12,7 +12,8 @@ const pageNames = {
   '/relatorios': 'Relatórios',
   '/contratos': 'Contratos',
   '/notificacoes': 'Emitir Notificação',
-  '/auditoria': 'Auditoria'
+  '/auditoria': 'Auditoria',
+  '/penalidades': 'Penalidades'
 };
 
 export function Topbar() {
