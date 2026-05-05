@@ -1,17 +1,39 @@
-import { useState } from 'react';
-import { Search, Edit2, MoreVertical } from 'lucide-react';
-import { usersData } from '../data/mockData';
-import { StatusBadge } from '../components/StatusBadge';
-import styles from './Usuarios.module.css';
+import {useState} from "react";
+import {Search, Edit2} from "lucide-react";
+import {usersData} from "../data/mockData";
+import {StatusBadge} from "../components/StatusBadge";
+import {PenaltyModal} from "../components/PenaltyModal";
+import {UserActionsMenu} from "../components/UserActionsMenu";
+import styles from "./Usuarios.module.css";
 
 export function Usuarios() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isPenaltyModalOpen, setIsPenaltyModalOpen] = useState(false);
 
   const filteredUsers = usersData.filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const handlePenaltyClick = (user) => {
+    setSelectedUser(user);
+    setIsPenaltyModalOpen(true);
+  };
+
+  const handlePenaltySubmit = async (penaltyData) => {
+    console.log("Penalidade aplicada:", penaltyData);
+    // Aqui você pode fazer a chamada da API para aplicar a penalidade
+    // await api.post('/penalties', penaltyData);
+  };
+
+  const handleDeleteUser = (user) => {
+    if (confirm(`Tem certeza que deseja deletar ${user.name}?`)) {
+      console.log("Usuário deletado:", user);
+      // await api.delete(`/users/${user.id}`);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -51,7 +73,10 @@ export function Usuarios() {
           </thead>
           <tbody>
             {filteredUsers.map((user, index) => (
-              <tr key={user.id} className={index % 2 === 0 ? styles.rowEven : ''}>
+              <tr
+                key={user.id}
+                className={index % 2 === 0 ? styles.rowEven : ""}
+              >
                 <td className={styles.cellName}>
                   <div className={styles.userCell}>
                     <span className={styles.avatar}>{user.avatar}</span>
@@ -77,9 +102,13 @@ export function Usuarios() {
                   <button className={styles.iconBtn} title="Editar">
                     <Edit2 size={16} />
                   </button>
-                  <button className={styles.iconBtn} title="Mais opções">
-                    <MoreVertical size={16} />
-                  </button>
+                  <UserActionsMenu
+                    user={user}
+                    onEdit={(u) => console.log("Editar:", u)}
+                    onPenalize={handlePenaltyClick}
+                    onDelete={handleDeleteUser}
+                    onView={(u) => console.log("Ver:", u)}
+                  />
                 </td>
               </tr>
             ))}
@@ -92,6 +121,13 @@ export function Usuarios() {
           <p>Nenhum usuário encontrado.</p>
         </div>
       )}
+
+      <PenaltyModal
+        isOpen={isPenaltyModalOpen}
+        user={selectedUser}
+        onClose={() => setIsPenaltyModalOpen(false)}
+        onSubmit={handlePenaltySubmit}
+      />
     </div>
   );
 }
