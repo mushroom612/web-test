@@ -188,11 +188,8 @@
   margin-top: 2px;
 }
 
-<<<<<<< Updated upstream
 
 
-=======
->>>>>>> Stashed changes
 .typeLabel {
   padding: 4px 8px;
   background-color: #f0f0f0;
@@ -201,7 +198,6 @@
   color: var(--text-secondary);
 }
 
-<<<<<<< Updated upstream
 .schoolLabel {
   padding: 4px 8px;
   background-color: #f0f0f0;
@@ -219,31 +215,22 @@
 }
 
 
-=======
->>>>>>> Stashed changes
 .cellAccess {
   font-size: 13px;
   color: var(--text-secondary);
 }
 
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
 
 .ipCode {
   padding: 2px 6px;
   background-color: #f5f5f5;
   border-radius: 3px;
-  font-family: "Courier New", monospace;
+  font-family: 'Courier New', monospace;
   font-size: 12px;
   color: #555;
 }
 
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 .iconBtn {
   background: none;
   border: none;
