@@ -23,6 +23,10 @@ Integrar uma funcionalidade completa de penalização de usuários acessível pe
 
 **Componente Modal Principal de Penalidades**
 
+
+
+
+
 ```jsx
 <PenaltyModal
   isOpen={true}
