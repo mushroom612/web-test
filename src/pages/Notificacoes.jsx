@@ -1,31 +1,43 @@
 import { useState } from 'react';
 import { Send } from 'lucide-react';
+import { api } from '../services/api';
 import styles from './Notificacoes.module.css';
 
 export function Notificacoes() {
   const [formData, setFormData] = useState({
     title: '',
     message: '',
-    recipients: 'todos'
+    recipients: 'todos',
+    specificUserId: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState({ type: '', text: '' });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Notificação enviada:', formData);
-    alert('Notificação enviada com sucesso!');
-    setFormData({
-      title: '',
-      message: '',
-      recipients: 'todos'
-    });
+    setFeedback({ type: '', text: '' });
+    setLoading(true);
+    try {
+      await api.enviarNotificacao({
+        titulo: formData.title,
+        mensagem: formData.message,
+        tipo: 'AVISO',
+        usu_id: formData.recipients === 'usuario' && formData.specificUserId
+          ? Number(formData.specificUserId)
+          : undefined
+      });
+      setFeedback({ type: 'success', text: 'Notificação enviada com sucesso!' });
+      setFormData({ title: '', message: '', recipients: 'todos', specificUserId: '' });
+    } catch (err) {
+      setFeedback({ type: 'error', text: `Erro ao enviar: ${err.message}` });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,7 +48,6 @@ export function Notificacoes() {
       </div>
 
       <div className={styles.contentGrid}>
-        {/* Formulário */}
         <div className={styles.formSection}>
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.formGroup}>
@@ -83,21 +94,47 @@ export function Notificacoes() {
                 onChange={handleChange}
               >
                 <option value="todos">Todos os usuários</option>
-                <option value="motoristas">Apenas motoristas</option>
-                <option value="passageiros">Apenas passageiros</option>
-                <option value="curso">Por curso</option>
-                <option value="usuario">Usuário específico</option>
+                <option value="usuario">Usuário específico (por ID)</option>
               </select>
             </div>
 
-            <button type="submit" className={styles.submitBtn}>
+            {formData.recipients === 'usuario' && (
+              <div className={styles.formGroup}>
+                <label htmlFor="specificUserId" className={styles.label}>
+                  ID do Usuário
+                </label>
+                <input
+                  type="number"
+                  id="specificUserId"
+                  name="specificUserId"
+                  className={styles.input}
+                  placeholder="Ex: 42"
+                  value={formData.specificUserId}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            )}
+
+            {feedback.text && (
+              <p
+                style={{
+                  color: feedback.type === 'success' ? '#047857' : '#b91c1c',
+                  fontSize: '0.875rem',
+                  marginBottom: '0.5rem'
+                }}
+              >
+                {feedback.text}
+              </p>
+            )}
+
+            <button type="submit" className={styles.submitBtn} disabled={loading}>
               <Send size={18} />
-              Enviar Notificação
+              {loading ? 'Enviando...' : 'Enviar Notificação'}
             </button>
           </form>
         </div>
 
-        {/* Preview */}
         <div className={styles.previewSection}>
           <h3 className={styles.previewTitle}>Preview (Celular)</h3>
           <div className={styles.phoneFrame}>

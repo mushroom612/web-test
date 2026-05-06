@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Car, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { api } from '../services/api';
 import styles from './Login.module.css';
 
@@ -18,6 +18,25 @@ export function Login() {
     setLoading(true);
     try {
       await api.login(email, password);
+
+      // Busca o perfil para verificar o papel (role) do usuário
+      const profile = await api.getMe();
+      const role = profile?.perfil?.per_tipo ?? profile?.per_tipo ?? 0;
+
+      if (role < 1) {
+        api.logout();
+        setError('Acesso não autorizado. Apenas administradores e desenvolvedores podem acessar este painel.');
+        return;
+      }
+
+      localStorage.setItem('user_role', role);
+      localStorage.setItem('user_info', JSON.stringify({
+        id: profile?.usu_id ?? profile?.usuario?.usu_id,
+        nome: profile?.usu_nome ?? profile?.usuario?.usu_nome ?? email,
+        email: profile?.usu_email ?? profile?.usuario?.usu_email ?? email,
+        role
+      }));
+
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Email ou senha inválidos.');
@@ -44,7 +63,7 @@ export function Login() {
               type="email"
               id="email"
               className={styles.input}
-              placeholder="admin@sistema.inova.br"
+              placeholder="admin@sistema.dominio"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

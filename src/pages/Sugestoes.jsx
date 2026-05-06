@@ -1,21 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '../services/api';
 import { suggestionsData } from '../data/mockData';
 import { StatusBadge } from '../components/StatusBadge';
-import { Send, MessageSquare, Archive, ArchiveRestore, ChevronDown } from 'lucide-react';
+import { Send, MessageSquare, Archive, ArchiveRestore, ChevronDown, Loader2 } from 'lucide-react';
 import styles from './Sugestoes.module.css';
 
+function apiToItem(s) {
+  return {
+    id: s.sug_id,
+    userName: s.usu_nome || `Usuário #${s.usu_id}`,
+    avatar: (s.usu_nome || 'U').charAt(0).toUpperCase(),
+    date: new Date(s.criado_em).toLocaleDateString('pt-BR'),
+    type: s.sug_tipo === 'denuncia' ? 'Denúncia' : 'Sugestão',
+    text: s.sug_texto,
+    status: s.sug_status === 'aberta' ? 'Pendente'
+      : s.sug_status === 'em_analise' ? 'Em análise'
+      : 'Resolvido',
+    response: s.sug_resposta || null,
+    _apiId: s.sug_id
+  };
+}
+
 export function Sugestoes() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('Todos');
   const [selectedId, setSelectedId] = useState(null);
   const [responseText, setResponseText] = useState('');
-  const [responses, setResponses] = useState({});
-  const [sentIds, setSentIds] = useState(new Set());
   const [archivedIds, setArchivedIds] = useState(new Set());
   const [statusMap, setStatusMap] = useState({});
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    api
+      .getSugestoes()
+      .then((data) => {
+        const lista = data.sugestoes || data.data || [];
+        setItems(lista.length > 0 ? lista.map(apiToItem) : suggestionsData);
+      })
+      .catch(() => setItems(suggestionsData))
+      .finally(() => setLoading(false));
+  }, []);
 
   const isArchiveView = filterType === 'Arquivados';
 
-  const filteredSuggestions = suggestionsData.filter((item) => {
+  const filteredItems = items.filter((item) => {
     const isArchived = archivedIds.has(item.id);
     if (isArchiveView) return isArchived;
     if (isArchived) return false;
@@ -28,20 +57,51 @@ export function Sugestoes() {
       setResponseText('');
     } else {
       setSelectedId(id);
-      setResponseText(responses[id] ?? '');
+      const item = items.find((i) => i.id === id);
+      setResponseText(item?.response || '');
     }
   }
 
-  function handleSendResponse(item) {
+  async function handleSendResponse(item) {
     if (!responseText.trim()) return;
-    setResponses(prev => ({ ...prev, [item.id]: responseText.trim() }));
-    setSentIds(prev => new Set(prev).add(item.id));
-    setSelectedId(null);
-    setResponseText('');
+    setSending(true);
+    try {
+      await api.responderSugestao(item._apiId || item.id, responseText.trim());
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id
+            ? { ...i, response: responseText.trim(), status: 'Resolvido' }
+            : i
+        )
+      );
+      setStatusMap((prev) => ({ ...prev, [item.id]: 'Resolvido' }));
+    } catch {
+      // sem acesso à API — salva localmente
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id ? { ...i, response: responseText.trim() } : i
+        )
+      );
+    } finally {
+      setSending(false);
+      setSelectedId(null);
+      setResponseText('');
+    }
+  }
+
+  async function handleStatusChange(id, newStatus) {
+    setStatusMap((prev) => ({ ...prev, [id]: newStatus }));
+    if (newStatus === 'Em análise') {
+      try {
+        await api.analisarSugestao(id);
+      } catch {
+        // sem acesso — estado local já atualizado
+      }
+    }
   }
 
   function handleArchive(id) {
-    setArchivedIds(prev => new Set(prev).add(id));
+    setArchivedIds((prev) => new Set(prev).add(id));
     if (selectedId === id) {
       setSelectedId(null);
       setResponseText('');
@@ -49,21 +109,27 @@ export function Sugestoes() {
   }
 
   function handleUnarchive(id) {
-    setArchivedIds(prev => {
+    setArchivedIds((prev) => {
       const next = new Set(prev);
       next.delete(id);
       return next;
     });
   }
 
-  function handleStatusChange(id, newStatus) {
-    setStatusMap(prev => ({ ...prev, [id]: newStatus }));
-  }
-
   function handleFilterChange(type) {
     setFilterType(type);
     setSelectedId(null);
     setResponseText('');
+  }
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>
+          <Loader2 size={28} style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -100,10 +166,9 @@ export function Sugestoes() {
       )}
 
       <div className={styles.list}>
-        {filteredSuggestions.map((item) => {
+        {filteredItems.map((item) => {
           const isSelected = selectedId === item.id;
-          const savedResponse = responses[item.id] ?? item.response;
-          const wasSent = sentIds.has(item.id);
+          const savedResponse = item.response;
           const isArchived = archivedIds.has(item.id);
           const currentStatus = statusMap[item.id] ?? item.status;
 
@@ -141,9 +206,7 @@ export function Sugestoes() {
 
               {savedResponse && (
                 <div className={styles.responseSection}>
-                  <p className={styles.responseLabel}>
-                    {wasSent ? 'Resposta enviada:' : 'Resposta do Admin:'}
-                  </p>
+                  <p className={styles.responseLabel}>Resposta do Admin:</p>
                   <p className={styles.responseText}>{savedResponse}</p>
                 </div>
               )}
@@ -159,16 +222,16 @@ export function Sugestoes() {
                     rows={3}
                     placeholder="Escreva sua resposta aqui..."
                     value={responseText}
-                    onChange={e => setResponseText(e.target.value)}
+                    onChange={(e) => setResponseText(e.target.value)}
                   />
                   <div className={styles.replyActions}>
                     <button
                       className={styles.sendBtn}
                       onClick={() => handleSendResponse(item)}
-                      disabled={!responseText.trim()}
+                      disabled={!responseText.trim() || sending}
                     >
                       <Send size={14} />
-                      Enviar Solução
+                      {sending ? 'Enviando...' : 'Enviar Solução'}
                     </button>
                     <button
                       className={styles.secondaryBtn}
@@ -192,18 +255,12 @@ export function Sugestoes() {
                       </button>
                     )}
                     {isArchived ? (
-                      <button
-                        className={styles.unarchiveBtn}
-                        onClick={() => handleUnarchive(item.id)}
-                      >
+                      <button className={styles.unarchiveBtn} onClick={() => handleUnarchive(item.id)}>
                         <ArchiveRestore size={14} />
                         Restaurar
                       </button>
                     ) : (
-                      <button
-                        className={styles.archiveBtn}
-                        onClick={() => handleArchive(item.id)}
-                      >
+                      <button className={styles.archiveBtn} onClick={() => handleArchive(item.id)}>
                         <Archive size={14} />
                         Arquivar
                       </button>
@@ -216,7 +273,7 @@ export function Sugestoes() {
         })}
       </div>
 
-      {filteredSuggestions.length === 0 && (
+      {filteredItems.length === 0 && (
         <div className={styles.noResults}>
           {isArchiveView
             ? <p>Nenhum item arquivado.</p>
