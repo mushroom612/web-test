@@ -1,37 +1,80 @@
-import {useState} from "react";
-import {Search, Edit2} from "lucide-react";
-import {usersData} from "../data/mockData";
-import {StatusBadge} from "../components/StatusBadge";
-import {PenaltyModal} from "../components/PenaltyModal";
-import {UserActionsMenu} from "../components/UserActionsMenu";
-import styles from "./Usuarios.module.css";
+import { useState, useEffect } from 'react';
+import { Search, Edit2, Loader2 } from 'lucide-react';
+import { api } from '../services/api';
+import { usersData } from '../data/mockData';
+import { StatusBadge } from '../components/StatusBadge';
+import { PenaltyModal } from '../components/PenaltyModal';
+import { UserActionsMenu } from '../components/UserActionsMenu';
+import styles from './Usuarios.module.css';
+
+function getInitials(name = '') {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase() || '?';
+}
+
+function statusLabel(usu_status) {
+  return usu_status === 1 ? 'Ativo' : 'Inativo';
+}
+
+// Converte dados mock para o mesmo formato da API
+const mockAsApi = usersData.map((u) => ({
+  usu_id: u.id,
+  usu_nome: u.name,
+  usu_email: u.email,
+  usu_status: u.status === 'Ativo' ? 1 : 0,
+  _mock: true
+}));
 
 export function Usuarios() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isPenaltyModalOpen, setIsPenaltyModalOpen] = useState(false);
 
-  const filteredUsers = usersData.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  useEffect(() => {
+    api
+      .getUsers({ limit: 100 })
+      .then((data) => setUsers(data.usuarios || []))
+      .catch(() => setUsers(mockAsApi))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = users.filter((u) => {
+    const nome = (u.usu_nome || '').toLowerCase();
+    const email = (u.usu_email || '').toLowerCase();
+    const q = searchTerm.toLowerCase();
+    return nome.includes(q) || email.includes(q);
+  });
 
   const handlePenaltyClick = (user) => {
-    setSelectedUser(user);
+    setSelectedUser({
+      id: user.usu_id,
+      name: user.usu_nome,
+      email: user.usu_email
+    });
     setIsPenaltyModalOpen(true);
   };
 
   const handlePenaltySubmit = async (penaltyData) => {
-    console.log("Penalidade aplicada:", penaltyData);
-    // Aqui você pode fazer a chamada da API para aplicar a penalidade
-    // await api.post('/penalties', penaltyData);
+    console.log('Penalidade aplicada:', penaltyData);
   };
 
-  const handleDeleteUser = (user) => {
-    if (confirm(`Tem certeza que deseja deletar ${user.name}?`)) {
-      console.log("Usuário deletado:", user);
-      // await api.delete(`/users/${user.id}`);
+  const handleDeleteUser = async (user) => {
+    if (!confirm(`Tem certeza que deseja desativar ${user.usu_nome}?`)) return;
+    try {
+      await api.updateUserStatus(user.usu_id, 0);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.usu_id === user.usu_id ? { ...u, usu_status: 0 } : u
+        )
+      );
+    } catch (err) {
+      alert(`Erro ao desativar usuário: ${err.message}`);
     }
   };
 
@@ -55,68 +98,76 @@ export function Usuarios() {
             className={styles.searchInput}
           />
         </div>
-        <button className={styles.addBtn}>+ Adicionar Usuário</button>
       </div>
 
-      <div className={styles.tableWrapper}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th className={styles.colName}>Nome</th>
-              <th className={styles.colType}>Tipo</th>
-              <th className={styles.colSchool}>Escola</th>
-              <th className={styles.colCourse}>Curso</th>
-              <th className={styles.colStatus}>Status</th>
+      {loading && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+          <Loader2 size={28} style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      )}
 
-              <th className={styles.colActions}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.map((user, index) => (
-              <tr
-                key={user.id}
-                className={index % 2 === 0 ? styles.rowEven : ""}
-              >
-                <td className={styles.cellName}>
-                  <div className={styles.userCell}>
-                    <span className={styles.avatar}>{user.avatar}</span>
-                    <div className={styles.userDetails}>
-                      <p className={styles.userName}>{user.name}</p>
-                      <span className={styles.userEmail}>{user.email}</span>
-                    </div>
-                  </div>
-                </td>
-                <td className={styles.cellType}>
-                  <span className={styles.typeLabel}>{user.type}</span>
-                </td>
-                <td className={styles.cellSchool}>
-                  <span className={styles.schoolLabel}>{user.school}</span>
-                </td>
-                <td className={styles.cellCourse}>
-                  <span className={styles.courseLabel}>{user.course}</span>
-                </td>
-                <td className={styles.cellStatus}>
-                  <StatusBadge status={user.status} />
-                </td>
-                <td className={styles.cellActions}>
-                  <button className={styles.iconBtn} title="Editar">
-                    <Edit2 size={16} />
-                  </button>
-                  <UserActionsMenu
-                    user={user}
-                    onEdit={(u) => console.log("Editar:", u)}
-                    onPenalize={handlePenaltyClick}
-                    onDelete={handleDeleteUser}
-                    onView={(u) => console.log("Ver:", u)}
-                  />
-                </td>
+      {!loading && (
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.colName}>Nome</th>
+                <th className={styles.colType}>Tipo</th>
+                <th className={styles.colSchool}>Escola</th>
+                <th className={styles.colCourse}>Curso</th>
+                <th className={styles.colStatus}>Status</th>
+                <th className={styles.colActions}>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((user, index) => (
+                <tr
+                  key={user.usu_id}
+                  className={index % 2 === 0 ? styles.rowEven : ''}
+                >
+                  <td className={styles.cellName}>
+                    <div className={styles.userCell}>
+                      <span className={styles.avatar}>
+                        {getInitials(user.usu_nome)}
+                      </span>
+                      <div className={styles.userDetails}>
+                        <p className={styles.userName}>{user.usu_nome}</p>
+                        <span className={styles.userEmail}>{user.usu_email}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className={styles.cellType}>
+                    <span className={styles.typeLabel}>Usuário</span>
+                  </td>
+                  <td className={styles.cellSchool}>
+                    <span className={styles.schoolLabel}>—</span>
+                  </td>
+                  <td className={styles.cellCourse}>
+                    <span className={styles.courseLabel}>—</span>
+                  </td>
+                  <td className={styles.cellStatus}>
+                    <StatusBadge status={statusLabel(user.usu_status)} />
+                  </td>
+                  <td className={styles.cellActions}>
+                    <button className={styles.iconBtn} title="Editar">
+                      <Edit2 size={16} />
+                    </button>
+                    <UserActionsMenu
+                      user={user}
+                      onEdit={(u) => console.log('Editar:', u)}
+                      onPenalize={handlePenaltyClick}
+                      onDelete={handleDeleteUser}
+                      onView={(u) => console.log('Ver:', u)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {filteredUsers.length === 0 && (
+      {!loading && filtered.length === 0 && (
         <div className={styles.noResults}>
           <p>Nenhum usuário encontrado.</p>
         </div>
