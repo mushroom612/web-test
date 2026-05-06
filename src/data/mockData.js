@@ -527,3 +527,285 @@ export const notificationData = {
     }
   ]
 };
+
+// ============================================
+// Dados para API Mockada
+// ============================================
+
+// Usuários com formato de API
+export const apiUsersData = [
+  {
+    usu_id: 1,
+    usu_nome: 'Carlos Silva',
+    usu_email: 'carlos.silva@aluno.inova.br',
+    usu_status: 1,
+    usu_verificacao: 2,
+    usu_telefone: '11999990001',
+    usu_foto: null
+  },
+  {
+    usu_id: 2,
+    usu_nome: 'Mariana Souza',
+    usu_email: 'mariana.souza@aluno.inova.br',
+    usu_status: 1,
+    usu_verificacao: 2,
+    usu_telefone: '11999990002',
+    usu_foto: null
+  },
+  {
+    usu_id: 3,
+    usu_nome: 'Pedro Santos',
+    usu_email: 'pedro.santos@uni.saber.br',
+    usu_status: 1,
+    usu_verificacao: 2,
+    usu_telefone: '11999990003',
+    usu_foto: null
+  },
+  {
+    usu_id: 4,
+    usu_nome: 'Ana Oliveira',
+    usu_email: 'ana.oliveira@aluno.inova.br',
+    usu_status: 0,
+    usu_verificacao: 0,
+    usu_telefone: '11999990004',
+    usu_foto: null
+  },
+  {
+    usu_id: 5,
+    usu_nome: 'Lucas Pereira',
+    usu_email: 'lucas.pereira@aluno.inova.br',
+    usu_status: 1,
+    usu_verificacao: 2,
+    usu_telefone: '11999990005',
+    usu_foto: null
+  },
+  {
+    usu_id: 6,
+    usu_nome: 'Admin Sistema',
+    usu_email: 'admin@sistema.inova.br',
+    usu_status: 1,
+    usu_verificacao: 2,
+    usu_telefone: '11999990006',
+    usu_foto: null
+  },
+  {
+    usu_id: 7,
+    usu_nome: 'Novo Aluno',
+    usu_email: 'novo.aluno@aluno.inova.br',
+    usu_status: 1,
+    usu_verificacao: 5,
+    usu_telefone: '11999990007',
+    usu_foto: null
+  },
+  {
+    usu_id: 8,
+    usu_nome: 'Pendente OTP',
+    usu_email: 'pendente.otp@aluno.inova.br',
+    usu_status: 1,
+    usu_verificacao: 0,
+    usu_telefone: '11999990008',
+    usu_foto: null
+  },
+  {
+    usu_id: 9,
+    usu_nome: 'Fábio Suspenso',
+    usu_email: 'fabio.suspenso@aluno.inova.br',
+    usu_status: 1,
+    usu_verificacao: 9,
+    usu_telefone: '11999990009',
+    usu_foto: null
+  },
+  {
+    usu_id: 10,
+    usu_nome: 'Temp Veículo',
+    usu_email: 'temp.veiculo@aluno.inova.br',
+    usu_status: 1,
+    usu_verificacao: 6,
+    usu_telefone: '11999990010',
+    usu_foto: null
+  },
+  {
+    usu_id: 11,
+    usu_nome: 'Admin Escola',
+    usu_email: 'admin.escola@inova.edu.br',
+    usu_status: 1,
+    usu_verificacao: 1,
+    usu_telefone: '11999990011',
+    usu_foto: null
+  }
+];
+
+// Escolas com formato de API
+export const apiSchoolsData = [
+  {
+    esc_id: 1,
+    esc_nome: 'Faculdade Tecnológica Inova',
+    esc_endereco: 'Av. Paulista, 1000, São Paulo - SP',
+    esc_dominio: 'inova.edu.br',
+    esc_max_usuarios: 100,
+    esc_lat: -23.5614,
+    esc_lon: -46.6560,
+    esc_contrato_duracao: '2anos',
+    esc_contrato_inicio: '2026-01-01',
+    esc_contrato_expira: '2028-01-01'
+  },
+  {
+    esc_id: 2,
+    esc_nome: 'Universidade Estadual do Saber',
+    esc_endereco: 'Rua dos Estudos, 500, Campinas - SP',
+    esc_dominio: 'saber.edu.br',
+    esc_max_usuarios: 50,
+    esc_lat: -22.9056,
+    esc_lon: -47.0608,
+    esc_contrato_duracao: '1ano',
+    esc_contrato_inicio: '2026-01-01',
+    esc_contrato_expira: '2027-01-01'
+  },
+  {
+    esc_id: 3,
+    esc_nome: 'Instituto Federal do Oeste',
+    esc_endereco: 'Rua da Ciência, 300, Araçatuba - SP',
+    esc_dominio: null,
+    esc_max_usuarios: null,
+    esc_lat: -21.2091,
+    esc_lon: -50.4294,
+    esc_contrato_duracao: null,
+    esc_contrato_inicio: null,
+    esc_contrato_expira: null
+  },
+  {
+    esc_id: 4,
+    esc_nome: 'ETEC Centro Paula Souza',
+    esc_endereco: 'Rua dos Andradas, 140, Santa Efigênia, São Paulo - SP',
+    esc_dominio: 'aluno.cps.sp.gov.br',
+    esc_max_usuarios: 500,
+    esc_lat: -23.5417,
+    esc_lon: -46.6395,
+    esc_contrato_duracao: '5anos',
+    esc_contrato_inicio: '2025-01-01',
+    esc_contrato_expira: '2030-01-01'
+  }
+];
+
+// Caronas com formato de API
+export const apiRidesData = [
+  {
+    car_id: 1,
+    usu_id_motorista: 1,
+    usu_nome_motorista: 'Carlos Silva',
+    car_status: 1,
+    car_data: '2024-04-13 07:30',
+    car_desc: 'Ida p/ faculdade - Saio do centro, passo na Consolação',
+    pon_partida: 'Rua das Flores, 123, Centro, São Paulo',
+    pon_destino: 'Estação Metrô Consolação, São Paulo',
+    car_vagas: 4,
+    car_vagas_disponivel: 1,
+    vei_placa: 'ABC-1234',
+    vei_modelo: 'Toyota Corolla'
+  },
+  {
+    car_id: 2,
+    usu_id_motorista: 3,
+    usu_nome_motorista: 'Pedro Santos',
+    car_status: 1,
+    car_data: '2024-04-13 18:00',
+    car_desc: 'Volta p/ Vila Nova - só 1 passageiro na moto',
+    pon_partida: 'Rua da Paz, 88, Vila Nova, Campinas',
+    pon_destino: 'Faculdade Estadual do Saber',
+    car_vagas: 1,
+    car_vagas_disponivel: 1,
+    vei_placa: 'XYZ-5678',
+    vei_modelo: 'Honda CG 160'
+  },
+  {
+    car_id: 3,
+    usu_id_motorista: 5,
+    usu_nome_motorista: 'Lucas Pereira',
+    car_status: 1,
+    car_data: '2024-04-13 07:45',
+    car_desc: 'Ida p/ faculdade - Saio de Pinheiros',
+    pon_partida: 'Rua Nova, 200, Pinheiros, São Paulo',
+    pon_destino: 'Av. Faria Lima, 1000, São Paulo',
+    car_vagas: 4,
+    car_vagas_disponivel: 2,
+    vei_placa: 'DEF-9012',
+    vei_modelo: 'Honda Civic'
+  }
+];
+
+// Sugestões com formato de API
+export const apiSuggestionsData = [
+  {
+    sug_id: 1,
+    usu_id: 2,
+    usu_nome: 'Mariana Souza',
+    sug_texto: 'Seria ótimo ter um filtro de caronas por horário de saída mais específico.',
+    sug_tipo: 0,
+    sug_status: 1,
+    sug_resposta: 'Obrigado pela sugestão! Já está no nosso backlog para a próxima sprint.',
+    criado_em: '2024-04-12T10:00:00.000Z'
+  },
+  {
+    sug_id: 2,
+    usu_id: 5,
+    usu_nome: 'Lucas Pereira',
+    sug_texto: 'O usuário Carlos Silva cancelou a carona em cima da hora sem nenhum aviso.',
+    sug_tipo: 1,
+    sug_status: 2,
+    sug_resposta: null,
+    criado_em: '2024-04-12T11:00:00.000Z'
+  },
+  {
+    sug_id: 3,
+    usu_id: 1,
+    usu_nome: 'Carlos Silva',
+    sug_texto: 'Poderia ter uma opção de carona recorrente para quem vai ao mesmo lugar todo dia.',
+    sug_tipo: 0,
+    sug_status: 0,
+    sug_resposta: null,
+    criado_em: '2024-04-12T12:00:00.000Z'
+  },
+  {
+    sug_id: 4,
+    usu_id: 3,
+    usu_nome: 'Pedro Santos',
+    sug_texto: 'Encontrei um usuário com comprovante de matrícula claramente falsificado.',
+    sug_tipo: 1,
+    sug_status: 1,
+    sug_resposta: 'Denúncia verificada e confirmada. O usuário foi suspenso. Obrigado pelo aviso.',
+    criado_em: '2024-04-07T15:00:00.000Z'
+  }
+];
+
+// Estatísticas para Dashboard
+export const apiStatsData = {
+  usuarios: {
+    stats: {
+      total: 11,
+      ativos: 9,
+      inativos: 2,
+      verificados: 7,
+      pendentes: 2,
+      suspensos: 1
+    }
+  },
+  caronas: {
+    stats: {
+      total: 15,
+      abertas: 3,
+      em_espera: 1,
+      finalizadas: 8,
+      canceladas: 3
+    }
+  },
+  sugestoes: {
+    stats: {
+      total: 4,
+      pendentes: 1,
+      em_analise: 1,
+      resolvidas: 2,
+      denuncias: 2,
+      sugestoes: 2
+    }
+  }
+};

@@ -16,7 +16,8 @@ Este é um **painel administrativo completo** para o aplicativo Tuctuc. Pense ne
 ---
 
 ## 📁 ESTRUTURA DE PASTAS - Onde tudo fica
-
+site para icones: https://tabler.io/icons
+utilizar para semelhança com o Mobile
 ```
 web-test/
 ├── src/                          ← Pasta principal (onde todo seu código fica)

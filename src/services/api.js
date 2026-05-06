@@ -1,43 +1,38 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { apiUsersData, apiSchoolsData, apiRidesData, apiSuggestionsData, apiStatsData } from '../data/mockData';
 
-function getToken() {
-  return localStorage.getItem('auth_token');
-}
-
-function authHeaders() {
-  const token = getToken();
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
-  };
-}
-
-async function handleResponse(res) {
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.message || `Erro ${res.status}`);
-  return data;
+// Simula latência de rede
+function delay(ms = 300) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export const api = {
   // ── Auth ──────────────────────────────────────────────────────────────────
 
   async login(email, senha) {
-    const res = await fetch(`${BASE_URL}/api/usuarios/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ usu_email: email, usu_senha: senha })
-    });
-    const data = await handleResponse(res);
-    if (data.access_token) localStorage.setItem('auth_token', data.access_token);
-    if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
-    return data;
+    // Mock login
+    await delay(300);
+    const mockToken = 'mock_token_' + Date.now();
+    const mockRefreshToken = 'mock_refresh_token_' + Date.now();
+    localStorage.setItem('auth_token', mockToken);
+    localStorage.setItem('refresh_token', mockRefreshToken);
+    return {
+      access_token: mockToken,
+      refresh_token: mockRefreshToken,
+      user: { email, usu_id: 6, usu_nome: 'Admin Sistema' }
+    };
   },
 
   async getMe() {
-    const res = await fetch(`${BASE_URL}/api/usuarios/me`, {
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock get current user
+    await delay(200);
+    return {
+      usu_id: 6,
+      usu_nome: 'Admin Sistema',
+      usu_email: 'admin@sistema.inova.br',
+      usu_status: 1,
+      usu_verificacao: 2,
+      per_tipo: 2
+    };
   },
 
   logout() {
@@ -51,81 +46,98 @@ export const api = {
   // type: 'usuarios' | 'caronas' | 'sugestoes' | 'sistema' (dev only) | 'documentos' | 'contratos'
 
   async getStats(type) {
-    const res = await fetch(`${BASE_URL}/api/admin/stats/${type}`, {
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock stats
+    await delay(300);
+    const typeKey = type === 'usuarios' ? 'usuarios' 
+                    : type === 'caronas' ? 'caronas'
+                    : type === 'sugestoes' ? 'sugestoes'
+                    : 'usuarios';
+    return apiStatsData[typeKey] || { stats: {} };
   },
 
   // ── Escolas ────────────────────────────────────────────────────────────────
 
   async getSchools() {
-    const res = await fetch(`${BASE_URL}/api/admin/escolas`, {
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock get schools
+    await delay(300);
+    return apiSchoolsData;
   },
 
   async createSchool(data) {
-    const res = await fetch(`${BASE_URL}/api/admin/escolas`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify(data)
-    });
-    return handleResponse(res);
+    // Mock create school
+    await delay(300);
+    const newId = Math.max(...apiSchoolsData.map(s => s.esc_id)) + 1;
+    const newSchool = { ...data, esc_id: newId };
+    apiSchoolsData.push(newSchool);
+    return newSchool;
   },
 
   async updateSchool(id, data) {
-    const res = await fetch(`${BASE_URL}/api/admin/escolas/${id}`, {
-      method: 'PUT',
-      headers: authHeaders(),
-      body: JSON.stringify(data)
-    });
-    return handleResponse(res);
+    // Mock update school
+    await delay(300);
+    const idx = apiSchoolsData.findIndex(s => s.esc_id === id);
+    if (idx === -1) throw new Error('Escola não encontrada');
+    const updated = { ...apiSchoolsData[idx], ...data };
+    apiSchoolsData[idx] = updated;
+    return updated;
   },
 
   async deleteSchool(id) {
-    const res = await fetch(`${BASE_URL}/api/admin/escolas/${id}`, {
-      method: 'DELETE',
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock delete school
+    await delay(300);
+    const idx = apiSchoolsData.findIndex(s => s.esc_id === id);
+    if (idx === -1) throw new Error('Escola não encontrada');
+    apiSchoolsData.splice(idx, 1);
+    return { success: true };
   },
 
   // ── Usuários (Admin) ───────────────────────────────────────────────────────
 
   async getUsers({ page = 1, limit = 50, q = '' } = {}) {
-    const params = new URLSearchParams({ page, limit });
-    if (q) params.set('q', q);
-    const res = await fetch(`${BASE_URL}/api/admin/usuarios?${params}`, {
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock get users
+    await delay(300);
+    let filtered = apiUsersData;
+    if (q) {
+      const query = q.toLowerCase();
+      filtered = filtered.filter(u => 
+        (u.usu_nome?.toLowerCase().includes(query) || false) ||
+        (u.usu_email?.toLowerCase().includes(query) || false)
+      );
+    }
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    return {
+      usuarios: filtered.slice(start, end),
+      total: filtered.length,
+      page,
+      limit
+    };
   },
 
   async getUser(userId) {
-    const res = await fetch(`${BASE_URL}/api/admin/usuarios/${userId}`, {
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock get user
+    await delay(200);
+    const user = apiUsersData.find(u => u.usu_id === userId);
+    if (!user) throw new Error('Usuário não encontrado');
+    return user;
   },
 
   async updateUserStatus(userId, status) {
-    const res = await fetch(`${BASE_URL}/api/admin/usuarios/${userId}/status`, {
-      method: 'PATCH',
-      headers: authHeaders(),
-      body: JSON.stringify({ usu_status: status })
-    });
-    return handleResponse(res);
+    // Mock update user status
+    await delay(250);
+    const user = apiUsersData.find(u => u.usu_id === userId);
+    if (!user) throw new Error('Usuário não encontrado');
+    user.usu_status = status;
+    return user;
   },
 
   async updateUserProfile(userId, profileData) {
-    const res = await fetch(`${BASE_URL}/api/admin/usuarios/${userId}/perfil`, {
-      method: 'PUT',
-      headers: authHeaders(),
-      body: JSON.stringify(profileData)
-    });
-    return handleResponse(res);
+    // Mock update user profile
+    await delay(250);
+    const user = apiUsersData.find(u => u.usu_id === userId);
+    if (!user) throw new Error('Usuário não encontrado');
+    Object.assign(user, profileData);
+    return user;
   },
 
   // mantido para compatibilidade
@@ -136,92 +148,130 @@ export const api = {
   // ── Caronas ────────────────────────────────────────────────────────────────
 
   async getCaronas() {
-    const res = await fetch(`${BASE_URL}/api/caronas`, {
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock get rides
+    await delay(300);
+    return apiRidesData;
   },
 
   // ── Sugestões ──────────────────────────────────────────────────────────────
 
   async getSugestoes() {
-    const res = await fetch(`${BASE_URL}/api/sugestoes/`, {
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock get suggestions
+    await delay(300);
+    return { sugestoes: apiSuggestionsData };
   },
 
   async analisarSugestao(sugId) {
-    const res = await fetch(`${BASE_URL}/api/sugestoes/${sugId}/analisar`, {
-      method: 'PUT',
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock analyze suggestion
+    await delay(250);
+    const sug = apiSuggestionsData.find(s => s.sug_id === sugId);
+    if (!sug) throw new Error('Sugestão não encontrada');
+    sug.sug_status = 2; // Em análise
+    return sug;
   },
 
   async responderSugestao(sugId, resposta) {
-    const res = await fetch(`${BASE_URL}/api/sugestoes/${sugId}/responder`, {
-      method: 'PUT',
-      headers: authHeaders(),
-      body: JSON.stringify({ resposta })
-    });
-    return handleResponse(res);
+    // Mock respond to suggestion
+    await delay(250);
+    const sug = apiSuggestionsData.find(s => s.sug_id === sugId);
+    if (!sug) throw new Error('Sugestão não encontrada');
+    sug.sug_resposta = resposta;
+    sug.sug_status = 1; // Resolvido
+    return sug;
   },
 
   // ── Notificações ───────────────────────────────────────────────────────────
 
   async enviarNotificacao({ titulo, mensagem, tipo, usu_id } = {}) {
-    const body = { titulo, mensagem, tipo };
-    if (usu_id) body.usu_id = usu_id;
-    const res = await fetch(`${BASE_URL}/api/notificacoes/enviar`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify(body)
-    });
-    return handleResponse(res);
+    // Mock send notification
+    await delay(300);
+    return {
+      noti_id: Date.now(),
+      titulo,
+      mensagem,
+      tipo,
+      usu_id,
+      enviado_em: new Date().toISOString()
+    };
   },
 
   // ── Audit Logs (somente role 2 — Desenvolvedor) ───────────────────────────
 
   async getLogs({ page = 1, limit = 20, acao, tabela, usu_id } = {}) {
-    const params = new URLSearchParams({ page, limit });
-    if (acao) params.set('acao', acao);
-    if (tabela) params.set('tabela', tabela);
-    if (usu_id) params.set('usu_id', usu_id);
-    const res = await fetch(`${BASE_URL}/api/admin/logs?${params}`, {
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock get audit logs
+    await delay(300);
+    return {
+      logs: [],
+      total: 0,
+      page,
+      limit
+    };
   },
 
   // ── Penalidades ────────────────────────────────────────────────────────────
 
   async getPenalidades(userId, { ativas, page, limit } = {}) {
-    const params = new URLSearchParams();
-    if (ativas !== undefined) params.set('ativas', ativas);
-    if (page) params.set('page', page);
-    if (limit) params.set('limit', limit);
-    const query = params.toString() ? `?${params}` : '';
-    const res = await fetch(`${BASE_URL}/api/admin/usuarios/${userId}/penalidades${query}`, {
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock get penalties
+    await delay(300);
+    // Retorna penalidades mocadas se existirem
+    const penaltyData = {
+      5: [
+        {
+          pen_id: 1,
+          pen_tipo: 2,
+          pen_motivo: 'Comportamento inadequado com motorista.',
+          pen_aplicado_em: '2026-03-31T10:00:00.000Z',
+          pen_expira_em: '2026-04-29T10:00:00.000Z',
+          pen_aplicado_por: 6,
+          pen_ativo: 1
+        }
+      ],
+      9: [
+        {
+          pen_id: 2,
+          pen_tipo: 1,
+          pen_motivo: 'Cancelamento de última hora recorrente.',
+          pen_aplicado_em: '2026-04-01T12:00:00.000Z',
+          pen_expira_em: '2026-04-28T12:00:00.000Z',
+          pen_aplicado_por: 6,
+          pen_ativo: 1
+        },
+        {
+          pen_id: 3,
+          pen_tipo: 3,
+          pen_motivo: 'Reincidência após penalidade anterior.',
+          pen_aplicado_em: '2026-01-10T09:00:00.000Z',
+          pen_expira_em: '2026-02-10T09:00:00.000Z',
+          pen_aplicado_por: 6,
+          pen_ativo: 0
+        }
+      ]
+    };
+    
+    const penalties = penaltyData[userId] || [];
+    return {
+      penalidades: penalties,
+      total: penalties.length
+    };
   },
 
   async applyPenalidade(userId, { pen_tipo, pen_duracao, pen_motivo }) {
-    const res = await fetch(`${BASE_URL}/api/admin/usuarios/${userId}/penalidades`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ pen_tipo, pen_duracao, pen_motivo })
-    });
-    return handleResponse(res);
+    // Mock apply penalty
+    await delay(300);
+    return {
+      pen_id: Date.now(),
+      usu_id: userId,
+      pen_tipo,
+      pen_duracao,
+      pen_motivo,
+      pen_aplicado_em: new Date().toISOString(),
+      pen_ativo: 1
+    };
   },
 
   async removePenalidade(penId) {
-    const res = await fetch(`${BASE_URL}/api/admin/penalidades/${penId}`, {
-      method: 'DELETE',
-      headers: authHeaders()
-    });
-    return handleResponse(res);
+    // Mock remove penalty
+    await delay(250);
+    return { success: true, pen_id: penId };
   }
 };
