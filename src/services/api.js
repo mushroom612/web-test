@@ -1,4 +1,4 @@
-import { apiUsersData, apiSchoolsData, apiRidesData, apiSuggestionsData, apiStatsData } from '../data/mockData';
+import { apiUsersData, apiSchoolsData, apiRidesData, apiSuggestionsData, apiStatsData, apiCoursesData } from '../data/mockData';
 
 // Simula latência de rede
 function delay(ms = 300) {
@@ -89,6 +89,24 @@ export const api = {
     if (idx === -1) throw new Error('Escola não encontrada');
     apiSchoolsData.splice(idx, 1);
     return { success: true };
+  },
+
+  // ── Usuários (criação) ────────────────────────────────────────────────────
+
+  async createUser(data) {
+    await delay(300);
+    const newId = Math.max(...apiUsersData.map(u => u.usu_id)) + 1;
+    const newUser = {
+      usu_id: newId,
+      usu_nome: data.usu_nome,
+      usu_email: data.usu_email,
+      usu_telefone: data.usu_telefone || null,
+      usu_status: 1,
+      usu_verificacao: 0,
+      usu_foto: null
+    };
+    apiUsersData.push(newUser);
+    return { usuario: newUser };
   },
 
   // ── Usuários (Admin) ───────────────────────────────────────────────────────
@@ -273,5 +291,42 @@ export const api = {
     // Mock remove penalty
     await delay(250);
     return { success: true, pen_id: penId };
+  },
+
+  // ── Cursos ─────────────────────────────────────────────────────────────────
+
+  async getCourses(escId) {
+    await delay(300);
+    if (escId != null) {
+      return apiCoursesData.filter(c => c.esc_id === escId);
+    }
+    return apiCoursesData;
+  },
+
+  async createCourse(data) {
+    await delay(300);
+    const newId = apiCoursesData.length > 0
+      ? Math.max(...apiCoursesData.map(c => c.cur_id)) + 1
+      : 1;
+    const newCourse = { ...data, cur_id: newId };
+    apiCoursesData.push(newCourse);
+    return newCourse;
+  },
+
+  async updateCourse(id, data) {
+    await delay(300);
+    const idx = apiCoursesData.findIndex(c => c.cur_id === id);
+    if (idx === -1) throw new Error('Curso não encontrado');
+    const updated = { ...apiCoursesData[idx], ...data };
+    apiCoursesData[idx] = updated;
+    return updated;
+  },
+
+  async deleteCourse(id) {
+    await delay(300);
+    const idx = apiCoursesData.findIndex(c => c.cur_id === id);
+    if (idx === -1) throw new Error('Curso não encontrado');
+    apiCoursesData.splice(idx, 1);
+    return { success: true };
   }
 };

@@ -809,3 +809,31 @@ export const apiStatsData = {
     }
   }
 };
+
+// Cursos com formato de API
+export const apiCoursesData = [
+  {
+    cur_id: 1,
+    esc_id: 1,
+    cur_nome: 'Análise e Desenvolvimento de Sistemas',
+    cur_descricao: 'Formação em desenvolvimento de sistemas computacionais',
+    cur_semestres: 5,
+    cur_ativo: 1
+  },
+  {
+    cur_id: 2,
+    esc_id: 1,
+    cur_nome: 'Redes de Computadores',
+    cur_descricao: 'Especialização em infraestrutura de rede',
+    cur_semestres: 4,
+    cur_ativo: 1
+  },
+  {
+    cur_id: 3,
+    esc_id: 2,
+    cur_nome: 'Engenharia Civil',
+    cur_descricao: 'Formação em engenharia civil e projetos',
+    cur_semestres: 10,
+    cur_ativo: 1
+  }
+];
