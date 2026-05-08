@@ -36,11 +36,17 @@ web-test/
 │   │   ├── StatusBadge.jsx       ← Rótulos coloridos (Ativo, Inativo)
 │   │   ├── StatusBadge.module.css
 │   │   ├── FeedbackCard.jsx      ← Card de sugestão/denúncia
-│   │   └── FeedbackCard.module.css
+│   │   ├── FeedbackCard.module.css
+│   │   ├── PenaltyModal.jsx      ← Modal para aplicar penalidades
+│   │   ├── PenaltyModal.module.css
+│   │   ├── UserActionsMenu.jsx   ← Menu dropdown de ações do usuário
+│   │   └── UserActionsMenu.module.css
 │   │
 │   ├── layouts/                  ← "Modelos de página" (estrutura base)
 │   │   ├── AdminLayout.jsx       ← Layout com sidebar + header
 │   │   ├── AdminLayout.module.css
+│   │   ├── DesenLayout.jsx       ← Layout alternativo de desenvolvimento
+│   │   ├── DesenLayout.module.css
 │   │   ├── PublicLayout.jsx      ← Layout sem sidebar (só para login)
 │   │   └── PublicLayout.module.css
 │   │
@@ -54,7 +60,8 @@ web-test/
 │   │   ├── Cadastrar.jsx         ← Cadastro de usuário
 │   │   ├── Contratos.jsx         ← Contratos
 │   │   ├── Notificacoes.jsx      ← Emissão de notificações
-│   │   └── Auditoria.jsx         ← Log de ações
+│   │   ├── Auditoria.jsx         ← Log de ações
+│   │   └── Penalidades.jsx       ← Aplicação de penalidades
 │   │
 │   └── router/
 │       └── routes.jsx             ← "Mapa de rotas" (URLs)
@@ -157,6 +164,27 @@ São pequenos componentes reutilizáveis em várias páginas.
 - **O que é:** Um card que mostra feedback/sugestão/denúncia
 - **Reutilizado em:** Dashboard.jsx e Sugestoes.jsx
 
+#### ✅ **PenaltyModal.jsx** - Modal de penalidades
+- **O que é:** Modal para aplicar penalidades a usuários
+- **Funcionalidades:**
+  - Tipos de penalidade:
+    - Impedimento de oferecer caronas
+    - Impedimento de solicitar caronas
+    - Impedimento de oferecer e solicitar caronas
+    - Suspensão de conta
+  - Duração configurável (1 semana a 6 meses)
+  - Campo de motivo para documentação
+- **Reutilizado em:** Usuarios.jsx, Penalidades.jsx
+
+#### ✅ **UserActionsMenu.jsx** - Menu de ações do usuário
+- **O que é:** Menu dropdown com ações disponíveis para um usuário
+- **Ações incluídas:**
+  - Visualizar detalhes
+  - Editar
+  - Aplicar penalidade
+  - Deletar
+- **Reutilizado em:** Usuarios.jsx, Caronas.jsx
+
 ---
 
 ### **src/layouts/** - Os "Modelos de Página"
@@ -174,6 +202,11 @@ Definem como as páginas são **estruturadas**.
 │          │                      │
 └──────────┴──────────────────────┘
 ```
+
+#### **DesenLayout.jsx** - Layout alternativo de desenvolvimento
+- **O que é:** Layout muito similar ao AdminLayout (com Aside + Topbar)
+- **Uso:** Layout alternativo para desenvolvimento e testes
+- **Estrutura:** Mesma estrutura do AdminLayout com sidebar + conteúdo + header
 
 #### **PublicLayout.jsx** - Layout SEM barra lateral (só para login)
 ```
@@ -203,6 +236,7 @@ Cada arquivo aqui é uma tela que o usuário vê.
 | **Contratos.jsx** | `/contratos` | Contratos/termos |
 | **Notificacoes.jsx** | `/notificacoes` | Envio de notificações |
 | **Auditoria.jsx** | `/auditoria` | Log de ações |
+| **Penalidades.jsx** | `/penalidades` | Aplicação de penalidades a usuários |
 
 ---
 
