@@ -43,7 +43,7 @@ web-test/
 │   │   └── UserActionsMenu.module.css
 │   │
 │   ├── layouts/                  ← "Modelos de página" (estrutura base)
-│   │   ├── AdminLayout.jsx       ← Layout com sidebar + header
+│   │   ├── AdminLayout.jsx       ← Layout com sidebar + heade
 │   │   ├── AdminLayout.module.css
 │   │   ├── DesenLayout.jsx       ← Layout alternativo de desenvolvimento
 │   │   ├── DesenLayout.module.css
