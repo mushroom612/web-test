@@ -11,7 +11,6 @@ import { Cadastrar } from '../pages/Cadastrar';
 import { Contratos } from '../pages/Contratos';
 import { Notificacoes } from '../pages/Notificacoes';
 import { Auditoria } from '../pages/Auditoria';
-import { Penalidades } from '../pages/Penalidades';
 
 function PrivateRoute() {
   const token = localStorage.getItem('auth_token');
@@ -70,10 +69,6 @@ export const routes = [
             path: '/auditoria',
             element: <Auditoria />
           },
-          {
-            path: '/penalidades',
-            element: <Penalidades />
-          }
         ]
       }
     ]
