@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Search, Edit2, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { api } from '../services/api';
 import { usersData } from '../data/mockData';
 import { StatusBadge } from '../components/StatusBadge';
-import { PenaltyModal } from '../components/PenaltyModal';
+import { PenaltyPanel } from '../components/PenaltyPanel';
+import { UserProfilePanel } from '../components/UserProfilePanel';
 import { UserActionsMenu } from '../components/UserActionsMenu';
 import styles from './Usuarios.module.css';
 
@@ -35,6 +36,7 @@ export function Usuarios() {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isPenaltyModalOpen, setIsPenaltyModalOpen] = useState(false);
+  const [profilePanel, setProfilePanel] = useState(null); // { user, mode: 'view'|'edit' }
 
   useEffect(() => {
     api
@@ -52,16 +54,17 @@ export function Usuarios() {
   });
 
   const handlePenaltyClick = (user) => {
-    setSelectedUser({
-      id: user.usu_id,
-      name: user.usu_nome,
-      email: user.usu_email
-    });
+    setSelectedUser(user);
     setIsPenaltyModalOpen(true);
   };
 
-  const handlePenaltySubmit = async (penaltyData) => {
-    console.log('Penalidade aplicada:', penaltyData);
+  const handleViewUser = (user) => setProfilePanel({ user, mode: 'view' });
+  const handleEditUser = (user) => setProfilePanel({ user, mode: 'edit' });
+
+  const handleUserUpdated = (updatedUser) => {
+    setUsers(prev =>
+      prev.map(u => u.usu_id === updatedUser.usu_id ? { ...u, ...updatedUser } : u)
+    );
   };
 
   const handleDeleteUser = async (user) => {
@@ -149,15 +152,12 @@ export function Usuarios() {
                     <StatusBadge status={statusLabel(user.usu_status)} />
                   </td>
                   <td className={styles.cellActions}>
-                    <button className={styles.iconBtn} title="Editar">
-                      <Edit2 size={16} />
-                    </button>
                     <UserActionsMenu
                       user={user}
-                      onEdit={(u) => console.log('Editar:', u)}
+                      onEdit={handleEditUser}
                       onPenalize={handlePenaltyClick}
                       onDelete={handleDeleteUser}
-                      onView={(u) => console.log('Ver:', u)}
+                      onView={handleViewUser}
                     />
                   </td>
                 </tr>
@@ -173,12 +173,21 @@ export function Usuarios() {
         </div>
       )}
 
-      <PenaltyModal
-        isOpen={isPenaltyModalOpen}
-        user={selectedUser}
-        onClose={() => setIsPenaltyModalOpen(false)}
-        onSubmit={handlePenaltySubmit}
-      />
+      {isPenaltyModalOpen && (
+        <PenaltyPanel
+          user={selectedUser}
+          onClose={() => setIsPenaltyModalOpen(false)}
+        />
+      )}
+
+      {profilePanel && (
+        <UserProfilePanel
+          user={profilePanel.user}
+          initialMode={profilePanel.mode}
+          onClose={() => setProfilePanel(null)}
+          onUserUpdated={handleUserUpdated}
+        />
+      )}
     </div>
   );
 }

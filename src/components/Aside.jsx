@@ -9,8 +9,7 @@ import {
   MessageSquare,
   Bell,
   Shield,
-  LogOut,
-  Ban
+  LogOut
 } from 'lucide-react';
 import { adminUser } from '../data/mockData';
 import styles from './Aside.module.css';
@@ -34,8 +33,7 @@ export function Aside() {
       title: 'USUÁRIOS',
       items: [
         { icon: Search, label: 'Procurar Usuário', path: '/usuarios', developerOnly: true },
-        { icon: Plus, label: 'Cadastrar', path: '/cadastrar', developerOnly: true },
-        { icon: Ban, label: 'Penalidades', path: '/penalidades', developerOnly: false }
+        { icon: Plus, label: 'Cadastrar', path: '/cadastrar', developerOnly: true }
       ]
     },
     {
