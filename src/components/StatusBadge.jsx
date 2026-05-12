@@ -18,7 +18,9 @@ export function StatusBadge({ status, type = 'status' }) {
     'Em análise': { bg: '#fef3c7', text: '#92400e' },
     'Aguardando verificação': { bg: '#fef3c7', text: '#92400e' },
     'Suspenso': { bg: '#fee2e2', text: '#b91c1c' },
-    'Temporário': { bg: '#fef3c7', text: '#92400e' }
+    'Temporário': { bg: '#fef3c7', text: '#92400e' },
+    'Vencido': { bg: '#fee2e2', text: '#b91c1c' },
+    'Pendente de Assinatura': { bg: '#fef3c7', text: '#92400e' }
   };
 
   const style = statusStyles[status] || statusStyles['Pendente'];

@@ -2,12 +2,29 @@ import { useState, useEffect } from 'react';
 import {
   Building2, MapPin, Mail, Users, Trash2,
   UserPlus, X, CheckCircle, AlertCircle, Loader2,
-  ChevronRight, ChevronLeft, BookOpen, Pencil, Plus, ChevronDown, ChevronUp
+  ChevronRight, ChevronLeft, BookOpen, Pencil, Plus, ChevronDown, ChevronUp,
+  FileText, CalendarDays
 } from 'lucide-react';
 import { api } from '../services/api';
 import styles from './Cadastrar.module.css';
 
 const EMPTY_COURSE = { cur_nome: '', cur_descricao: '', cur_semestres: '' };
+
+function calcExpiry(inicio, duracao) {
+  if (!inicio || !duracao) return null;
+  const [y, m, d] = inicio.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  if (duracao === '1ano') date.setFullYear(date.getFullYear() + 1);
+  else if (duracao === '2anos') date.setFullYear(date.getFullYear() + 2);
+  else if (duracao === '5anos') date.setFullYear(date.getFullYear() + 5);
+  return date.toISOString().split('T')[0];
+}
+
+function formatDateStr(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('pt-BR');
+}
 
 export function Cadastrar() {
   const [step, setStep] = useState(1);
@@ -17,7 +34,9 @@ export function Cadastrar() {
     esc_nome: '',
     esc_endereco: '',
     esc_dominio: '',
-    esc_max_usuarios: ''
+    esc_max_usuarios: '',
+    esc_contrato_duracao: '',
+    esc_contrato_inicio: ''
   });
 
   const [adminData, setAdminData] = useState({
@@ -32,6 +51,9 @@ export function Cadastrar() {
   const [coursesList, setCoursesList] = useState([]);
   const [newCourse, setNewCourse] = useState(EMPTY_COURSE);
   const [editingCourseId, setEditingCourseId] = useState(null);
+
+  // ── Contrato (etapa 4) ────────────────────────────────────────────────────
+  const [contractFile, setContractFile] = useState(null);
 
   // ── Submit / feedback ──────────────────────────────────────────────────────
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -149,6 +171,12 @@ export function Cadastrar() {
       }
       setStep(2);
     } else if (step === 2) {
+      if (formData.esc_contrato_duracao && !formData.esc_contrato_inicio) {
+        setStepError('Informe a data de início do contrato.');
+        return;
+      }
+      setStep(3);
+    } else if (step === 3) {
       if (!adminData.usu_nome.trim() || !adminData.usu_email.trim() || !adminData.usu_senha.trim()) {
         setStepError('Preencha os campos obrigatórios do administrador.');
         return;
@@ -157,7 +185,7 @@ export function Cadastrar() {
         setStepError('As senhas não coincidem.');
         return;
       }
-      setStep(3);
+      setStep(4);
     }
   }
 
@@ -188,7 +216,16 @@ export function Cadastrar() {
         esc_nome: formData.esc_nome,
         esc_endereco: formData.esc_endereco,
         ...(formData.esc_dominio ? { esc_dominio: formData.esc_dominio } : {}),
-        ...(formData.esc_max_usuarios ? { esc_max_usuarios: parseInt(formData.esc_max_usuarios) } : {})
+        ...(formData.esc_max_usuarios ? { esc_max_usuarios: parseInt(formData.esc_max_usuarios) } : {}),
+        ...(formData.esc_contrato_duracao && formData.esc_contrato_inicio ? {
+          esc_contrato_duracao: formData.esc_contrato_duracao,
+          esc_contrato_inicio: formData.esc_contrato_inicio,
+          esc_contrato_expira: calcExpiry(formData.esc_contrato_inicio, formData.esc_contrato_duracao)
+        } : {
+          esc_contrato_duracao: null,
+          esc_contrato_inicio: null,
+          esc_contrato_expira: null
+        })
       };
       const createdSchool = await api.createSchool(schoolPayload);
       const escId = createdSchool.escola?.esc_id || createdSchool.esc_id;
@@ -229,11 +266,12 @@ export function Cadastrar() {
   function handleReset() {
     setStep(1);
     setStepError('');
-    setFormData({ esc_nome: '', esc_endereco: '', esc_dominio: '', esc_max_usuarios: '' });
+    setFormData({ esc_nome: '', esc_endereco: '', esc_dominio: '', esc_max_usuarios: '', esc_contrato_duracao: '', esc_contrato_inicio: '' });
     setAdminData({ usu_nome: '', usu_email: '', usu_telefone: '', usu_senha: '', usu_confirmSenha: '' });
     setCoursesList([]);
     setNewCourse(EMPTY_COURSE);
     setEditingCourseId(null);
+    setContractFile(null);
     setSubmitError('');
     setSubmitSuccess('');
   }
@@ -363,11 +401,16 @@ export function Cadastrar() {
           <div className={`${styles.stepLine} ${step >= 2 ? styles.stepLineDone : ''}`} />
           <div className={`${styles.stepItem} ${step >= 2 ? styles.stepActive : ''}`}>
             <div className={styles.stepCircle}>2</div>
-            <span className={styles.stepLabel}>Administrador</span>
+            <span className={styles.stepLabel}>Contrato</span>
           </div>
           <div className={`${styles.stepLine} ${step >= 3 ? styles.stepLineDone : ''}`} />
           <div className={`${styles.stepItem} ${step >= 3 ? styles.stepActive : ''}`}>
             <div className={styles.stepCircle}>3</div>
+            <span className={styles.stepLabel}>Administrador</span>
+          </div>
+          <div className={`${styles.stepLine} ${step >= 4 ? styles.stepLineDone : ''}`} />
+          <div className={`${styles.stepItem} ${step >= 4 ? styles.stepActive : ''}`}>
+            <div className={styles.stepCircle}>4</div>
             <span className={styles.stepLabel}>Cursos</span>
           </div>
         </div>
@@ -432,8 +475,118 @@ export function Cadastrar() {
             </>
           )}
 
-          {/* ── Etapa 2 ─────────────────────────────────────────────────── */}
+          {/* ── Etapa 2: Contrato ───────────────────────────────────────── */}
           {step === 2 && (
+            <>
+              <div className={styles.sectionHeader}>
+                <FileText size={18} />
+                <span>Contrato Institucional</span>
+              </div>
+              <p className={styles.sectionDescription}>
+                Defina os dados do contrato e anexe o documento assinado (opcional). Tudo pode ser atualizado depois.
+              </p>
+
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="esc_contrato_duracao" className={styles.label}>
+                    <FileText size={14} /> Duração do Contrato
+                  </label>
+                  <select
+                    id="esc_contrato_duracao"
+                    name="esc_contrato_duracao"
+                    className={styles.input}
+                    value={formData.esc_contrato_duracao}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sem contrato</option>
+                    <option value="1ano">1 Ano</option>
+                    <option value="2anos">2 Anos</option>
+                    <option value="5anos">5 Anos</option>
+                  </select>
+                  <span className={styles.fieldHint}>Período de vigência do contrato com a plataforma</span>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="esc_contrato_inicio" className={styles.label}>
+                    <CalendarDays size={14} /> Data de Início
+                  </label>
+                  <input
+                    type="date"
+                    id="esc_contrato_inicio"
+                    name="esc_contrato_inicio"
+                    className={styles.input}
+                    value={formData.esc_contrato_inicio}
+                    onChange={handleChange}
+                    disabled={!formData.esc_contrato_duracao}
+                  />
+                  {formData.esc_contrato_duracao && formData.esc_contrato_inicio && (
+                    <span className={styles.fieldHint}>
+                      Vencimento: {formatDateStr(calcExpiry(formData.esc_contrato_inicio, formData.esc_contrato_duracao))}
+                    </span>
+                  )}
+                  {!formData.esc_contrato_duracao && (
+                    <span className={styles.fieldHint}>Selecione a duração primeiro</span>
+                  )}
+                </div>
+              </div>
+
+              <hr className={styles.divider} />
+
+              <div className={styles.sectionHeader} style={{ marginBottom: 12 }}>
+                <FileText size={16} />
+                <span style={{ fontSize: 14 }}>Documento do Contrato</span>
+                <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-secondary)' }}>(opcional)</span>
+              </div>
+
+              {!contractFile ? (
+                <label className={styles.fileUploadZone} htmlFor="contractFileInput">
+                  <input
+                    type="file"
+                    id="contractFileInput"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => setContractFile(e.target.files[0] || null)}
+                  />
+                  <div className={styles.fileUploadIcon}>
+                    <FileText size={32} />
+                  </div>
+                  <p className={styles.fileUploadText}>
+                    <strong>Clique para selecionar</strong> o arquivo do contrato
+                  </p>
+                  <p className={styles.fileHint}>PDF, DOC ou DOCX — será enviado ao servidor ao integrar a API</p>
+                </label>
+              ) : (
+                <div className={styles.fileSelected}>
+                  <FileText size={18} style={{ color: 'var(--btn-primary-bg)', flexShrink: 0 }} />
+                  <span className={styles.fileSelectedName}>{contractFile.name}</span>
+                  <span className={styles.fileSelectedSize}>
+                    {(contractFile.size / 1024).toFixed(0)} KB
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.fileRemoveBtn}
+                    onClick={() => setContractFile(null)}
+                    title="Remover arquivo"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              )}
+
+              {stepError && <p className={styles.inlineError} style={{ marginTop: 16 }}>{stepError}</p>}
+
+              <div className={styles.formActions}>
+                <button type="button" className={styles.submitBtn} onClick={handleNextStep}>
+                  Próximo <ChevronRight size={16} />
+                </button>
+                <button type="button" className={styles.cancelBtn} onClick={handlePrevStep}>
+                  <ChevronLeft size={16} /> Voltar
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── Etapa 3: Administrador ──────────────────────────────────── */}
+          {step === 3 && (
             <>
               <div className={styles.sectionHeader}>
                 <UserPlus size={18} />
@@ -499,8 +652,8 @@ export function Cadastrar() {
             </>
           )}
 
-          {/* ── Etapa 3: Cursos ─────────────────────────────────────────── */}
-          {step === 3 && (
+          {/* ── Etapa 4: Cursos ─────────────────────────────────────────── */}
+          {step === 4 && (
             <>
               <div className={styles.sectionHeader}>
                 <BookOpen size={18} />
@@ -609,6 +762,7 @@ export function Cadastrar() {
               </div>
             </>
           )}
+
         </form>
       </div>
 

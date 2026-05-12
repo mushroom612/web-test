@@ -869,6 +869,101 @@
   background-color: var(--color-green-100);
 }
 
+/* File upload */
+.fileUploadZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px dashed var(--color-neutral-300);
+  border-radius: var(--border-radius-md);
+  padding: 32px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: var(--surface-page);
+}
+
+.fileUploadZone input[type='file'] {
+  display: none;
+}
+
+.fileUploadZone:hover {
+  border-color: var(--btn-primary-bg);
+  background-color: var(--color-green-50);
+}
+
+.fileUploadIcon {
+  color: var(--color-neutral-300);
+  transition: color 0.2s;
+}
+
+.fileUploadZone:hover .fileUploadIcon {
+  color: var(--btn-primary-bg);
+}
+
+.fileUploadText {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.fileUploadText strong {
+  color: var(--btn-primary-bg);
+}
+
+.fileHint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.fileSelected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background-color: var(--color-green-50);
+  border: 1px solid var(--color-green-200);
+  border-radius: var(--border-radius-md);
+}
+
+.fileSelectedName {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileSelectedSize {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fileRemoveBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.fileRemoveBtn:hover {
+  color: #dc2626;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .formCard {
