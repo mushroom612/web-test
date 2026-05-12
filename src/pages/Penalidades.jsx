@@ -14,6 +14,8 @@ const TIPO_LABELS = {
   4: 'Suspensão de conta'
 };
 
+
+
 const TIPO_ICONS = {
   1: ShieldAlert,
   2: ShieldAlert,
