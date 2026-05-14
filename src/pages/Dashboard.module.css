@@ -1,40 +1,82 @@
+/* ── Layout ──────────────────────────────────────────────── */
+
 .dashboard {
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Seção de Métricas */
+.loadingWrap {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.spin { animation: spin 0.8s linear infinite; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Cabeçalho ───────────────────────────────────────────── */
+
+.pageHeader {
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pageSubtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ── Metric cards ────────────────────────────────────────── */
+
 .metricsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .metricCard {
   background-color: var(--surface-primary);
+  border: 1px solid #e5e7eb;
   border-radius: var(--card-radius-desktop);
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 }
 
-.metricContent {
-  margin-bottom: 16px;
+.metricTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.metricIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .metricValue {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  color: var(--btn-primary-bg);
-  margin-bottom: 8px;
+  color: var(--text-primary);
+  line-height: 1;
 }
 
 .metricLabel {
-  margin: 0;
-  font-size: 14px;
+  margin: 0 0 12px;
+  font-size: 13px;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -42,209 +84,113 @@
 .metricFooter {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
 }
 
-.trendUp {
-  color: #22c55e;
-}
-
-.trendDown {
-  color: #ef4444;
-}
+.trendUp   { color: #22c55e; }
+.trendDown { color: #ef4444; }
 
 .trend {
   font-size: 12px;
-  font-weight: 600;
+  color: var(--text-secondary);
 }
 
-/* Grid de Conteúdo */
+/* ── Content grid ────────────────────────────────────────── */
+
 .contentGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 24px;
+  grid-template-columns: 3fr 2fr;
+  gap: 20px;
 }
 
 .sectionHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .sectionTitle {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-/* Seção de Feedbacks */
+.badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--color-green-100, #dcfce7);
+  color: var(--btn-primary-bg);
+  white-space: nowrap;
+}
+
+/* ── Chart ───────────────────────────────────────────────── */
+
+.chartCard {
+  background-color: var(--surface-primary);
+  border: 1px solid #e5e7eb;
+  border-radius: var(--card-radius-desktop);
+  padding: 24px;
+}
+
+.chartTooltip {
+  background-color: var(--surface-primary);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tooltipLabel {
+  margin: 0 0 3px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.tooltipValue {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ── Feedback ────────────────────────────────────────────── */
+
 .feedbackSection {
   background-color: var(--surface-primary);
+  border: 1px solid #e5e7eb;
   border-radius: var(--card-radius-desktop);
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  overflow-y: auto;
+  max-height: 340px;
 }
 
 .feedbackList {
-  margin-bottom: 16px;
-}
-
-.feedbackActions {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.primaryBtn {
-  flex: 1;
-  padding: 10px 16px;
-  background-color: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.primaryBtn:hover {
-  background-color: var(--color-green-800);
-}
-
-.ghostBtn {
-  flex: 1;
-  padding: 10px 16px;
-  background-color: transparent;
-  color: var(--text-primary);
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.ghostBtn:hover {
-  background-color: var(--color-green-100);
-  border-color: var(--btn-primary-bg);
-}
-
-.newUsersIndicator {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background-color: var(--status-success-bg);
-  border-radius: 8px;
-  margin-top: 12px;
-}
-
-.indicatorIcon {
-  font-size: 24px;
-}
-
-.indicatorValue {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-green-900);
-}
-
-.indicatorLabel {
-  margin: 2px 0 0;
-  font-size: 12px;
-  color: var(--color-green-900);
-}
-
-/* Seção de Estatísticas */
-.statsSection {
-  background-color: var(--surface-primary);
-  border-radius: var(--card-radius-desktop);
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.chart {
-  margin-top: 16px;
-}
-
-.chartTitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 16px;
-}
-
-.barContainer {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  height: 200px;
-  gap: 12px;
-}
-
-.barItem {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
 }
 
-.barOuter {
-  width: 100%;
-  height: 150px;
-  background-color: #f0f0f0;
-  border-radius: 4px 4px 0 0;
-  display: flex;
-  flex-direction: column-reverse;
-  overflow: hidden;
-}
+/* ── Responsivo ──────────────────────────────────────────── */
 
-.barInner {
-  width: 100%;
-  background: linear-gradient(180deg, var(--btn-primary-bg), var(--color-green-100));
-  border-radius: 4px 4px 0 0;
-  transition: all 0.3s ease;
-}
-
-.barInner:hover {
-  background: var(--btn-primary-bg);
-}
-
-.barLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
+@media (max-width: 1200px) {
+  .metricsGrid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 1024px) {
-  .contentGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .metricsGrid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  }
+  .contentGrid { grid-template-columns: 1fr; }
+  .feedbackSection { max-height: none; }
 }
 
-@media (max-width: 768px) {
-  .metricsGrid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 600px) {
+  .metricsGrid { grid-template-columns: repeat(2, 1fr); }
+}
 
-  .feedbackActions {
-    flex-direction: column;
-  }
-
-  .primaryBtn,
-  .ghostBtn {
-    flex: initial;
-  }
+@media (max-width: 480px) {
+  .metricsGrid { grid-template-columns: 1fr; }
 }

@@ -326,25 +326,25 @@ export const reportsData = [
   {
     id: 1,
     title: 'Relatório de Usuários',
-    description: 'Análise detalhada de cadastros, atividades e perfis',
+    description: 'Análise detalhada de cadastros, atividades e perfis de estudantes.',
     icon: 'Users'
   },
   {
     id: 2,
     title: 'Relatório de Caronas',
-    description: 'Estatísticas de viagens realizadas e canceladas',
+    description: 'Estatísticas de viagens realizadas, canceladas e em andamento.',
     icon: 'Car'
   },
   {
     id: 3,
     title: 'Relatório de Denúncias',
-    description: 'Acompanhamento de sugestões e denúncias',
+    description: 'Acompanhamento de sugestões e denúncias enviadas pelos usuários.',
     icon: 'AlertCircle'
   },
   {
     id: 4,
     title: 'Relatório Geral',
-    description: 'Visão completa da plataforma e desempenho',
+    description: 'Visão completa da plataforma com desempenho consolidado.',
     icon: 'BarChart2'
   }
 ];
@@ -425,6 +425,33 @@ export const contractsData = [
     status: 'Vencido',
     description: 'Responsabilidades e obrigações institucionais na plataforma',
     contactPerson: 'Secretário de Educação'
+  }
+];
+
+export const apiRecentReportsData = [
+  {
+    rel_id: 1,
+    rel_titulo: 'Relatório Geral - Abril',
+    rel_tipo: 'geral',
+    rel_gerado_em: '2024-04-10T10:00:00.000Z',
+    rel_tamanho: '2.4 MB',
+    rel_gerado_por: 6
+  },
+  {
+    rel_id: 2,
+    rel_titulo: 'Relatório de Caronas',
+    rel_tipo: 'caronas',
+    rel_gerado_em: '2024-04-08T14:30:00.000Z',
+    rel_tamanho: '1.8 MB',
+    rel_gerado_por: 6
+  },
+  {
+    rel_id: 3,
+    rel_titulo: 'Relatório de Usuários',
+    rel_tipo: 'usuarios',
+    rel_gerado_em: '2024-04-05T09:15:00.000Z',
+    rel_tamanho: '3.1 MB',
+    rel_gerado_por: 6
   }
 ];
 
@@ -701,7 +728,11 @@ export const apiRidesData = [
     car_vagas: 4,
     car_vagas_disponivel: 1,
     vei_placa: 'ABC-1234',
-    vei_modelo: 'Toyota Corolla'
+    vei_modelo: 'Toyota Corolla',
+    passageiros: [
+      { usu_id: 2, usu_nome: 'Mariana Souza' },
+      { usu_id: 5, usu_nome: 'Lucas Pereira' }
+    ]
   },
   {
     car_id: 2,
@@ -715,7 +746,8 @@ export const apiRidesData = [
     car_vagas: 1,
     car_vagas_disponivel: 1,
     vei_placa: 'XYZ-5678',
-    vei_modelo: 'Honda CG 160'
+    vei_modelo: 'Honda CG 160',
+    passageiros: []
   },
   {
     car_id: 3,
@@ -729,7 +761,60 @@ export const apiRidesData = [
     car_vagas: 4,
     car_vagas_disponivel: 2,
     vei_placa: 'DEF-9012',
-    vei_modelo: 'Honda Civic'
+    vei_modelo: 'Honda Civic',
+    passageiros: [
+      { usu_id: 1, usu_nome: 'Carlos Silva' }
+    ]
+  },
+  {
+    car_id: 4,
+    usu_id_motorista: 1,
+    usu_nome_motorista: 'Carlos Silva',
+    car_status: 4,
+    car_data: '2024-04-10 07:30',
+    car_desc: 'Ida p/ faculdade - Cancelei por imprevisto de última hora.',
+    pon_partida: 'Rua das Flores, 123, Centro, São Paulo',
+    pon_destino: 'Faculdade Tecnológica Inova',
+    car_vagas: 3,
+    car_vagas_disponivel: 3,
+    vei_placa: 'ABC-1234',
+    vei_modelo: 'Toyota Corolla',
+    passageiros: [
+      { usu_id: 5, usu_nome: 'Lucas Pereira' }
+    ]
+  },
+  {
+    car_id: 5,
+    usu_id_motorista: 1,
+    usu_nome_motorista: 'Carlos Silva',
+    car_status: 3,
+    car_data: '2024-04-05 07:30',
+    car_desc: 'Ida p/ faculdade - Carona da semana passada.',
+    pon_partida: 'Rua das Flores, 123, Centro, São Paulo',
+    pon_destino: 'Faculdade Tecnológica Inova',
+    car_vagas: 4,
+    car_vagas_disponivel: 0,
+    vei_placa: 'ABC-1234',
+    vei_modelo: 'Toyota Corolla',
+    passageiros: [
+      { usu_id: 2, usu_nome: 'Mariana Souza' },
+      { usu_id: 5, usu_nome: 'Lucas Pereira' }
+    ]
+  },
+  {
+    car_id: 6,
+    usu_id_motorista: 3,
+    usu_nome_motorista: 'Pedro Santos',
+    car_status: 2,
+    car_data: '2024-04-14 08:00',
+    car_desc: 'Aguardando confirmação de passageiros para a carona.',
+    pon_partida: 'Rua da Paz, 88, Vila Nova, Campinas',
+    pon_destino: 'Faculdade Estadual do Saber',
+    car_vagas: 2,
+    car_vagas_disponivel: 2,
+    vei_placa: 'XYZ-5678',
+    vei_modelo: 'Honda CG 160',
+    passageiros: []
   }
 ];
 
@@ -753,6 +838,7 @@ export const apiSuggestionsData = [
     sug_tipo: 1,
     sug_status: 2,
     sug_resposta: null,
+    sug_carona_id: 4,
     criado_em: '2024-04-12T11:00:00.000Z'
   },
   {

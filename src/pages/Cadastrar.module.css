@@ -86,7 +86,6 @@
 .formCard {
   background-color: var(--surface-primary);
   border-radius: var(--card-radius-desktop);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   padding: 28px;
   margin-bottom: 40px;
 }
@@ -163,7 +162,6 @@
 .input:focus {
   outline: none;
   border-color: var(--btn-primary-bg);
-  box-shadow: 0 0 0 3px rgba(78, 135, 38, 0.1);
 }
 
 .fieldHint {
@@ -484,16 +482,11 @@
 .institutionCard {
   background-color: var(--surface-primary);
   border-radius: var(--card-radius-desktop);
+  max-height: fit-content;
   padding: 18px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid #e5e7eb;
-  transition: box-shadow 0.2s, border-color 0.2s;
 }
 
-.institutionCard:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: var(--btn-primary-bg);
-}
 
 .cardHeader {
   display: flex;
@@ -816,8 +809,8 @@
 }
 
 .courseEditGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  /* grid-template-columns: repeat(2, 1fr); */
   gap: 10px;
   margin-bottom: 10px;
 }

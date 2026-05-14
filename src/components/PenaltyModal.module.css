@@ -27,7 +27,6 @@
   transform: translate(-50%, -50%);
   background: var(--surface-primary);
   border-radius: var(--border-radius-lg);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   max-width: 600px;
   width: 90%;
   max-height: 90vh;
@@ -110,7 +109,6 @@
   font-weight: 700;
   font-size: var(--font-size-lg);
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(74, 135, 38, 0.2);
 }
 
 .userName {
@@ -181,7 +179,6 @@
 .tipoOption.selected {
   border-color: var(--color-green-600);
   background: var(--color-green-50);
-  box-shadow: 0 2px 8px rgba(106, 163, 60, 0.2);
 }
 
 .tipoOption svg {
@@ -210,7 +207,6 @@
 .select:focus {
   outline: none;
   border-color: var(--color-green-500);
-  box-shadow: 0 0 0 3px rgba(137, 191, 88, 0.1);
 }
 
 /* ── Textarea ──────────────────────────────────────────────────────– */
@@ -238,7 +234,6 @@
 .textarea:focus {
   outline: none;
   border-color: var(--color-green-500);
-  box-shadow: 0 0 0 3px rgba(137, 191, 88, 0.1);
 }
 
 /* ── Actions ────────────────────────────────────────────────────────– */
@@ -279,7 +274,6 @@
 
 .btnSubmit:hover:not(:disabled) {
   background: #991b1b;
-  box-shadow: 0 4px 12px rgba(185, 28, 28, 0.3);
   transform: translateY(-1px);
 }
 

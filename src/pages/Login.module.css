@@ -10,7 +10,6 @@
 .card {
   background-color: var(--card-bg);
   border-radius: var(--card-radius-desktop);
-  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
   padding: 40px;
   max-width: 420px;
   width: 100%;
@@ -77,7 +76,6 @@
 .input:focus {
   outline: none;
   border-color: var(--btn-primary-bg);
-  box-shadow: 0 0 0 3px rgba(78, 135, 38, 0.1);
 }
 
 .passwordContainer {
@@ -123,7 +121,6 @@
 
 .submitBtn:hover {
   background-color: var(--color-green-800);
-  box-shadow: 0 4px 12px rgba(78, 135, 38, 0.2);
 }
 
 .submitBtn:active {

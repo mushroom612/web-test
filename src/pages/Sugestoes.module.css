@@ -47,7 +47,6 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .statValue {
@@ -158,17 +157,10 @@
   border-radius: 10px;
   padding: 14px 16px;
   cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.1s;
-}
-
-.listCard:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transform: translateY(-1px);
 }
 
 .listCardSugestao  { border-left-color: #3b82f6; }
 .listCardDenuncia  { border-left-color: #ef4444; }
-.listCardSelected  { box-shadow: 0 0 0 2px var(--btn-primary-bg) !important; transform: none !important; }
 .listCardArchived  { opacity: 0.6; border-left-color: #d1d5db; }
 
 .listCardTop {
@@ -216,7 +208,6 @@
   color: var(--text-secondary);
   line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -320,7 +311,6 @@
   background-color: var(--surface-primary);
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -448,6 +438,12 @@
   line-height: 1.5;
 }
 
+.denunciaBtnRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .penalizeBtn {
   display: inline-flex;
   align-items: center;
@@ -465,6 +461,24 @@
 }
 
 .penalizeBtn:hover { background-color: #b91c1c; }
+
+.viewRideBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background-color: #1d4ed8;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: inherit;
+}
+
+.viewRideBtn:hover { background-color: #1e40af; }
 
 /* ── Status options ──────────────────────────────────────── */
 
@@ -527,7 +541,6 @@
   background-color: var(--color-neutral-0, #fff);
   font-family: inherit;
   resize: vertical;
-  transition: border-color 0.2s, box-shadow 0.2s;
   line-height: 1.5;
   margin-bottom: 10px;
   box-sizing: border-box;
@@ -536,7 +549,6 @@
 .replyInput:focus {
   outline: none;
   border-color: var(--btn-primary-bg);
-  box-shadow: 0 0 0 3px rgba(78, 135, 38, 0.1);
 }
 
 .replyActions { display: flex; gap: 8px; }

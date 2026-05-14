@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { apiSuggestionsData } from '../data/mockData';
 import {
   Send, MessageSquare, Archive, ArchiveRestore,
   Loader2, AlertTriangle, CheckCircle, Clock,
   Flag, ShieldAlert, User, ChevronRight, X,
-  CornerDownRight, Info
+  CornerDownRight, Info, Car
 } from 'lucide-react';
 import { PenaltyPanel } from '../components/PenaltyPanel';
 import styles from './Sugestoes.module.css';
@@ -28,6 +29,7 @@ function apiToItem(s) {
       : s.sug_status === 2 ? 'Em análise'
       : 'Pendente',
     response: s.sug_resposta || null,
+    caronaId: s.sug_carona_id || null,
     _apiId: s.sug_id
   };
 }
@@ -50,6 +52,7 @@ export function Sugestoes() {
   const [statusMap, setStatusMap] = useState({});
   const [sending, setSending] = useState(false);
   const [penaltyUser, setPenaltyUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     api
@@ -343,12 +346,23 @@ export function Sugestoes() {
                     Este usuário relatou um problema relacionado a uma carona ou a outro usuário da plataforma.
                     Analise o relato, tome as medidas necessárias e informe o usuário sobre a resolução.
                   </p>
-                  {!isArchived && (
-                    <button className={styles.penalizeBtn} onClick={handlePenalizeFromComplaint}>
-                      <ShieldAlert size={14} />
-                      Aplicar penalidade ao usuário relatado
-                    </button>
-                  )}
+                  <div className={styles.denunciaBtnRow}>
+                    {!isArchived && (
+                      <button className={styles.penalizeBtn} onClick={handlePenalizeFromComplaint}>
+                        <ShieldAlert size={14} />
+                        Aplicar penalidade ao usuário relatado
+                      </button>
+                    )}
+                    {selectedItem.caronaId && (
+                      <button
+                        className={styles.viewRideBtn}
+                        onClick={() => navigate(`/caronas?id=${selectedItem.caronaId}`)}
+                      >
+                        <Car size={14} />
+                        Ver carona relacionada
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 

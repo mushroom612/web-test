@@ -26,7 +26,6 @@
   background-color: var(--surface-primary);
   border-radius: var(--card-radius-desktop);
   padding: 20px 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   margin-bottom: 20px;
 }
 
@@ -63,14 +62,12 @@
   color: var(--text-primary);
   background-color: var(--color-neutral-0);
   font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
   width: 100%;
 }
 
 .input:focus {
   outline: none;
   border-color: var(--btn-primary-bg);
-  box-shadow: 0 0 0 3px rgba(78, 135, 38, 0.1);
 }
 
 .input:disabled {
@@ -186,7 +183,6 @@
   border-radius: var(--card-radius-desktop);
   padding: 20px 24px;
   margin-bottom: 16px;
-  box-shadow: 0 1px 4px rgba(185, 28, 28, 0.06);
 }
 
 .formCardHeader {
@@ -236,13 +232,11 @@
   background-color: var(--color-neutral-0);
   font-family: inherit;
   resize: vertical;
-  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .textarea:focus {
   outline: none;
   border-color: var(--btn-primary-bg);
-  box-shadow: 0 0 0 3px rgba(78, 135, 38, 0.1);
 }
 
 .charCount {
@@ -343,7 +337,6 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   transition: opacity 0.2s;
 }
 

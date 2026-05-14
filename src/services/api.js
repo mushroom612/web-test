@@ -1,4 +1,4 @@
-import { apiUsersData, apiSchoolsData, apiRidesData, apiSuggestionsData, apiStatsData, apiCoursesData } from '../data/mockData';
+import { apiUsersData, apiSchoolsData, apiRidesData, apiSuggestionsData, apiStatsData, apiCoursesData, apiRecentReportsData } from '../data/mockData';
 
 // Simula latência de rede
 function delay(ms = 300) {
@@ -328,5 +328,34 @@ export const api = {
     if (idx === -1) throw new Error('Curso não encontrado');
     apiCoursesData.splice(idx, 1);
     return { success: true };
+  },
+
+  // ── Relatórios ─────────────────────────────────────────────────────────────
+
+  async getRecentReports() {
+    await delay(300);
+    return { relatorios: apiRecentReportsData };
+  },
+
+  async generateReport(tipo) {
+    await delay(800);
+    const titulos = {
+      users: 'Relatório de Usuários',
+      car: 'Relatório de Caronas',
+      alertcircle: 'Relatório de Denúncias',
+      barchart2: 'Relatório Geral'
+    };
+    const titulo = titulos[tipo?.toLowerCase()] ?? 'Relatório';
+    const mes = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    const newReport = {
+      rel_id: Date.now(),
+      rel_titulo: `${titulo} - ${mes}`,
+      rel_tipo: tipo,
+      rel_gerado_em: new Date().toISOString(),
+      rel_tamanho: `${(Math.random() * 2.5 + 0.5).toFixed(1)} MB`,
+      rel_gerado_por: 6
+    };
+    apiRecentReportsData.unshift(newReport);
+    return newReport;
   }
 };

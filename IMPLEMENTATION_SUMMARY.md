@@ -148,16 +148,6 @@ transform: translateX(2px)   /* Slide horizontal */
 
 ### Box Shadows
 
-```css
-/* Nível 1 - Hover leve */
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04)
-
-/* Nível 2 - Modal */
-box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15)
-
-/* Nível 3 - Elevated */
-box-shadow: 0 4px 12px rgba(74, 135, 38, 0.25)
-```
 
 ---
 
