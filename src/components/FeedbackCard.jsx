@@ -1,9 +1,12 @@
 import { StatusBadge } from './StatusBadge';
 import styles from './FeedbackCard.module.css';
 
-export function FeedbackCard({ feedback }) {
+export function FeedbackCard({ feedback, onClick }) {
   return (
-    <div className={styles.card}>
+    <div
+      className={`${styles.card} ${onClick ? styles.cardClickable : ''}`}
+      onClick={onClick}
+    >
       <div className={styles.header}>
         <div className={styles.userInfo}>
           <span className={styles.avatar}>{feedback.avatar}</span>

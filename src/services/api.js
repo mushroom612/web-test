@@ -1,4 +1,4 @@
-import { apiUsersData, apiSchoolsData, apiRidesData, apiSuggestionsData, apiStatsData, apiCoursesData, apiRecentReportsData } from '../data/mockData';
+import { apiUsersData, apiSchoolsData, apiRidesData, apiSuggestionsData, apiStatsData, apiCoursesData, apiRecentReportsData, auditLogData } from '../data/mockData';
 
 // Simula latência de rede
 function delay(ms = 300) {
@@ -215,15 +215,51 @@ export const api = {
 
   // ── Audit Logs (somente role 2 — Desenvolvedor) ───────────────────────────
 
-  async getLogs({ page = 1, limit = 20, acao, tabela, usu_id } = {}) {
-    // Mock get audit logs
+  async getLogs({ page = 1, limit = 20, acao, dataInicio, dataFim } = {}) {
+    // Mock: filtra auditLogData e pagina. Troca pelo fetch real em produção.
     await delay(300);
+    let filtered = [...auditLogData];
+    if (acao) {
+      const q = acao.toUpperCase();
+      filtered = filtered.filter((l) => l.acao.toUpperCase().includes(q));
+    }
+    if (dataInicio) {
+      const from = new Date(dataInicio).getTime();
+      filtered = filtered.filter((l) => new Date(l.criado_em).getTime() >= from);
+    }
+    if (dataFim) {
+      const to = new Date(dataFim);
+      to.setHours(23, 59, 59, 999);
+      filtered = filtered.filter((l) => new Date(l.criado_em).getTime() <= to.getTime());
+    }
+    const totalGeral = filtered.length;
+    const start = (page - 1) * limit;
     return {
-      logs: [],
-      total: 0,
+      logs: filtered.slice(start, start + limit),
+      totalGeral,
       page,
-      limit
+      limit,
     };
+  },
+
+  async exportLogs() {
+    // Mock: gera CSV dos dados de auditoria. Troca pela chamada GET /api/dev/logs/exportar em produção.
+    await delay(400);
+    const headers = ['audit_id', 'criado_em', 'usu_id', 'acao', 'tabela', 'registro_id', 'ip'];
+    const rows = auditLogData.map((l) =>
+      headers.map((h) => JSON.stringify(l[h] ?? '')).join(',')
+    );
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `auditoria_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    return { success: true };
   },
 
   // ── Penalidades ────────────────────────────────────────────────────────────

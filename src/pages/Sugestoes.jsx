@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { apiSuggestionsData } from '../data/mockData';
 import {
@@ -53,6 +53,7 @@ export function Sugestoes() {
   const [sending, setSending] = useState(false);
   const [penaltyUser, setPenaltyUser] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     api
@@ -64,6 +65,20 @@ export function Sugestoes() {
       .catch(() => setItems(apiSuggestionsData.map(apiToItem)))
       .finally(() => setLoading(false));
   }, []);
+
+  // Auto-seleciona item quando navegado do Dashboard (?id=N)
+  useEffect(() => {
+    const itemId = searchParams.get('id');
+    if (itemId && items.length > 0) {
+      const id = parseInt(itemId, 10);
+      const found = items.find(i => i.id === id);
+      if (found) {
+        setSelectedId(id);
+        setResponseText(found.response || '');
+        setFilterType('Todos');
+      }
+    }
+  }, [searchParams, items]);
 
   const isArchiveView = filterType === 'Arquivados';
   const activeItems = items.filter(i => !archivedIds.has(i.id));

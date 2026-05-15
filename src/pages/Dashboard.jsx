@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, Car, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -40,6 +41,7 @@ function ChartTooltip({ active, payload, label }) {
 }
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [feedbacks, setFeedbacks] = useState(feedbacksData);
   const [loading, setLoading] = useState(true);
@@ -192,7 +194,11 @@ export function Dashboard() {
           </div>
           <div className={styles.feedbackList}>
             {feedbacks.map((feedback) => (
-              <FeedbackCard key={feedback.id} feedback={feedback} />
+              <FeedbackCard
+                key={feedback.id}
+                feedback={feedback}
+                onClick={() => navigate(`/sugestoes?id=${feedback.id}`)}
+              />
             ))}
           </div>
         </div>

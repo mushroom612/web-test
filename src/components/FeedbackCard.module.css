@@ -3,6 +3,15 @@
   border-radius: var(--card-radius-desktop);
   padding: 16px;
   margin-bottom: 12px;
+  transition: background-color 0.15s;
+}
+
+.cardClickable {
+  cursor: pointer;
+}
+
+.cardClickable:hover {
+  background-color: var(--color-neutral-50, #f9fafb);
 }
 
 .header {
