@@ -1,101 +1,212 @@
-import { apiUsersData, apiSchoolsData, apiRidesData, apiSuggestionsData, apiStatsData, apiCoursesData, apiRecentReportsData, auditLogData } from '../data/mockData';
+/**
+ * ============================================================================
+ * ARQUIVO: src/services/api.js
+ * DESCRIÇÃO: Serviço de API - todas as chamadas ao servidor
+ *
+ * Este arquivo centraliza TODAS as requisições HTTP para o backend.
+ *
+ * Como funciona:
+ * 1. Cada método é uma função async que faz uma requisição
+ * 2. Simula latência de rede com delay()
+ * 3. Armazena tokens em localStorage
+ * 4. Se conectar com servidor real, substitui os mock by fetch() calls
+ *
+ * Estrutura:
+ * - Auth: login, logout, getMe
+ * - Stats: getStats (métricas do dashboard)
+ * - Schools: getSchools, createSchool, updateSchool, deleteSchool
+ * - Users: getUsers, createUser, updateUser, deleteUser
+ * - Rides: getCaronas, createCarona, updateCarona
+ * - Suggestions: getSugestoes, respondSugestao
+ * - etc
+ *
+ * Padrão de erro:
+ * - Se falhar, lança new Error() com mensagem
+ * - Página que chama a API trata o erro e mostra ao usuário
+ *
+ * Interligação:
+ * - Importado em: Dashboard.jsx, Login.jsx, Usuarios.jsx, etc
+ * - Interage com: mockData.js (em modo mock/desenvolvimento)
+ * ============================================================================
+ */
 
-// Simula latência de rede
+import {
+  apiUsersData,
+  apiSchoolsData,
+  apiRidesData,
+  apiSuggestionsData,
+  apiStatsData,
+  apiCoursesData,
+  apiRecentReportsData,
+  auditLogData,
+} from "../data/mockData";
+
+/**
+ * Função delay()
+ *
+ * Simula latência de rede (para parecer mais real)
+ * Em produção, o fetch() automaticamente faz isso
+ *
+ * @param {number} ms - milissegundos para esperar (padrão: 300)
+ * @returns {Promise} - Promise que resolve após ms milissegundos
+ */
 function delay(ms = 300) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Objeto api
+ *
+ * Centraliza todos os métodos de comunicação com o servidor
+ * Cada métod retorna uma Promise (pode usar await)
+ */
 export const api = {
-  // ── Auth ──────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // AUTENTICAÇÃO
+  // ══════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Faz login do usuário
+   *
+   * Real: enviaria POST /auth/login com email e senha
+   * Mock: simula validação e retorna token
+   *
+   * @param {string} email - email do usuário
+   * @param {string} senha - senha do usuário
+   * @returns {Promise<Object>} - {access_token, refresh_token, user}
+   */
   async login(email, senha) {
-    // Mock login
     await delay(300);
-    const mockToken = 'mock_token_' + Date.now();
-    const mockRefreshToken = 'mock_refresh_token_' + Date.now();
-    localStorage.setItem('auth_token', mockToken);
-    localStorage.setItem('refresh_token', mockRefreshToken);
+    const mockToken = "mock_token_" + Date.now();
+    const mockRefreshToken = "mock_refresh_token_" + Date.now();
+    localStorage.setItem("auth_token", mockToken);
+    localStorage.setItem("refresh_token", mockRefreshToken);
     return {
       access_token: mockToken,
       refresh_token: mockRefreshToken,
-      user: { email, usu_id: 6, usu_nome: 'Admin Sistema' }
+      user: { email, usu_id: 6, usu_nome: "Admin Sistema" },
     };
   },
 
+  /**
+   * Retorna dados do usuário atualmente logado
+   *
+   * Real: GET /user/me com Authorization header
+   * Mock: retorna dados do admin
+   *
+   * @returns {Promise<Object>} - dados do usuário
+   */
   async getMe() {
-    // Mock get current user
     await delay(200);
     return {
       usu_id: 6,
-      usu_nome: 'Admin Sistema',
-      usu_email: 'admin@sistema.inova.br',
+      usu_nome: "Admin Sistema",
+      usu_email: "admin@sistema.inova.br",
       usu_status: 1,
       usu_verificacao: 2,
-      per_tipo: 2
+      per_tipo: 2,
     };
   },
 
+  /**
+   * Faz logout do usuário
+   *
+   * Remove todos os dados de autenticação do localStorage
+   */
   logout() {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('user_info');
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_role");
+    localStorage.removeItem("user_info");
   },
 
-  // ── Stats (Dashboard) ──────────────────────────────────────────────────────
-  // type: 'usuarios' | 'caronas' | 'sugestoes' | 'sistema' (dev only) | 'documentos' | 'contratos'
+  // ══════════════════════════════════════════════════════════════════════════
+  // ESTATÍSTICAS (DASHBOARD)
+  // ══════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Retorna estatísticas para o dashboard
+   *
+   * @param {string} type - tipo de estatística
+   *   - 'usuarios': total de usuários
+   *   - 'caronas': total de caronas
+   *   - 'sugestoes': total de sugestões/denúncias
+   * @returns {Promise<Object>} - dados de estatísticas
+   */
   async getStats(type) {
-    // Mock stats
     await delay(300);
-    const typeKey = type === 'usuarios' ? 'usuarios' 
-                    : type === 'caronas' ? 'caronas'
-                    : type === 'sugestoes' ? 'sugestoes'
-                    : 'usuarios';
+    const typeKey =
+      type === "usuarios"
+        ? "usuarios"
+        : type === "caronas"
+          ? "caronas"
+          : type === "sugestoes"
+            ? "sugestoes"
+            : "usuarios";
     return apiStatsData[typeKey] || { stats: {} };
   },
 
-  // ── Escolas ────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // ESCOLAS
+  // ══════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Lista todas as escolas cadastradas
+   */
   async getSchools() {
-    // Mock get schools
     await delay(300);
     return apiSchoolsData;
   },
 
+  /**
+   * Cria uma nova escola
+   * @param {Object} data - dados da escola
+   */
   async createSchool(data) {
-    // Mock create school
     await delay(300);
-    const newId = Math.max(...apiSchoolsData.map(s => s.esc_id)) + 1;
+    const newId = Math.max(...apiSchoolsData.map((s) => s.esc_id)) + 1;
     const newSchool = { ...data, esc_id: newId };
     apiSchoolsData.push(newSchool);
     return newSchool;
   },
 
+  /**
+   * Atualiza dados de uma escola existente
+   * @param {number} id - ID da escola para atualizar
+   * @param {Object} data - novos dados
+   */
   async updateSchool(id, data) {
-    // Mock update school
     await delay(300);
-    const idx = apiSchoolsData.findIndex(s => s.esc_id === id);
-    if (idx === -1) throw new Error('Escola não encontrada');
+    const idx = apiSchoolsData.findIndex((s) => s.esc_id === id);
+    if (idx === -1) throw new Error("Escola não encontrada");
     const updated = { ...apiSchoolsData[idx], ...data };
     apiSchoolsData[idx] = updated;
     return updated;
   },
 
+  /**
+   * Deleta uma escola
+   * @param {number} id - ID da escola para deletar
+   */
   async deleteSchool(id) {
-    // Mock delete school
     await delay(300);
-    const idx = apiSchoolsData.findIndex(s => s.esc_id === id);
-    if (idx === -1) throw new Error('Escola não encontrada');
+    const idx = apiSchoolsData.findIndex((s) => s.esc_id === id);
+    if (idx === -1) throw new Error("Escola não encontrada");
     apiSchoolsData.splice(idx, 1);
     return { success: true };
   },
 
-  // ── Usuários (criação) ────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // USUÁRIOS
+  // ══════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Cria um novo usuário
+   * Usado na página /cadastrar
+   */
   async createUser(data) {
     await delay(300);
-    const newId = Math.max(...apiUsersData.map(u => u.usu_id)) + 1;
+    const newId = Math.max(...apiUsersData.map((u) => u.usu_id)) + 1;
     const newUser = {
       usu_id: newId,
       usu_nome: data.usu_nome,
@@ -103,7 +214,7 @@ export const api = {
       usu_telefone: data.usu_telefone || null,
       usu_status: 1,
       usu_verificacao: 0,
-      usu_foto: null
+      usu_foto: null,
     };
     apiUsersData.push(newUser);
     return { usuario: newUser };
@@ -111,15 +222,18 @@ export const api = {
 
   // ── Usuários (Admin) ───────────────────────────────────────────────────────
 
-  async getUsers({ page = 1, limit = 50, q = '' } = {}) {
+  async getUsers({ page = 1, limit = 50, q = "" } = {}) {
     // Mock get users
     await delay(300);
     let filtered = apiUsersData;
     if (q) {
       const query = q.toLowerCase();
-      filtered = filtered.filter(u => 
-        (u.usu_nome?.toLowerCase().includes(query) || false) ||
-        (u.usu_email?.toLowerCase().includes(query) || false)
+      filtered = filtered.filter(
+        (u) =>
+          u.usu_nome?.toLowerCase().includes(query) ||
+          false ||
+          u.usu_email?.toLowerCase().includes(query) ||
+          false,
       );
     }
     const start = (page - 1) * limit;
@@ -128,23 +242,23 @@ export const api = {
       usuarios: filtered.slice(start, end),
       total: filtered.length,
       page,
-      limit
+      limit,
     };
   },
 
   async getUser(userId) {
     // Mock get user
     await delay(200);
-    const user = apiUsersData.find(u => u.usu_id === userId);
-    if (!user) throw new Error('Usuário não encontrado');
+    const user = apiUsersData.find((u) => u.usu_id === userId);
+    if (!user) throw new Error("Usuário não encontrado");
     return user;
   },
 
   async updateUserStatus(userId, status) {
     // Mock update user status
     await delay(250);
-    const user = apiUsersData.find(u => u.usu_id === userId);
-    if (!user) throw new Error('Usuário não encontrado');
+    const user = apiUsersData.find((u) => u.usu_id === userId);
+    if (!user) throw new Error("Usuário não encontrado");
     user.usu_status = status;
     return user;
   },
@@ -152,8 +266,8 @@ export const api = {
   async updateUserProfile(userId, profileData) {
     // Mock update user profile
     await delay(250);
-    const user = apiUsersData.find(u => u.usu_id === userId);
-    if (!user) throw new Error('Usuário não encontrado');
+    const user = apiUsersData.find((u) => u.usu_id === userId);
+    if (!user) throw new Error("Usuário não encontrado");
     Object.assign(user, profileData);
     return user;
   },
@@ -182,8 +296,8 @@ export const api = {
   async analisarSugestao(sugId) {
     // Mock analyze suggestion
     await delay(250);
-    const sug = apiSuggestionsData.find(s => s.sug_id === sugId);
-    if (!sug) throw new Error('Sugestão não encontrada');
+    const sug = apiSuggestionsData.find((s) => s.sug_id === sugId);
+    if (!sug) throw new Error("Sugestão não encontrada");
     sug.sug_status = 2; // Em análise
     return sug;
   },
@@ -191,8 +305,8 @@ export const api = {
   async responderSugestao(sugId, resposta) {
     // Mock respond to suggestion
     await delay(250);
-    const sug = apiSuggestionsData.find(s => s.sug_id === sugId);
-    if (!sug) throw new Error('Sugestão não encontrada');
+    const sug = apiSuggestionsData.find((s) => s.sug_id === sugId);
+    if (!sug) throw new Error("Sugestão não encontrada");
     sug.sug_resposta = resposta;
     sug.sug_status = 1; // Resolvido
     return sug;
@@ -209,7 +323,7 @@ export const api = {
       mensagem,
       tipo,
       usu_id,
-      enviado_em: new Date().toISOString()
+      enviado_em: new Date().toISOString(),
     };
   },
 
@@ -225,12 +339,16 @@ export const api = {
     }
     if (dataInicio) {
       const from = new Date(dataInicio).getTime();
-      filtered = filtered.filter((l) => new Date(l.criado_em).getTime() >= from);
+      filtered = filtered.filter(
+        (l) => new Date(l.criado_em).getTime() >= from,
+      );
     }
     if (dataFim) {
       const to = new Date(dataFim);
       to.setHours(23, 59, 59, 999);
-      filtered = filtered.filter((l) => new Date(l.criado_em).getTime() <= to.getTime());
+      filtered = filtered.filter(
+        (l) => new Date(l.criado_em).getTime() <= to.getTime(),
+      );
     }
     const totalGeral = filtered.length;
     const start = (page - 1) * limit;
@@ -245,14 +363,22 @@ export const api = {
   async exportLogs() {
     // Mock: gera CSV dos dados de auditoria. Troca pela chamada GET /api/dev/logs/exportar em produção.
     await delay(400);
-    const headers = ['audit_id', 'criado_em', 'usu_id', 'acao', 'tabela', 'registro_id', 'ip'];
+    const headers = [
+      "audit_id",
+      "criado_em",
+      "usu_id",
+      "acao",
+      "tabela",
+      "registro_id",
+      "ip",
+    ];
     const rows = auditLogData.map((l) =>
-      headers.map((h) => JSON.stringify(l[h] ?? '')).join(',')
+      headers.map((h) => JSON.stringify(l[h] ?? "")).join(","),
     );
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `auditoria_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
@@ -273,39 +399,39 @@ export const api = {
         {
           pen_id: 1,
           pen_tipo: 2,
-          pen_motivo: 'Comportamento inadequado com motorista.',
-          pen_aplicado_em: '2026-03-31T10:00:00.000Z',
-          pen_expira_em: '2026-04-29T10:00:00.000Z',
+          pen_motivo: "Comportamento inadequado com motorista.",
+          pen_aplicado_em: "2026-03-31T10:00:00.000Z",
+          pen_expira_em: "2026-04-29T10:00:00.000Z",
           pen_aplicado_por: 6,
-          pen_ativo: 1
-        }
+          pen_ativo: 1,
+        },
       ],
       9: [
         {
           pen_id: 2,
           pen_tipo: 1,
-          pen_motivo: 'Cancelamento de última hora recorrente.',
-          pen_aplicado_em: '2026-04-01T12:00:00.000Z',
-          pen_expira_em: '2026-04-28T12:00:00.000Z',
+          pen_motivo: "Cancelamento de última hora recorrente.",
+          pen_aplicado_em: "2026-04-01T12:00:00.000Z",
+          pen_expira_em: "2026-04-28T12:00:00.000Z",
           pen_aplicado_por: 6,
-          pen_ativo: 1
+          pen_ativo: 1,
         },
         {
           pen_id: 3,
           pen_tipo: 3,
-          pen_motivo: 'Reincidência após penalidade anterior.',
-          pen_aplicado_em: '2026-01-10T09:00:00.000Z',
-          pen_expira_em: '2026-02-10T09:00:00.000Z',
+          pen_motivo: "Reincidência após penalidade anterior.",
+          pen_aplicado_em: "2026-01-10T09:00:00.000Z",
+          pen_expira_em: "2026-02-10T09:00:00.000Z",
           pen_aplicado_por: 6,
-          pen_ativo: 0
-        }
-      ]
+          pen_ativo: 0,
+        },
+      ],
     };
-    
+
     const penalties = penaltyData[userId] || [];
     return {
       penalidades: penalties,
-      total: penalties.length
+      total: penalties.length,
     };
   },
 
@@ -319,7 +445,7 @@ export const api = {
       pen_duracao,
       pen_motivo,
       pen_aplicado_em: new Date().toISOString(),
-      pen_ativo: 1
+      pen_ativo: 1,
     };
   },
 
@@ -334,16 +460,17 @@ export const api = {
   async getCourses(escId) {
     await delay(300);
     if (escId != null) {
-      return apiCoursesData.filter(c => c.esc_id === escId);
+      return apiCoursesData.filter((c) => c.esc_id === escId);
     }
     return apiCoursesData;
   },
 
   async createCourse(data) {
     await delay(300);
-    const newId = apiCoursesData.length > 0
-      ? Math.max(...apiCoursesData.map(c => c.cur_id)) + 1
-      : 1;
+    const newId =
+      apiCoursesData.length > 0
+        ? Math.max(...apiCoursesData.map((c) => c.cur_id)) + 1
+        : 1;
     const newCourse = { ...data, cur_id: newId };
     apiCoursesData.push(newCourse);
     return newCourse;
@@ -351,8 +478,8 @@ export const api = {
 
   async updateCourse(id, data) {
     await delay(300);
-    const idx = apiCoursesData.findIndex(c => c.cur_id === id);
-    if (idx === -1) throw new Error('Curso não encontrado');
+    const idx = apiCoursesData.findIndex((c) => c.cur_id === id);
+    if (idx === -1) throw new Error("Curso não encontrado");
     const updated = { ...apiCoursesData[idx], ...data };
     apiCoursesData[idx] = updated;
     return updated;
@@ -360,8 +487,8 @@ export const api = {
 
   async deleteCourse(id) {
     await delay(300);
-    const idx = apiCoursesData.findIndex(c => c.cur_id === id);
-    if (idx === -1) throw new Error('Curso não encontrado');
+    const idx = apiCoursesData.findIndex((c) => c.cur_id === id);
+    if (idx === -1) throw new Error("Curso não encontrado");
     apiCoursesData.splice(idx, 1);
     return { success: true };
   },
@@ -376,22 +503,25 @@ export const api = {
   async generateReport(tipo) {
     await delay(800);
     const titulos = {
-      users: 'Relatório de Usuários',
-      car: 'Relatório de Caronas',
-      alertcircle: 'Relatório de Denúncias',
-      barchart2: 'Relatório Geral'
+      users: "Relatório de Usuários",
+      car: "Relatório de Caronas",
+      alertcircle: "Relatório de Denúncias",
+      barchart2: "Relatório Geral",
     };
-    const titulo = titulos[tipo?.toLowerCase()] ?? 'Relatório';
-    const mes = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    const titulo = titulos[tipo?.toLowerCase()] ?? "Relatório";
+    const mes = new Date().toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric",
+    });
     const newReport = {
       rel_id: Date.now(),
       rel_titulo: `${titulo} - ${mes}`,
       rel_tipo: tipo,
       rel_gerado_em: new Date().toISOString(),
       rel_tamanho: `${(Math.random() * 2.5 + 0.5).toFixed(1)} MB`,
-      rel_gerado_por: 6
+      rel_gerado_por: 6,
     };
     apiRecentReportsData.unshift(newReport);
     return newReport;
-  }
+  },
 };
