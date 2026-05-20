@@ -1,27 +1,3 @@
-/**
- * ============================================================================
- * ARQUIVO: package.json
- * DESCRIÇÃO: Arquivo de configuração do projeto Node.js/NPM
- * 
- * Este arquivo define:
- * - Informações básicas do projeto (nome, versão)
- * - Dependências (bibliotecas necessárias para o projeto rodar)
- * - DevDependencies (ferramentas apenas para desenvolvimento)
- * - Scripts (comandos que podem ser executados com "npm run <nome>")
- * 
- * Como usar:
- * 1. "npm install" ou "npm i" - instala todas as dependências
- * 2. "npm run dev" - inicia servidor de desenvolvimento
- * 3. "npm run build" - cria versão otimizada para produção
- * 4. "npm run lint" - verifica se o código segue o padrão (ESLint)
- * 
- * Dependências principais:
- * - react: biblioteca para criar interfaces
- * - react-router-dom: permite navegação entre páginas sem recarregar
- * - recharts: biblioteca para criar gráficos
- * - lucide-react: ícones prontos para usar
- * ============================================================================
- */
 {
   "name": "web-test",
   "private": true,

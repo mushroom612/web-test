@@ -1,69 +1,20 @@
-<!--
-============================================================================
-ARQUIVO: index.html
-DESCRIÇÃO: Arquivo HTML principal da aplicação React
-
-Este é o ponto de entrada principal do projeto. Este arquivo:
-
-1. Define a estrutura HTML básica que o navegador renderiza
-2. Importa fontes do Google Fonts (Roboto e Space Grotesk)
-3. Define um container vazio (<div id="root"></div>)
-4. Importa o arquivo main.jsx que inicia a aplicação React
-
-Como funciona:
-1. Navegador carrega este arquivo
-2. O script main.jsx é carregado (type="module" significa que usa import/export)
-3. React usa o container "root" para renderizar toda a aplicação
-4. Tudo que vemos na tela é gerado dentro dessa <div id="root">
-
-Meta tags importantes:
-- charset="UTF-8": Define a codificação de caracteres (UTF-8 suporta acentos)
-- viewport: Faz o site se adaptar a telas pequenas (responsivo)
-
-Fontes (fonts):
-- Roboto: fonte principal usada no design
-- Space Grotesk: fonte alternativa para títulos
-============================================================================
--->
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Declara que o arquivo usa codificação UTF-8 (suporta acentos e caracteres especiais) -->
     <meta charset="UTF-8" />
-
-    <!-- Define o ícone que aparece na aba do navegador -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-
-    <!-- 
-      Meta tag viewport: Faz o site se adaptar a diferentes tamanhos de tela
-      width=device-width: largura = largura do dispositivo
-      initial-scale=1.0: zoom inicial = 100% (sem zoom)
-    -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- Conecta com Google Fonts - prepara para baixar fontes de texto  -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- Importa as fontes Roboto e Space Grotesk do Google Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Space+Grotesk:wght@300..700&display=swap"
       rel="stylesheet"
     />
-
-    <!-- Título da página (aparece na aba do navegador) -->
+    
     <title>Tuctuc</title>
   </head>
   <body>
-    <!-- Container vazio que React vai preencher com conteúdo -->
-    <!-- React procura por um elemento com id="root" e renderiza a app dentro dele -->
     <div id="root"></div>
-
-    <!-- 
-      Script que inicia a aplicação React
-      type="module": significa que este arquivo usa import/export (sintaxe ES6)
-      src="/src/main.jsx": caminho do arquivo que inicia tudo
-    -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
