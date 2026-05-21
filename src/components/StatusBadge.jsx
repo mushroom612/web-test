@@ -1,6 +1,44 @@
+// ============================================================
+// components/StatusBadge.jsx — Badge colorido reutilizável de status
+//
+// Exibe um pequeno "chip" (etiqueta) colorido com o texto do status.
+// É usado em várias páginas do painel para mostrar o estado de:
+//   - Usuários: Ativo / Inativo / Suspenso
+//   - Caronas: Aberta / Em espera / Concluída / Cancelada
+//   - Sugestões: Pendente / Em análise / Resolvido / Arquivado
+//   - Contratos: Ativo / Vencido / Pendente de Assinatura
+//
+// Interligação:
+//   - Importado por: Dashboard.jsx, Caronas.jsx, Sugestoes.jsx,
+//     Contratos.jsx, FeedbackCard.jsx, PenaltyPanel.jsx, Usuarios.jsx
+//
+// Props (parâmetros recebidos pelo componente):
+//   status → string com o texto a exibir (ex: 'Ativo', 'Cancelada')
+//   type   → não usado visualmente hoje, mas previsto para extensões futuras
+//
+// Estilo: StatusBadge.module.css
+//   Classes CSS utilizadas:
+//     .badge → aplica bordas arredondadas, padding e tamanho de fonte
+//              As cores de fundo e texto são definidas via `style` inline,
+//              não por classes CSS, pois variam por status.
+//
+// Como funciona a coloração:
+//   O objeto `statusStyles` mapeia cada texto de status para um par de cores:
+//     bg   → cor de fundo (ex: verde claro para 'Ativo')
+//     text → cor do texto (ex: verde escuro para 'Ativo')
+//   Se o status não estiver no mapa, usa as cores de 'Pendente' como padrão.
+// ============================================================
+
 import styles from './StatusBadge.module.css';
 
 export function StatusBadge({ status, type = 'status' }) {
+  // statusStyles: dicionário que associa cada texto de status a um par de cores.
+  // As cores seguem uma convenção semântica:
+  //   verde  → positivo (Ativo, Concluída, Resolvido, Sugestão)
+  //   azul   → neutro/informativo (Aberta, Em andamento)
+  //   amarelo → atenção (Pendente, Em análise, Em espera)
+  //   vermelho → negativo (Inativo, Cancelada, Denúncia, Vencido, Suspenso)
+  //   roxo   → especial (Arquivado)
   const statusStyles = {
     'Ativo': { bg: '#e9f5df', text: '#2d5016' },
     'Inativo': { bg: '#fee2e2', text: '#b91c1c' },
@@ -23,9 +61,14 @@ export function StatusBadge({ status, type = 'status' }) {
     'Pendente de Assinatura': { bg: '#fef3c7', text: '#92400e' }
   };
 
+  // Busca as cores pelo status; se não encontrar, usa as cores de 'Pendente' como fallback
   const style = statusStyles[status] || statusStyles['Pendente'];
 
   return (
+    // styles.badge → aplica o formato visual base (bordas, padding, fonte).
+    // style={{ ... }} → injeta as cores diretamente no elemento HTML
+    //   (backgroundColor e color mudam por status, por isso usamos style inline
+    //   em vez de classes CSS separadas para cada status).
     <span
       className={styles.badge}
       style={{
@@ -37,12 +80,3 @@ export function StatusBadge({ status, type = 'status' }) {
     </span>
   );
 }
-
-//   --status-success-bg: var(--color-green-100);
-//   --status-success-text: var(--color-green-900);
-//   --status-info-bg: var(--color-blue-100);
-//   --status-info-text: var(--color-blue-900);
-//   --status-warning-bg: #fef3c7;
-//   --status-warning-text: var(--color-semantic-warning);
-//   --status-error-bg: #fee2e2;
-//   --status-error-text: var(--color-semantic-error);

@@ -1,3 +1,63 @@
+// ============================================================
+// pages/Cadastrar.jsx — Página de cadastro de instituições
+//
+// Formulário em múltiplas etapas (wizard) para cadastrar
+// uma nova instituição parceira na plataforma, junto com
+// seu administrador e cursos.
+//
+// Fluxo em 4 etapas:
+//   Etapa 1 → Dados da Escola (nome, endereço, domínio, limite)
+//   Etapa 2 → Contrato (duração, data de início, upload de arquivo)
+//   Etapa 3 → Administrador (nome, e-mail, telefone, senha)
+//   Etapa 4 → Cursos (adicionar/editar/remover antes de finalizar)
+//
+// Além do formulário, a página exibe a lista de instituições
+// já cadastradas com gerenciamento de cursos por instituição.
+//
+// Bibliotecas usadas:
+//   - react         → useState, useEffect
+//   - lucide-react  → ícones variados por seção
+//
+// Estilo: Cadastrar.module.css
+//   Classes principais:
+//     .container           → área da página
+//     .header              → cabeçalho
+//     .formCard            → card branco do formulário
+//     .stepIndicator       → linha de progresso das etapas
+//     .stepItem / .stepActive  → cada etapa e seu estado ativo
+//     .stepLine / .stepLineDone → linha entre etapas e estado completo
+//     .stepCircle / .stepLabel  → número e texto de cada etapa
+//     .sectionHeader       → cabeçalho de seção dentro do form
+//     .formGrid            → grid de campos do formulário
+//     .formGroup           → wrapper de label + input
+//     .label               → rótulo do campo
+//     .input               → campo de entrada (input, select, textarea)
+//     .required            → asterisco de campo obrigatório
+//     .fieldHint           → texto de ajuda abaixo do campo
+//     .inlineError         → mensagem de erro dentro da etapa
+//     .formActions         → botões de navegação entre etapas
+//     .submitBtn           → botão principal (Próximo / Cadastrar)
+//     .cancelBtn           → botão secundário (Voltar / Limpar)
+//     .fileUploadZone      → área de drag-and-drop para upload de arquivo
+//     .fileSelected        → exibição do arquivo selecionado
+//     .alertSuccess / .alertError → banners de feedback de resultado
+//     .adminList / .adminTag → lista e tag de cursos na etapa 4
+//     .courseTagActions / .editCourseBtn / .removeAdminBtn → ações do curso
+//     .courseFormActions / .addAdminBtn → botão de adicionar curso
+//     .cancelEditBtn       → cancelar edição de curso
+//     .institutionsSection → seção de lista de instituições
+//     .institutionsList / .institutionCard → lista e cada card
+//     .cardHeader / .institutionInfo → cabeçalho do card de instituição
+//     .cardContent / .institutionDetails / .detailItem → detalhes do card
+//     .iconBtn             → botão ícone (deletar)
+//     .coursesToggleBtn    → botão de expandir cursos da instituição
+//     .coursesSection      → seção de cursos expandida
+//     .courseItem / .courseItemInfo / .courseItemActions → item de curso
+//     .courseEditForm / .courseEditGrid / .courseEditActions → form inline
+//     .loadingState / .emptyState → estados de carregamento e vazio
+//     .spin                → animação de rotação do Loader2
+// ============================================================
+
 import { useState, useEffect } from 'react';
 import {
   Building2, MapPin, Mail, Users, Trash2,
@@ -8,8 +68,13 @@ import {
 import { api } from '../services/api';
 import styles from './Cadastrar.module.css';
 
+// EMPTY_COURSE: objeto padrão para um novo curso (campos vazios).
+// Usado para resetar o formulário de curso após adicionar ou cancelar.
 const EMPTY_COURSE = { cur_nome: '', cur_descricao: '', cur_semestres: '' };
 
+// calcExpiry: calcula a data de vencimento do contrato a partir da
+// data de início e da duração escolhida (1, 2 ou 5 anos).
+// Retorna uma string no formato ISO "YYYY-MM-DD".
 function calcExpiry(inicio, duracao) {
   if (!inicio || !duracao) return null;
   const [y, m, d] = inicio.split('-').map(Number);
@@ -20,6 +85,7 @@ function calcExpiry(inicio, duracao) {
   return date.toISOString().split('T')[0];
 }
 
+// formatDateStr: converte "YYYY-MM-DD" para o formato brasileiro "DD/MM/AAAA"
 function formatDateStr(dateStr) {
   if (!dateStr) return '';
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -27,9 +93,12 @@ function formatDateStr(dateStr) {
 }
 
 export function Cadastrar() {
+  // step: etapa atual do formulário (1 a 4)
   const [step, setStep] = useState(1);
+  // stepError: mensagem de erro dentro da etapa atual
   const [stepError, setStepError] = useState('');
 
+  // formData: dados da escola (etapas 1 e 2)
   const [formData, setFormData] = useState({
     esc_nome: '',
     esc_endereco: '',
@@ -39,6 +108,7 @@ export function Cadastrar() {
     esc_contrato_inicio: ''
   });
 
+  // adminData: dados do administrador da instituição (etapa 3)
   const [adminData, setAdminData] = useState({
     usu_nome: '',
     usu_email: '',
@@ -47,32 +117,38 @@ export function Cadastrar() {
     usu_confirmSenha: ''
   });
 
-  // ── Cursos (etapa 3 - pré-cadastro) ────────────────────────────────────────
-  const [coursesList, setCoursesList] = useState([]);
-  const [newCourse, setNewCourse] = useState(EMPTY_COURSE);
-  const [editingCourseId, setEditingCourseId] = useState(null);
+  // ── Cursos (etapa 4 - pré-cadastro) ────────────────────────
+  const [coursesList, setCoursesList] = useState([]);    // cursos a cadastrar
+  const [newCourse, setNewCourse] = useState(EMPTY_COURSE); // form de novo curso
+  const [editingCourseId, setEditingCourseId] = useState(null); // ID do curso em edição
 
-  // ── Contrato (etapa 4) ────────────────────────────────────────────────────
+  // ── Contrato (etapa 2) ──────────────────────────────────────
+  // contractFile: arquivo PDF/DOC selecionado pelo usuário
   const [contractFile, setContractFile] = useState(null);
 
-  // ── Submit / feedback ──────────────────────────────────────────────────────
+  // ── Feedback de submit ──────────────────────────────────────
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
 
-  // ── Lista de instituições ──────────────────────────────────────────────────
+  // ── Lista de instituições já cadastradas ────────────────────
   const [institutions, setInstitutions] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState('');
 
-  // ── Gerenciamento de cursos por instituição ────────────────────────────────
+  // ── Gerenciamento de cursos por instituição (lista inferior) ──
+  // expandedInstitution: ID da instituição com cursos expandidos
   const [expandedInstitution, setExpandedInstitution] = useState(null);
+  // institutionCourses: objeto { escId: [cursos] } para cache local
   const [institutionCourses, setInstitutionCourses] = useState({});
+  // instCourseLoading: { escId: true/false } — spinner por instituição
   const [instCourseLoading, setInstCourseLoading] = useState({});
-  const [instCourseAction, setInstCourseAction] = useState(null); // { type: 'add'|'edit', escId, course? }
+  // instCourseAction: { type: 'add'|'edit', escId, course? } — ação ativa
+  const [instCourseAction, setInstCourseAction] = useState(null);
   const [instCourseForm, setInstCourseForm] = useState(EMPTY_COURSE);
   const [instCourseError, setInstCourseError] = useState('');
 
+  // Carrega as instituições ao montar o componente
   useEffect(() => { loadInstitutions(); }, []);
 
   async function loadInstitutions() {
@@ -80,6 +156,7 @@ export function Cadastrar() {
     setListError('');
     try {
       const data = await api.getSchools();
+      // Array.isArray: verifica se é um array direto ou objeto com .escolas
       setInstitutions(Array.isArray(data) ? data : data.escolas ?? []);
     } catch (err) {
       setListError(err.message || 'Não foi possível carregar as instituições.');
@@ -88,6 +165,7 @@ export function Cadastrar() {
     }
   }
 
+  // Carrega os cursos de uma instituição específica (lazy loading)
   async function loadInstCourses(escId) {
     setInstCourseLoading(prev => ({ ...prev, [escId]: true }));
     try {
@@ -100,8 +178,12 @@ export function Cadastrar() {
     }
   }
 
-  // ── Handlers gerais ────────────────────────────────────────────────────────
+  // ── Handlers de campos do formulário ───────────────────────
 
+  // Atualiza o formData quando qualquer campo da escola é alterado.
+  // e.target.name → atributo "name" do input (ex: "esc_nome")
+  // e.target.value → valor digitado
+  // O spread ...prev mantém os outros campos intactos.
   function handleChange(e) {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -117,30 +199,35 @@ export function Cadastrar() {
     setNewCourse(prev => ({ ...prev, [name]: value }));
   }
 
-  // ── Cursos na etapa 3 ──────────────────────────────────────────────────────
+  // ── Gerenciamento de cursos na etapa 4 ─────────────────────
 
+  // Adiciona ou salva a edição de um curso na lista local
   function handleAddCourse() {
     if (!newCourse.cur_nome.trim()) {
       setStepError('Preencha o nome do curso.');
       return;
     }
     if (editingCourseId !== null) {
+      // Modo edição: substitui o curso pelo atualizado
       setCoursesList(prev =>
         prev.map(c => c.cur_id === editingCourseId ? { ...newCourse, cur_id: editingCourseId } : c)
       );
       setEditingCourseId(null);
     } else {
+      // Modo adição: insere o novo curso com ID único baseado no timestamp
       setCoursesList(prev => [...prev, { ...newCourse, cur_id: Date.now() }]);
     }
     setNewCourse(EMPTY_COURSE);
     setStepError('');
   }
 
+  // Preenche o formulário com os dados do curso para editar
   function handleEditCourse(course) {
     setEditingCourseId(course.cur_id);
     setNewCourse({
       cur_nome: course.cur_nome,
       cur_descricao: course.cur_descricao || '',
+      // != null cobre tanto null quanto undefined (diferente de !== null)
       cur_semestres: course.cur_semestres != null ? String(course.cur_semestres) : ''
     });
     setStepError('');
@@ -152,6 +239,7 @@ export function Cadastrar() {
     setStepError('');
   }
 
+  // Remove um curso da lista local pelo ID
   function handleRemoveCourse(courseId) {
     setCoursesList(prev => prev.filter(c => c.cur_id !== courseId));
     if (editingCourseId === courseId) {
@@ -160,8 +248,9 @@ export function Cadastrar() {
     }
   }
 
-  // ── Navegação entre etapas ─────────────────────────────────────────────────
+  // ── Navegação entre etapas ──────────────────────────────────
 
+  // Valida os campos obrigatórios antes de avançar para a próxima etapa
   function handleNextStep() {
     setStepError('');
     if (step === 1) {
@@ -194,8 +283,12 @@ export function Cadastrar() {
     setStep(step > 1 ? step - 1 : 1);
   }
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
+  // ── Submit final (etapa 4) ──────────────────────────────────
 
+  // Executa sequencialmente:
+  // 1. Cria o usuário admin
+  // 2. Cria a escola vinculada ao admin
+  // 3. Cria os cursos vinculados à escola
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitError('');
@@ -203,15 +296,19 @@ export function Cadastrar() {
     setSubmitLoading(true);
 
     try {
+      // Passo 1: criar o admin da instituição
       const adminPayload = {
         usu_nome: adminData.usu_nome,
         usu_email: adminData.usu_email,
         usu_telefone: adminData.usu_telefone || null,
-        per_tipo: 1
+        per_tipo: 1 // 1 = Administrador de escola
       };
       const createdAdmin = await api.createUser(adminPayload);
       const newAdminId = createdAdmin.usuario?.usu_id;
 
+      // Passo 2: criar a escola.
+      // O spread condicional (...(cond ? { campo: valor } : {}))
+      // só inclui o campo se ele tiver valor preenchido.
       const schoolPayload = {
         esc_nome: formData.esc_nome,
         esc_endereco: formData.esc_endereco,
@@ -230,8 +327,10 @@ export function Cadastrar() {
       const createdSchool = await api.createSchool(schoolPayload);
       const escId = createdSchool.escola?.esc_id || createdSchool.esc_id;
 
+      // Vincula o admin à escola criada
       await api.updateUserProfile(newAdminId, { per_tipo: 1, per_escola_id: escId });
 
+      // Passo 3: criar os cursos em sequência (for...of espera cada um)
       const courseErrors = [];
       for (const course of coursesList) {
         try {
@@ -255,7 +354,7 @@ export function Cadastrar() {
       }
       setSubmitSuccess(successMsg);
       handleReset();
-      loadInstitutions();
+      loadInstitutions(); // recarrega a lista de instituições
     } catch (err) {
       setSubmitError(err.message || 'Erro ao cadastrar instituição.');
     } finally {
@@ -263,6 +362,7 @@ export function Cadastrar() {
     }
   }
 
+  // Reseta todos os estados do formulário para os valores iniciais
   function handleReset() {
     setStep(1);
     setStepError('');
@@ -276,6 +376,7 @@ export function Cadastrar() {
     setSubmitSuccess('');
   }
 
+  // Remove uma instituição da lista após confirmação
   async function handleDeleteInstitution(id) {
     if (!window.confirm('Tem certeza que deseja remover esta instituição?')) return;
     try {
@@ -287,8 +388,10 @@ export function Cadastrar() {
     }
   }
 
-  // ── Gerenciamento de cursos por instituição ────────────────────────────────
+  // ── Gerenciamento de cursos por instituição (lista inferior) ─
 
+  // Toggle: expande ou colapsa os cursos de uma instituição.
+  // Lazy loading: só busca os cursos quando expandido pela primeira vez.
   function handleToggleInstitution(escId) {
     if (expandedInstitution === escId) {
       setExpandedInstitution(null);
@@ -301,6 +404,7 @@ export function Cadastrar() {
     setInstCourseAction(null);
     setInstCourseForm(EMPTY_COURSE);
     setInstCourseError('');
+    // Só carrega se ainda não tem os dados em cache
     if (!institutionCourses[escId]) {
       loadInstCourses(escId);
     }
@@ -333,6 +437,7 @@ export function Cadastrar() {
     setInstCourseForm(prev => ({ ...prev, [name]: value }));
   }
 
+  // Salva adição ou edição de curso em uma instituição existente
   async function handleSaveInstCourse() {
     if (!instCourseForm.cur_nome.trim()) {
       setInstCourseError('Preencha o nome do curso.');
@@ -347,9 +452,11 @@ export function Cadastrar() {
     try {
       if (type === 'add') {
         const created = await api.createCourse({ ...payload, esc_id: escId, cur_ativo: 1 });
+        // Adiciona o novo curso ao cache local da instituição
         setInstitutionCourses(prev => ({ ...prev, [escId]: [...(prev[escId] || []), created] }));
       } else {
         const updated = await api.updateCourse(course.cur_id, payload);
+        // Substitui o curso editado no cache local
         setInstitutionCourses(prev => ({
           ...prev,
           [escId]: prev[escId].map(c => c.cur_id === course.cur_id ? updated : c)
@@ -363,6 +470,7 @@ export function Cadastrar() {
     }
   }
 
+  // Remove um curso de uma instituição e atualiza o cache local
   async function handleDeleteInstCourse(escId, courseId) {
     if (!window.confirm('Remover este curso?')) return;
     try {
@@ -380,8 +488,8 @@ export function Cadastrar() {
     }
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
+  // showCourseBtn: controla se o botão "Adicionar Curso" aparece.
+  // Só exibe quando o usuário já digitou algo no formulário de curso.
   const showCourseBtn = editingCourseId !== null || newCourse.cur_nome.trim() || newCourse.cur_descricao.trim() || newCourse.cur_semestres.trim();
 
   return (
@@ -391,13 +499,15 @@ export function Cadastrar() {
         <p className={styles.subtitle}>Adicione uma nova instituição e defina seus administradores</p>
       </div>
 
+      {/* Card principal com o formulário em etapas */}
       <div className={styles.formCard}>
-        {/* Indicador de etapas */}
+        {/* Indicador visual de progresso (barra de etapas) */}
         <div className={styles.stepIndicator}>
           <div className={`${styles.stepItem} ${step >= 1 ? styles.stepActive : ''}`}>
             <div className={styles.stepCircle}>1</div>
             <span className={styles.stepLabel}>Dados da Escola</span>
           </div>
+          {/* stepLineDone: a linha fica colorida quando a etapa seguinte foi atingida */}
           <div className={`${styles.stepLine} ${step >= 2 ? styles.stepLineDone : ''}`} />
           <div className={`${styles.stepItem} ${step >= 2 ? styles.stepActive : ''}`}>
             <div className={styles.stepCircle}>2</div>
@@ -415,8 +525,13 @@ export function Cadastrar() {
           </div>
         </div>
 
+        {/* O form envolve todas as etapas.
+            onSubmit só é chamado na etapa 4 (type="submit" botão). */}
         <form onSubmit={handleSubmit}>
-          {/* ── Etapa 1 ─────────────────────────────────────────────────── */}
+
+          {/* ── Etapa 1: Dados da Escola ─────────────────────────── */}
+          {/* step === 1 é a condição de renderização condicional:
+              só exibe este bloco quando estamos na etapa 1. */}
           {step === 1 && (
             <>
               <div className={styles.sectionHeader}>
@@ -425,6 +540,7 @@ export function Cadastrar() {
               </div>
 
               <div className={styles.formGrid}>
+                {/* gridColumn: '1 / -1' faz o campo ocupar toda a largura do grid */}
                 <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
                   <label htmlFor="esc_nome" className={styles.label}>
                     Nome da Instituição <span className={styles.required}>*</span>
@@ -467,6 +583,7 @@ export function Cadastrar() {
               {stepError && <p className={styles.inlineError} style={{ marginTop: 16 }}>{stepError}</p>}
 
               <div className={styles.formActions}>
+                {/* type="button" evita que este botão submeta o form */}
                 <button type="button" className={styles.submitBtn} onClick={handleNextStep}>
                   Próximo <ChevronRight size={16} />
                 </button>
@@ -475,7 +592,7 @@ export function Cadastrar() {
             </>
           )}
 
-          {/* ── Etapa 2: Contrato ───────────────────────────────────────── */}
+          {/* ── Etapa 2: Contrato ─────────────────────────────────── */}
           {step === 2 && (
             <>
               <div className={styles.sectionHeader}>
@@ -491,6 +608,7 @@ export function Cadastrar() {
                   <label htmlFor="esc_contrato_duracao" className={styles.label}>
                     <FileText size={14} /> Duração do Contrato
                   </label>
+                  {/* select: campo de seleção com opções fixas */}
                   <select
                     id="esc_contrato_duracao"
                     name="esc_contrato_duracao"
@@ -517,8 +635,10 @@ export function Cadastrar() {
                     className={styles.input}
                     value={formData.esc_contrato_inicio}
                     onChange={handleChange}
+                    // Campo desabilitado até que uma duração seja escolhida
                     disabled={!formData.esc_contrato_duracao}
                   />
+                  {/* Exibe a data de vencimento calculada se os dois campos estiverem preenchidos */}
                   {formData.esc_contrato_duracao && formData.esc_contrato_inicio && (
                     <span className={styles.fieldHint}>
                       Vencimento: {formatDateStr(calcExpiry(formData.esc_contrato_inicio, formData.esc_contrato_duracao))}
@@ -538,7 +658,10 @@ export function Cadastrar() {
                 <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-secondary)' }}>(opcional)</span>
               </div>
 
+              {/* Área de upload: alterna entre zona de drop e arquivo selecionado */}
               {!contractFile ? (
+                // fileUploadZone: <label> que age como botão de upload
+                // O <input type="file"> dentro do label é ativado pelo clique na label
                 <label className={styles.fileUploadZone} htmlFor="contractFileInput">
                   <input
                     type="file"
@@ -555,10 +678,12 @@ export function Cadastrar() {
                   <p className={styles.fileHint}>PDF, DOC ou DOCX — será enviado ao servidor ao integrar a API</p>
                 </label>
               ) : (
+                // Exibe o nome e tamanho do arquivo após selecionado
                 <div className={styles.fileSelected}>
                   <FileText size={18} style={{ color: 'var(--btn-primary-bg)', flexShrink: 0 }} />
                   <span className={styles.fileSelectedName}>{contractFile.name}</span>
                   <span className={styles.fileSelectedSize}>
+                    {/* Converte bytes para KB com 0 casas decimais */}
                     {(contractFile.size / 1024).toFixed(0)} KB
                   </span>
                   <button
@@ -585,7 +710,7 @@ export function Cadastrar() {
             </>
           )}
 
-          {/* ── Etapa 3: Administrador ──────────────────────────────────── */}
+          {/* ── Etapa 3: Administrador ─────────────────────────────── */}
           {step === 3 && (
             <>
               <div className={styles.sectionHeader}>
@@ -652,7 +777,7 @@ export function Cadastrar() {
             </>
           )}
 
-          {/* ── Etapa 4: Cursos ─────────────────────────────────────────── */}
+          {/* ── Etapa 4: Cursos ────────────────────────────────────── */}
           {step === 4 && (
             <>
               <div className={styles.sectionHeader}>
@@ -671,17 +796,8 @@ export function Cadastrar() {
                     value={newCourse.cur_nome} onChange={handleCourseChange} />
                 </div>
 
-                {/* <div className={styles.formGroup}>
-                  <label htmlFor="cur_codigo" className={styles.label}>Código</label>
-                  <input type="text" id="cur_codigo" name="cur_codigo" className={styles.input}
-                    placeholder="Ex: ADS-001"
-                    value={newCourse.cur_codigo} onChange={handleCourseChange} />
-                </div> */}
-
                 <div className={styles.formGroup}>
-                  <label htmlFor="cur_semestres" className={styles.label}>
-                    Módulos / Semestres
-                  </label>
+                  <label htmlFor="cur_semestres" className={styles.label}>Módulos / Semestres</label>
                   <input type="number" id="cur_semestres" name="cur_semestres" className={styles.input}
                     placeholder="Ex: 5"
                     value={newCourse.cur_semestres} onChange={handleCourseChange} min="1" />
@@ -696,6 +812,7 @@ export function Cadastrar() {
                 </div>
               </div>
 
+              {/* showCourseBtn: botão só aparece quando o form tem conteúdo */}
               <div className={styles.courseFormActions}>
                 {showCourseBtn && (
                   <button type="button" className={styles.addAdminBtn} onClick={handleAddCourse}>
@@ -711,6 +828,7 @@ export function Cadastrar() {
 
               {stepError && <p className={styles.inlineError}>{stepError}</p>}
 
+              {/* Lista de cursos já adicionados (ainda não salvos) */}
               {coursesList.length > 0 && (
                 <div className={styles.adminList}>
                   <p className={styles.adminListLabel}>Cursos a cadastrar ({coursesList.length})</p>
@@ -719,7 +837,6 @@ export function Cadastrar() {
                       className={`${styles.adminTag} ${editingCourseId === course.cur_id ? styles.adminTagEditing : ''}`}>
                       <div className={styles.courseTagInfo}>
                         <span className={styles.adminTagName}>{course.cur_nome}</span>
-                        {/* <span className={styles.adminTagEmail}>{course.cur_codigo}</span> */}
                         {course.cur_semestres && (
                           <span className={styles.semestresBadge}>{course.cur_semestres} sem.</span>
                         )}
@@ -739,6 +856,7 @@ export function Cadastrar() {
                 </div>
               )}
 
+              {/* Banners de feedback do submit final */}
               {submitSuccess && (
                 <div className={styles.alertSuccess}>
                   <CheckCircle size={16} /> {submitSuccess}
@@ -751,6 +869,7 @@ export function Cadastrar() {
               )}
 
               <div className={styles.formActions}>
+                {/* type="submit" → este botão aciona o handleSubmit do form */}
                 <button type="submit" className={styles.submitBtn} disabled={submitLoading}>
                   {submitLoading
                     ? <><Loader2 size={16} className={styles.spin} /> Cadastrando...</>
@@ -766,7 +885,7 @@ export function Cadastrar() {
         </form>
       </div>
 
-      {/* ── Lista de Instituições ──────────────────────────────────────────── */}
+      {/* ── Lista de Instituições Cadastradas ──────────────────────── */}
       <div className={styles.institutionsSection}>
         <h2 className={styles.sectionTitle}>Instituições Cadastradas</h2>
 
@@ -797,6 +916,7 @@ export function Cadastrar() {
               const isExpanded = expandedInstitution === escId;
               const courses = institutionCourses[escId] || [];
               const isLoadingCourses = instCourseLoading[escId];
+              // action: ação ativa para ESTA instituição (ou null se for outra)
               const action = instCourseAction?.escId === escId ? instCourseAction : null;
 
               return (
@@ -836,14 +956,15 @@ export function Cadastrar() {
                     </div>
                   </div>
 
-                  {/* Toggle de cursos */}
+                  {/* Botão de expandir/colapsar cursos da instituição */}
                   <button className={styles.coursesToggleBtn} onClick={() => handleToggleInstitution(escId)}>
                     <BookOpen size={13} />
                     <span>Cursos{isExpanded && courses.length > 0 ? ` (${courses.length})` : ''}</span>
+                    {/* Ícone muda conforme o estado de expansão */}
                     {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                   </button>
 
-                  {/* Seção de cursos expandida */}
+                  {/* Seção de cursos: só renderiza quando expandida */}
                   {isExpanded && (
                     <div className={styles.coursesSection}>
                       {isLoadingCourses && (
@@ -861,7 +982,6 @@ export function Cadastrar() {
                           <div className={styles.courseItemInfo}>
                             <span className={styles.courseItemName}>{course.cur_nome}</span>
                             <div className={styles.courseItemMeta}>
-                              {/* <span className={styles.courseItemCode}>{course.cur_codigo}</span> */}
                               {course.cur_semestres != null && (
                                 <span className={styles.courseItemSemesters}>{course.cur_semestres} semestres</span>
                               )}
@@ -883,7 +1003,7 @@ export function Cadastrar() {
                         </div>
                       ))}
 
-                      {/* Formulário de adição/edição de curso */}
+                      {/* Formulário inline de adição/edição de curso */}
                       {action && (
                         <div className={styles.courseEditForm}>
                           <p className={styles.courseEditFormTitle}>
@@ -896,12 +1016,6 @@ export function Cadastrar() {
                                 placeholder="Ex: Análise e Desenvolvimento de Sistemas"
                                 value={instCourseForm.cur_nome} onChange={handleInstCourseFormChange} />
                             </div>
-                            {/* <div>
-                              <label className={styles.label}>Código <span className={styles.required}>*</span></label>
-                              <input type="text" name="cur_codigo" className={styles.input}
-                                placeholder="Ex: ADS-001"
-                                value={instCourseForm.cur_codigo} onChange={handleInstCourseFormChange} />
-                            </div> */}
                             <div>
                               <label className={styles.label}>Semestres / Módulos</label>
                               <input type="number" name="cur_semestres" className={styles.input}
@@ -930,6 +1044,7 @@ export function Cadastrar() {
                         </div>
                       )}
 
+                      {/* Botão de adicionar curso: só aparece quando não há ação ativa */}
                       {!action && (
                         <button className={styles.addCourseBtn}
                           onClick={() => handleStartAddInstCourse(escId)}>

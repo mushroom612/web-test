@@ -1,3 +1,92 @@
+// ============================================================
+// components/UserProfilePanel.jsx — Painel lateral de perfil do usuário
+//
+// Painel deslizante que cobre a tela à direita para exibir os dados
+// completos de um usuário em dois modos:
+//   - Modo visualização ('view'): grade de cards com todas as informações
+//   - Modo edição ('edit'):  formulário com campos editáveis (nome,
+//     telefone, status); campos de e-mail, instituição e curso são
+//     desabilitados pois pertencem ao usuário ou à instituição
+//
+// Diferente do PenaltyPanel, este componente NÃO tem overlay:
+// ele aparece como um painel que empurra visualmente o conteúdo.
+//
+// Como funciona enrichUser:
+//   Os dados da API (usu_*) são cruzados com os dados do mockData (usersData)
+//   usando o e-mail ou ID como chave de correspondência. Isso complementa
+//   campos que a API não retorna (instituição, curso, tipo, lastAccess, ipLogin).
+//   Enquanto a API não expõe todos esses campos, o mock preenche o restante.
+//
+// Componente interno InfoCard:
+//   Um "card de informação" simples com ícone, rótulo e valor.
+//   Definido no mesmo arquivo porque é usado apenas aqui e é pequeno.
+//
+// Bibliotecas usadas:
+//   - react         → useState
+//   - lucide-react  → ArrowLeft, Edit2, Save, X, User, Mail, Phone,
+//                     Building2, BookOpen, ShieldCheck, Clock, Monitor,
+//                     CheckCircle, AlertCircle, Loader2
+//
+// Dados consumidos:
+//   - user (via prop) → dados do usuário vindos de Usuarios.jsx
+//   - usersData (mockData) → dados complementares não disponíveis na API
+//   - api.updateUser() → chamada para salvar edições
+//
+// Interligação:
+//   - Importado por: Usuarios.jsx
+//   - Usa: api.js, mockData.js (usersData)
+//   - Callbacks: onClose (fecha o painel), onUserUpdated (atualiza a lista)
+//
+// Props (parâmetros recebidos pelo componente):
+//   user          → objeto do usuário com campos usu_*
+//   initialMode   → 'view' ou 'edit' (default: 'view')
+//   onClose       → função chamada para fechar o painel
+//   onUserUpdated → função chamada após salvar uma edição,
+//                   recebe o objeto atualizado para refletir na tabela
+//
+// Estilo: UserProfilePanel.module.css
+//   Classes CSS utilizadas:
+//     .panel           → div raiz do painel (posição fixed, altura total)
+//     .panelHeader     → cabeçalho: botão voltar + botão editar/cancelar
+//     .backBtn         → botão "← Voltar para Usuários"
+//     .headerActions   → área direita do cabeçalho
+//     .editBtn         → botão "Editar" (visível no modo view)
+//     .cancelBtn       → botão "Cancelar" (visível no modo edit)
+//     .panelBody       → área rolável com o conteúdo
+//     .inner           → container interno com largura máxima centrada
+//     .heroCard        → card de destaque: avatar grande + nome + badges
+//     .heroAvatar      → círculo grande com as iniciais do usuário
+//     .heroInfo        → coluna com nome, email e badges
+//     .heroName        → nome completo (texto maior)
+//     .heroEmail       → e-mail (texto menor)
+//     .heroBadges      → linha de badges de status e verificação
+//     .badge           → badge genérico (forma base)
+//     .badge_active    → verde (status Ativo)
+//     .badge_inactive  → vermelho (status Inativo)
+//     .badge_success   → verde (verificação ok)
+//     .badge_warning   → amarelo (verificação pendente)
+//     .badge_danger    → vermelho (suspenso)
+//     .alertSuccess    → caixa verde de mensagem de sucesso
+//     .alertError      → caixa vermelha de mensagem de erro
+//     .grid            → grade de cards de informação (modo view)
+//     .infoCard        → card individual com ícone + rótulo + valor
+//     .infoLabel       → linha com ícone + texto do rótulo
+//     .infoValue       → valor da informação
+//     .color_success   → cor verde para valores positivos
+//     .color_warning   → cor amarela para valores de atenção
+//     .color_danger    → cor vermelha para valores negativos
+//     .mono            → fonte monospace (para IPs e dados técnicos)
+//     .editForm        → formulário do modo edição
+//     .editGrid        → grade de campos editáveis
+//     .formGroup       → grupo label + campo
+//     .label           → etiqueta do campo
+//     .input           → campo de input (text, select)
+//     .editNote        → nota informativa sobre campos desabilitados
+//     .editActions     → linha com botões "Salvar" e "Cancelar"
+//     .saveBtn         → botão de salvar as alterações
+//     .spin            → animação de rotação no ícone Loader2
+// ============================================================
+
 import { useState } from 'react';
 import {
   ArrowLeft, Edit2, Save, X, User, Mail, Phone,
@@ -8,6 +97,8 @@ import { usersData } from '../data/mockData';
 import { api } from '../services/api';
 import styles from './UserProfilePanel.module.css';
 
+// VERIFICACAO_LABELS: traduz o código numérico de verificação para texto e cor.
+// usu_verificacao é um campo da API que indica o estágio de verificação da conta.
 const VERIFICACAO_LABELS = {
   0: { label: 'Aguardando OTP', color: 'warning' },
   1: { label: 'Admin verificado', color: 'success' },
@@ -17,10 +108,13 @@ const VERIFICACAO_LABELS = {
   9: { label: 'Suspenso', color: 'danger' }
 };
 
+// getInitials: gera as iniciais do nome para o avatar.
+// Ex: "Carlos Souza" → "CS", "Ana" → "AN" (primeiras 2 letras das 2 primeiras palavras)
 function getInitials(name = '') {
   return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
 }
 
+// formatDate: formata data ISO para o padrão brasileiro com hora.
 function formatDate(dateStr) {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('pt-BR', {
@@ -29,6 +123,10 @@ function formatDate(dateStr) {
   });
 }
 
+// enrichUser: complementa os dados da API com informações adicionais do mockData.
+// Busca o usuário no usersData pelo e-mail ou ID (dois critérios para maior chance
+// de correspondência). Campos que a API não retorna são preenchidos com dados mock.
+// Enquanto o backend não expor esses campos, este enriquecimento é necessário.
 function enrichUser(apiUser) {
   const mock = usersData.find(
     u => u.email === apiUser.usu_email || u.id === apiUser.usu_id
@@ -40,6 +138,7 @@ function enrichUser(apiUser) {
     usu_status: apiUser.usu_status,
     usu_verificacao: apiUser.usu_verificacao,
     usu_telefone: apiUser.usu_telefone ?? null,
+    // Campos do mock (podem ser '—' se não encontrado)
     school: mock?.school ?? '—',
     course: mock?.course ?? '—',
     type: mock?.type ?? '—',
@@ -49,20 +148,30 @@ function enrichUser(apiUser) {
 }
 
 export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUpdated }) {
+  // enriched: versão completa do usuário (API + mock fundidos)
   const enriched = enrichUser(user);
 
+  // mode: alterna entre 'view' (visualização) e 'edit' (edição)
   const [mode, setMode] = useState(initialMode);
+
+  // form: estado dos campos editáveis.
+  // Inicializado com os dados atuais do usuário.
   const [form, setForm] = useState({
     usu_nome: enriched.usu_nome,
     usu_telefone: enriched.usu_telefone ?? '',
     usu_status: enriched.usu_status
   });
+
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState('');
 
+  // verif: objeto { label, color } com os dados de verificação para exibir no badge.
+  // ?? → usa 'Desconhecido' se o código não estiver no mapa VERIFICACAO_LABELS.
   const verif = VERIFICACAO_LABELS[enriched.usu_verificacao] ?? { label: 'Desconhecido', color: 'neutral' };
 
+  // handleFormChange: atualiza apenas o campo que mudou.
+  // [name]: value → chave computada: usa o nome do campo como chave dinâmica.
   function handleFormChange(e) {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
@@ -72,17 +181,23 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
     e.preventDefault();
     setSaveError('');
     setSaveSuccess('');
+    // Validação simples: nome não pode ser vazio.
+    // .trim() remove espaços do início e fim antes de verificar.
     if (!form.usu_nome.trim()) { setSaveError('O nome não pode estar vazio.'); return; }
 
     setSaving(true);
     try {
       await api.updateUser(enriched.usu_id, {
         usu_nome: form.usu_nome.trim(),
-        usu_telefone: form.usu_telefone.trim() || null,
-        usu_status: Number(form.usu_status)
+        usu_telefone: form.usu_telefone.trim() || null,  // string vazia → null
+        usu_status: Number(form.usu_status)              // converte string → número
       });
       setSaveSuccess('Dados atualizados com sucesso.');
       setMode('view');
+
+      // onUserUpdated?.() → chama a prop se fornecida (optional chaining).
+      // Passa o usuário com os campos atualizados para que Usuarios.jsx
+      // possa atualizar a tabela sem recarregar toda a lista da API.
       onUserUpdated?.({
         ...user,
         usu_nome: form.usu_nome.trim(),
@@ -95,6 +210,7 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
     }
   }
 
+  // handleCancelEdit: descarta as alterações e volta para o modo de visualização.
   function handleCancelEdit() {
     setForm({
       usu_nome: enriched.usu_nome,
@@ -107,14 +223,17 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
 
   return (
     <div className={styles.panel}>
-      {/* Cabeçalho */}
+
+      {/* ── Cabeçalho do painel ── */}
       <div className={styles.panelHeader}>
+        {/* Botão de voltar: chama onClose para fechar o painel */}
         <button className={styles.backBtn} onClick={onClose}>
           <ArrowLeft size={16} />
           Voltar para Usuários
         </button>
 
         <div className={styles.headerActions}>
+          {/* Exibe "Editar" no modo view e "Cancelar" no modo edit */}
           {mode === 'view' ? (
             <button className={styles.editBtn} onClick={() => { setMode('edit'); setSaveSuccess(''); setSaveError(''); }}>
               <Edit2 size={15} />
@@ -129,23 +248,28 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
         </div>
       </div>
 
-      {/* Corpo */}
+      {/* ── Corpo do painel (área com scroll) ── */}
       <div className={styles.panelBody}>
         <div className={styles.inner}>
 
-          {/* Avatar + nome */}
+          {/* Card de destaque: avatar grande + nome + badges de status */}
           <div className={styles.heroCard}>
             <div className={styles.heroAvatar}>{getInitials(enriched.usu_nome)}</div>
             <div className={styles.heroInfo}>
               <h2 className={styles.heroName}>{enriched.usu_nome}</h2>
               <p className={styles.heroEmail}>{enriched.usu_email}</p>
               <div className={styles.heroBadges}>
+                {/* Badge de status: verde se Ativo, vermelho se Inativo.
+                    O nome da classe é montado dinamicamente:
+                    styles[`badge_active`] ou styles[`badge_inactive`] */}
                 <span className={`${styles.badge} ${styles[`badge_${enriched.usu_status === 1 ? 'active' : 'inactive'}`]}`}>
                   {enriched.usu_status === 1 ? 'Ativo' : 'Inativo'}
                 </span>
+                {/* Badge de verificação: cor vinda de VERIFICACAO_LABELS */}
                 <span className={`${styles.badge} ${styles[`badge_${verif.color}`]}`}>
                   {verif.label}
                 </span>
+                {/* Badge de tipo: só exibe se o tipo estiver preenchido */}
                 {enriched.type !== '—' && (
                   <span className={styles.badge}>{enriched.type}</span>
                 )}
@@ -153,7 +277,7 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
             </div>
           </div>
 
-          {/* Alertas */}
+          {/* Mensagens de sucesso e erro */}
           {saveSuccess && (
             <div className={styles.alertSuccess}><CheckCircle size={15} /> {saveSuccess}</div>
           )}
@@ -161,9 +285,11 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
             <div className={styles.alertError}><AlertCircle size={15} /> {saveError}</div>
           )}
 
-          {/* Modo visualização */}
+          {/* ── Modo VISUALIZAÇÃO: grade de cards de informação ── */}
           {mode === 'view' && (
             <div className={styles.grid}>
+              {/* InfoCard: componente interno definido abaixo neste mesmo arquivo.
+                  Recebe ícone, rótulo e valor para exibir de forma consistente. */}
               <InfoCard icon={User} label="Nome completo" value={enriched.usu_nome} />
               <InfoCard icon={Mail} label="E-mail" value={enriched.usu_email} />
               <InfoCard
@@ -177,7 +303,7 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
                 icon={ShieldCheck}
                 label="Verificação"
                 value={verif.label}
-                valueColor={verif.color}
+                valueColor={verif.color}  // aplica cor ao valor (ex: verde para 'success')
               />
               <InfoCard
                 icon={Clock}
@@ -188,15 +314,17 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
                 icon={Monitor}
                 label="IP do último login"
                 value={enriched.ipLogin ?? '—'}
-                mono
+                mono    // fonte monospace para IPs (passado como prop booleana)
               />
             </div>
           )}
 
-          {/* Modo edição */}
+          {/* ── Modo EDIÇÃO: formulário com campos editáveis ── */}
           {mode === 'edit' && (
             <form className={styles.editForm} onSubmit={handleSave}>
               <div className={styles.editGrid}>
+
+                {/* Campo: Nome */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
                     <User size={14} /> Nome completo
@@ -210,6 +338,7 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
                   />
                 </div>
 
+                {/* Campo: E-mail (desabilitado — não pode ser alterado pelo admin) */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
                     <Mail size={14} /> E-mail
@@ -217,11 +346,12 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
                   <input
                     className={styles.input}
                     value={enriched.usu_email}
-                    disabled
+                    disabled  // disabled → cinza, não editável
                     title="O e-mail não pode ser alterado"
                   />
                 </div>
 
+                {/* Campo: Telefone */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
                     <Phone size={14} /> Telefone
@@ -235,6 +365,7 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
                   />
                 </div>
 
+                {/* Campo: Status da conta (dropdown Ativo/Inativo) */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
                     <ShieldCheck size={14} /> Status da conta
@@ -250,6 +381,7 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
                   </select>
                 </div>
 
+                {/* Campos desabilitados: pertence à instituição/usuário */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
                     <Building2 size={14} /> Instituição
@@ -270,6 +402,7 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
               </p>
 
               <div className={styles.editActions}>
+                {/* Botão salvar: mostra spinner enquanto está salvando */}
                 <button type="submit" className={styles.saveBtn} disabled={saving}>
                   {saving
                     ? <><Loader2 size={15} className={styles.spin} /> Salvando...</>
@@ -288,13 +421,27 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
   );
 }
 
+// InfoCard: componente interno de cartão de informação.
+// Exibe um ícone, um rótulo e um valor de forma padronizada.
+// Definido fora do componente principal para não ser recriado a cada render.
+//
+// Props:
+//   icon       → componente de ícone do lucide-react
+//   label      → texto do rótulo (ex: "Nome completo")
+//   value      → valor a exibir (ex: "Carlos Silva")
+//   valueColor → string opcional para cor semântica ('success', 'warning', 'danger')
+//   mono       → boolean: se true, aplica fonte monospace ao valor
 function InfoCard({ icon: Icon, label, value, valueColor, mono }) {
   return (
     <div className={styles.infoCard}>
       <div className={styles.infoLabel}>
+        {/* Icon recebido como prop: <Icon size={13} /> renderiza o ícone */}
         <Icon size={13} />
         {label}
       </div>
+      {/* styles.color_success / styles.color_warning / styles.color_danger
+          são adicionados condicionalmente via template literal.
+          styles.mono é adicionado apenas se a prop mono for true. */}
       <p className={`${styles.infoValue} ${valueColor ? styles[`color_${valueColor}`] : ''} ${mono ? styles.mono : ''}`}>
         {value}
       </p>

@@ -11,9 +11,15 @@
   padding: 4rem;
 }
 
-.spin { animation: spin 0.8s linear infinite; }
+.spin {
+  animation: spin 0.8s linear infinite;
+}
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ── Cabeçalho ───────────────────────────────────────────── */
 
@@ -38,7 +44,7 @@
 
 .metricsGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 300px);
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -89,19 +95,27 @@
   border-top: 1px solid #f3f4f6;
 }
 
-.trendUp   { color: #22c55e; }
-.trendDown { color: #ef4444; }
+.trendUp {
+  color: #22c55e;
+}
+.trendDown {
+  color: #ef4444;
+}
 
 .trend {
   font-size: 12px;
   color: var(--text-secondary);
 }
-
+.userFeedback {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
 /* ── Content grid ────────────────────────────────────────── */
 
 .contentGrid {
-  display: grid;
-  grid-template-columns: 3fr 2fr;
+  display: flex;
+  /* grid-template-columns: 3fr 2fr; */
   gap: 20px;
 }
 
@@ -136,6 +150,7 @@
   border: 1px solid #e5e7eb;
   border-radius: var(--card-radius-desktop);
   padding: 24px;
+  width: 100%;
 }
 
 .chartTooltip {
@@ -164,11 +179,16 @@
 
 .feedbackSection {
   background-color: var(--surface-primary);
-  border: 1px solid #e5e7eb;
+  /* border: 1px solid #e5e7eb; */
   border-radius: var(--card-radius-desktop);
   padding: 24px;
   overflow-y: auto;
-  max-height: 340px;
+  max-height: 320px;
+  flex: 1;
+  scrollbar-width: none;
+  &:-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .feedbackList {
@@ -179,18 +199,28 @@
 /* ── Responsivo ──────────────────────────────────────────── */
 
 @media (max-width: 1200px) {
-  .metricsGrid { grid-template-columns: repeat(2, 1fr); }
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 1024px) {
-  .contentGrid { grid-template-columns: 1fr; }
-  .feedbackSection { max-height: none; }
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+  .feedbackSection {
+    max-height: none;
+  }
 }
 
 @media (max-width: 600px) {
-  .metricsGrid { grid-template-columns: repeat(2, 1fr); }
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 480px) {
-  .metricsGrid { grid-template-columns: 1fr; }
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
 }

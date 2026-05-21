@@ -1,6 +1,23 @@
-// Dados mockados para o painel administrativo CaronaCity
-// Baseado no modelo do banco de dados (insert.sql)
+// ============================================================
+// data/mockData.js — Dados fictícios (mock) para desenvolvimento
+//
+// "Mock" significa dados simulados que imitam o que viria do
+// banco de dados real. Permitem desenvolver e testar a interface
+// sem precisar de um backend funcionando.
+//
+// Quando o backend estiver pronto, o services/api.js substituirá
+// esses dados por chamadas HTTP reais — os componentes não
+// precisarão mudar, pois consomem o api.js, não este arquivo.
+//
+// Organização:
+//   - Dados de interface (formato livre) → usados diretamente em componentes
+//   - Dados de API (prefixo "api*")      → imitam o formato real do banco
+//     Os campos seguem a nomenclatura do banco: usu_ (usuário),
+//     car_ (carona), sug_ (sugestão), pen_ (penalidade), etc.
+// ============================================================
 
+// Usuário administrador logado no sistema.
+// Usado pelo Aside.jsx e Topbar.jsx para exibir nome e avatar.
 export const adminUser = {
   id: 6,
   name: 'Admin Sistema',
@@ -9,6 +26,9 @@ export const adminUser = {
   avatar: '👨‍💼'
 };
 
+// Cards de métricas exibidos no Dashboard.
+// Cada item tem: label (título), value (valor), icon (nome do ícone),
+// trend (variação) e trendUp (se a variação é positiva ou negativa).
 export const metricsData = [
   {
     id: 1,
@@ -44,6 +64,8 @@ export const metricsData = [
   }
 ];
 
+// Feedbacks recentes (sugestões e denúncias) exibidos no Dashboard.
+// type: 'Sugestão' ou 'Denúncia' — define o visual do badge.
 export const feedbacksData = [
   {
     id: 1,
@@ -83,6 +105,8 @@ export const feedbacksData = [
   }
 ];
 
+// Lista de usuários no formato de interface (usado por componentes antigos).
+// Para novos componentes, prefira apiUsersData (formato de API mais fiel ao banco).
 export const usersData = [
   {
     id: 1,
@@ -206,6 +230,9 @@ export const usersData = [
   }
 ];
 
+// Sugestões e denúncias no formato de interface.
+// status: 'Resolvido' | 'Em análise' | 'Pendente'
+// response: resposta do admin (null se ainda sem resposta)
 export const suggestionsData = [
   {
     id: 1,
@@ -249,6 +276,8 @@ export const suggestionsData = [
   }
 ];
 
+// Caronas no formato de interface (usado por componentes antigos).
+// status: 'Aberta' | 'Em espera' | 'Concluída' | 'Cancelada'
 export const ridesData = [
   {
     id: 'R001',
@@ -546,6 +575,8 @@ export const auditLogData = [
   },
 ];
 
+// Dados do gráfico de caronas por dia da semana (Dashboard).
+// day: abreviação do dia, rides: número de caronas naquele dia.
 export const chartData = [
   { day: 'Seg', rides: 45 },
   { day: 'Ter', rides: 62 },
@@ -556,6 +587,10 @@ export const chartData = [
   { day: 'Dom', rides: 38 }
 ];
 
+// Penalidades de usuários no formato de interface.
+// A chave do objeto é o ID do usuário (ex: 5, 9).
+// pen_tipo: 1 = advertência, 2 = suspensão temporária, 3 = banimento
+// pen_ativo: 1 = ativa, 0 = expirada/removida
 export const penaltiesData = {
   5: [
     {
@@ -590,6 +625,9 @@ export const penaltiesData = {
   ]
 };
 
+// Notificações do sistema exibidas no sino da Topbar.
+// count: número no badge do sino.
+// items: lista de notificações recentes.
 export const notificationData = {
   count: 3,
   items: [
@@ -611,9 +649,23 @@ export const notificationData = {
   ]
 };
 
-// ============================================
-// Dados para API Mockada
-// ============================================
+// ============================================================
+// Dados no formato de API — imitam a resposta real do backend
+//
+// Os campos seguem a nomenclatura do banco de dados:
+//   usu_  → tabela de usuários
+//   car_  → tabela de caronas
+//   sug_  → tabela de sugestões
+//   pen_  → tabela de penalidades
+//   esc_  → tabela de escolas
+//   cur_  → tabela de cursos
+//   rel_  → tabela de relatórios
+//
+// usu_status:      1 = ativo, 0 = inativo
+// usu_verificacao: 0 = sem verificação, 1 = admin escola,
+//                  2 = verificado, 5 = pendente docs,
+//                  6 = temp veículo, 9 = suspenso
+// ============================================================
 
 // Usuários com formato de API
 export const apiUsersData = [
@@ -718,7 +770,9 @@ export const apiUsersData = [
   }
 ];
 
-// Escolas com formato de API
+// Escolas parceiras cadastradas na plataforma.
+// esc_dominio: domínio de e-mail aceito (ex: aluno.inova.br).
+// esc_lat / esc_lon: coordenadas geográficas da escola.
 export const apiSchoolsData = [
   {
     esc_id: 1,
@@ -770,7 +824,10 @@ export const apiSchoolsData = [
   }
 ];
 
-// Caronas com formato de API
+// Caronas com formato de API.
+// car_status: 1 = aberta, 2 = em espera, 3 = concluída, 4 = cancelada
+// car_vagas: total de vagas. car_vagas_disponivel: vagas ainda livres.
+// passageiros: array de usuários que entraram na carona.
 export const apiRidesData = [
   {
     car_id: 1,
@@ -874,7 +931,10 @@ export const apiRidesData = [
   }
 ];
 
-// Sugestões com formato de API
+// Sugestões e denúncias com formato de API.
+// sug_tipo: 0 = sugestão, 1 = denúncia
+// sug_status: 0 = pendente, 1 = resolvido, 2 = em análise
+// sug_resposta: texto da resposta do admin (null se não respondido)
 export const apiSuggestionsData = [
   {
     sug_id: 1,
@@ -919,7 +979,9 @@ export const apiSuggestionsData = [
   }
 ];
 
-// Estatísticas para Dashboard
+// Estatísticas consolidadas para os cards do Dashboard.
+// Organizado por categoria: 'usuarios', 'caronas', 'sugestoes'.
+// Consumido por api.getStats(type) em services/api.js.
 export const apiStatsData = {
   usuarios: {
     stats: {
@@ -952,7 +1014,10 @@ export const apiStatsData = {
   }
 };
 
-// Cursos com formato de API
+// Cursos oferecidos pelas escolas parceiras.
+// esc_id: chave estrangeira que liga o curso à sua escola.
+// cur_semestres: duração do curso em semestres.
+// cur_ativo: 1 = ativo, 0 = desativado.
 export const apiCoursesData = [
   {
     cur_id: 1,

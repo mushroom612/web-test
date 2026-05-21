@@ -1,3 +1,51 @@
+// ============================================================
+// pages/Sugestoes.jsx — Página de sugestões e denúncias
+//
+// Gerencia os feedbacks enviados pelos usuários: sugestões de
+// melhoria e denúncias de problemas/comportamentos inadequados.
+// Usa layout mestre-detalhe igual à página de Caronas.
+//
+// Funcionalidades:
+//   - Filtros por tipo (Todos / Sugestão / Denúncia / Arquivados)
+//   - Cards de resumo (sugestões, denúncias, pendentes, resolvidos)
+//   - Painel de detalhe com: status, resposta, arquivar
+//   - Responder ao usuário via textarea
+//   - Alterar status: Pendente → Em análise → Resolvido
+//   - Arquivar/restaurar itens sem excluí-los
+//   - Aplicar penalidade ao usuário denunciado (abre PenaltyPanel)
+//   - Navegar para a carona vinculada (abre /caronas?id=N)
+//   - Auto-seleção via URL (?id=N) quando navegado do Dashboard
+//
+// Componente filho: PenaltyPanel
+//
+// Estilo: Sugestoes.module.css
+//   Classes principais:
+//     .container            → área da página
+//     .header               → cabeçalho
+//     .statsRow / .statCard → resumo numérico por categoria
+//     .statIconBlue/Red/Yellow/Green → cores dos ícones dos cards
+//     .filterTabs / .filterBtn / .active → barra de filtros
+//     .filterDivider        → separador visual na barra de filtros
+//     .layout / .layoutWithDetail → layout mestre-detalhe
+//     .listPanel            → painel esquerdo (lista)
+//     .listCard             → card de cada item
+//     .listCardDenuncia / .listCardSugestao → borda lateral colorida
+//     .listCardSelected     → destaque do item selecionado
+//     .listCardArchived     → visual desbotado de arquivado
+//     .avatar / .avatarDenuncia / .avatarSugestao → avatar do remetente
+//     .typeBadge / .typeDenuncia / .typeSugestao → badge de tipo
+//     .statusPill / .status_Pendente / .status_Em_análise / .status_Resolvido
+//     .urgentTag / .repliedTag → tags de atenção e respondido
+//     .detailPanel          → painel direito (detalhe)
+//     .denunciaContext      → bloco de contexto de denúncia
+//     .penalizeBtn / .viewRideBtn → botões de ação em denúncias
+//     .replyInput / .sendBtn → área de resposta
+//     .archiveBtn / .unarchiveBtn → ações de arquivar/restaurar
+//     .archiveBanner        → aviso na visualização de arquivados
+//     .loadingWrap / .spin  → spinner
+//     .emptyState           → estado vazio da lista
+// ============================================================
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
@@ -11,6 +59,7 @@ import {
 import { PenaltyPanel } from '../components/PenaltyPanel';
 import styles from './Sugestoes.module.css';
 
+// apiToItem: converte o formato da API (sug_*) para o formato interno.
 // sug_tipo: 0 = Sugestão, 1 = Denúncia
 // sug_status: 0 = Pendente, 1 = Resolvido, 2 = Em análise
 function apiToItem(s) {
@@ -34,8 +83,10 @@ function apiToItem(s) {
   };
 }
 
+// STATUS_OPTIONS: opções de status que o admin pode definir para um item
 const STATUS_OPTIONS = ['Pendente', 'Em análise', 'Resolvido'];
 
+// STATUS_ICONS: mapeia cada status para seu ícone correspondente
 const STATUS_ICONS = {
   'Pendente': Clock,
   'Em análise': Info,
@@ -45,16 +96,22 @@ const STATUS_ICONS = {
 export function Sugestoes() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState('Todos');
-  const [selectedId, setSelectedId] = useState(null);
-  const [responseText, setResponseText] = useState('');
+  const [filterType, setFilterType] = useState('Todos');  // filtro ativo
+  const [selectedId, setSelectedId] = useState(null);     // item selecionado no detalhe
+  const [responseText, setResponseText] = useState('');   // texto da resposta digitada
+  // archivedIds: Set (conjunto) de IDs arquivados.
+  // Set é como um array, mas não permite duplicatas — ideal para IDs.
   const [archivedIds, setArchivedIds] = useState(new Set());
+  // statusMap: sobrescreve o status de itens localmente sem precisar
+  // recarregar toda a lista da API após uma mudança de status.
   const [statusMap, setStatusMap] = useState({});
-  const [sending, setSending] = useState(false);
-  const [penaltyUser, setPenaltyUser] = useState(null);
+  const [sending, setSending] = useState(false);          // aguardando envio de resposta
+  const [penaltyUser, setPenaltyUser] = useState(null);   // usuário a ser penalizado
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // Carrega as sugestões da API ao montar o componente
   useEffect(() => {
     api
       .getSugestoes()
@@ -66,7 +123,7 @@ export function Sugestoes() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Auto-seleciona item quando navegado do Dashboard (?id=N)
+  // Auto-seleciona o item quando a URL contém ?id=N (ex: vindo do Dashboard)
   useEffect(() => {
     const itemId = searchParams.get('id');
     if (itemId && items.length > 0) {
@@ -80,19 +137,25 @@ export function Sugestoes() {
     }
   }, [searchParams, items]);
 
+  // isArchiveView: true quando o filtro "Arquivados" está selecionado
   const isArchiveView = filterType === 'Arquivados';
+
+  // activeItems: itens que NÃO estão arquivados (para calcular resumos)
   const activeItems = items.filter(i => !archivedIds.has(i.id));
 
+  // filteredItems: itens que aparecem na lista conforme o filtro ativo
   const filteredItems = items.filter((item) => {
     const isArchived = archivedIds.has(item.id);
-    if (isArchiveView) return isArchived;
-    if (isArchived) return false;
+    if (isArchiveView) return isArchived;      // mostra só arquivados
+    if (isArchived) return false;              // esconde arquivados dos outros filtros
     return filterType === 'Todos' || item.type === filterType;
   });
 
   const selectedItem = items.find(i => i.id === selectedId) ?? null;
+  // statusMap[id] sobrescreve o status original se foi alterado localmente
   const selectedStatus = selectedItem ? (statusMap[selectedItem.id] ?? selectedItem.status) : null;
 
+  // Toggle: clica no mesmo item para fechar, ou em outro para abrir
   function handleSelectItem(id) {
     if (selectedId === id) {
       setSelectedId(null);
@@ -109,12 +172,15 @@ export function Sugestoes() {
     setResponseText('');
   }
 
+  // Envia a resposta do admin para o usuário que fez a sugestão/denúncia.
+  // Atualiza o estado localmente para refletir a mudança imediatamente.
   async function handleSendResponse() {
     if (!responseText.trim() || !selectedItem) return;
     setSending(true);
     try {
       await api.responderSugestao(selectedItem._apiId || selectedItem.id, responseText.trim());
     } catch { /* atualiza localmente mesmo sem API */ }
+    // Atualiza o item na lista sem recarregar tudo
     setItems(prev => prev.map(i =>
       i.id === selectedItem.id
         ? { ...i, response: responseText.trim(), status: 'Resolvido' }
@@ -124,18 +190,23 @@ export function Sugestoes() {
     setSending(false);
   }
 
+  // Altera o status de um item e sincroniza com a API quando necessário
   async function handleStatusChange(id, newStatus) {
+    // Atualiza localmente primeiro (UI responsiva)
     setStatusMap(prev => ({ ...prev, [id]: newStatus }));
     try {
       if (newStatus === 'Em análise') await api.analisarSugestao(id);
     } catch { /* estado local já atualizado */ }
   }
 
+  // Arquivar: adiciona o ID ao Set de arquivados e fecha o detalhe
   function handleArchive(id) {
+    // new Set(prev) → cria uma cópia do Set antes de modificar
     setArchivedIds(prev => new Set(prev).add(id));
     if (selectedId === id) handleCloseDetail();
   }
 
+  // Restaurar: remove o ID do Set de arquivados
   function handleUnarchive(id) {
     setArchivedIds(prev => { const n = new Set(prev); n.delete(id); return n; });
   }
@@ -146,6 +217,7 @@ export function Sugestoes() {
     setResponseText('');
   }
 
+  // Abre o PenaltyPanel pré-configurado com o usuário denunciado
   function handlePenalizeFromComplaint() {
     if (!selectedItem) return;
     setPenaltyUser({
@@ -168,7 +240,6 @@ export function Sugestoes() {
   return (
     <div className={styles.container}>
 
-      {/* Cabeçalho */}
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Sugestões e Denúncias</h1>
@@ -176,7 +247,7 @@ export function Sugestoes() {
         </div>
       </div>
 
-      {/* Resumo */}
+      {/* Cards de resumo: contadores por categoria (só itens não arquivados) */}
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
           <MessageSquare size={16} className={styles.statIconBlue} />
@@ -195,6 +266,7 @@ export function Sugestoes() {
         <div className={styles.statCard}>
           <Clock size={16} className={styles.statIconYellow} />
           <div>
+            {/* statusMap[i.id] ?? i.status → usa o status local se existir */}
             <p className={styles.statValue}>{activeItems.filter(i => (statusMap[i.id] ?? i.status) === 'Pendente').length}</p>
             <p className={styles.statLabel}>Pendentes</p>
           </div>
@@ -208,7 +280,7 @@ export function Sugestoes() {
         </div>
       </div>
 
-      {/* Filtros */}
+      {/* Barra de filtros por tipo + botão de arquivados */}
       <div className={styles.filterTabs}>
         {['Todos', 'Sugestão', 'Denúncia'].map((type) => (
           <button
@@ -221,6 +293,7 @@ export function Sugestoes() {
             {type}
           </button>
         ))}
+        {/* Separador visual entre os filtros principais e "Arquivados" */}
         <div className={styles.filterDivider} />
         <button
           className={`${styles.filterBtn} ${isArchiveView ? styles.active : ''}`}
@@ -234,7 +307,7 @@ export function Sugestoes() {
       {/* Layout mestre-detalhe */}
       <div className={`${styles.layout} ${selectedItem ? styles.layoutWithDetail : ''}`}>
 
-        {/* Lista */}
+        {/* Painel esquerdo: lista de sugestões/denúncias */}
         <div className={styles.listPanel}>
           {isArchiveView && (
             <div className={styles.archiveBanner}>
@@ -261,6 +334,7 @@ export function Sugestoes() {
             return (
               <div
                 key={item.id}
+                // Combina múltiplas classes condicionalmente
                 className={`
                   ${styles.listCard}
                   ${isDenuncia ? styles.listCardDenuncia : styles.listCardSugestao}
@@ -287,16 +361,19 @@ export function Sugestoes() {
                 </div>
                 <p className={styles.listCardText}>{item.text}</p>
                 <div className={styles.listCardFooter}>
+                  {/* statusPill: pill colorida com ícone e texto do status atual */}
                   <span className={`${styles.statusPill} ${styles[`status_${currentStatus.replace(' ', '_')}`]}`}>
                     <StatusIcon size={11} />
                     {currentStatus}
                   </span>
+                  {/* urgentTag: só aparece em denúncias não resolvidas */}
                   {isDenuncia && currentStatus !== 'Resolvido' && (
                     <span className={styles.urgentTag}>
                       <Flag size={10} />
                       Requer atenção
                     </span>
                   )}
+                  {/* repliedTag: aparece quando o admin já respondeu */}
                   {item.response && (
                     <span className={styles.repliedTag}>
                       <CornerDownRight size={10} />
@@ -309,7 +386,9 @@ export function Sugestoes() {
           })}
         </div>
 
-        {/* Painel de detalhe */}
+        {/* Painel direito: detalhe do item selecionado.
+            (() => { ... })() é uma IIFE — função invocada imediatamente
+            para calcular variáveis locais antes de retornar o JSX. */}
         {selectedItem && (() => {
           const isArchived = archivedIds.has(selectedItem.id);
           const isDenuncia = selectedItem.type === 'Denúncia';
@@ -344,13 +423,13 @@ export function Sugestoes() {
                 </div>
               </div>
 
-              {/* Mensagem original */}
+              {/* Texto da mensagem enviada pelo usuário */}
               <div className={styles.detailSection}>
                 <p className={styles.detailSectionLabel}>Mensagem</p>
                 <p className={styles.detailText}>{selectedItem.text}</p>
               </div>
 
-              {/* Contexto de denúncia */}
+              {/* Contexto de denúncia: só aparece para itens do tipo Denúncia */}
               {isDenuncia && (
                 <div className={styles.denunciaContext}>
                   <div className={styles.denunciaContextHeader}>
@@ -363,11 +442,13 @@ export function Sugestoes() {
                   </p>
                   <div className={styles.denunciaBtnRow}>
                     {!isArchived && (
+                      // Abre o PenaltyPanel para aplicar penalidade ao usuário denunciado
                       <button className={styles.penalizeBtn} onClick={handlePenalizeFromComplaint}>
                         <ShieldAlert size={14} />
                         Aplicar penalidade ao usuário relatado
                       </button>
                     )}
+                    {/* Se a denúncia está vinculada a uma carona, navega até ela */}
                     {selectedItem.caronaId && (
                       <button
                         className={styles.viewRideBtn}
@@ -381,7 +462,7 @@ export function Sugestoes() {
                 </div>
               )}
 
-              {/* Status */}
+              {/* Seletor de status: botões Pendente / Em análise / Resolvido */}
               <div className={styles.detailSection}>
                 <p className={styles.detailSectionLabel}>Status</p>
                 <div className={styles.statusRow}>
@@ -392,6 +473,7 @@ export function Sugestoes() {
                         key={s}
                         className={`${styles.statusOption} ${selectedStatus === s ? styles.statusOptionActive : ''} ${styles[`statusOption_${s.replace(' ', '_')}`]}`}
                         onClick={() => !isArchived && handleStatusChange(selectedItem.id, s)}
+                        // Itens arquivados não podem ter status alterado
                         disabled={isArchived}
                       >
                         <Icon size={13} />
@@ -402,7 +484,7 @@ export function Sugestoes() {
                 </div>
               </div>
 
-              {/* Resposta existente */}
+              {/* Resposta já enviada (se houver) */}
               {selectedItem.response && (
                 <div className={styles.detailSection}>
                   <p className={styles.detailSectionLabel}>Resposta enviada ao usuário</p>
@@ -412,7 +494,7 @@ export function Sugestoes() {
                 </div>
               )}
 
-              {/* Área de resposta */}
+              {/* Área de resposta: só aparece para itens não arquivados */}
               {!isArchived && (
                 <div className={styles.detailSection}>
                   <p className={styles.detailSectionLabel}>
@@ -430,6 +512,7 @@ export function Sugestoes() {
                     onChange={e => setResponseText(e.target.value)}
                   />
                   <div className={styles.replyActions}>
+                    {/* Botão desabilitado se o campo estiver vazio ou enviando */}
                     <button
                       className={styles.sendBtn}
                       onClick={handleSendResponse}
@@ -443,7 +526,7 @@ export function Sugestoes() {
                 </div>
               )}
 
-              {/* Ações do rodapé */}
+              {/* Rodapé: arquivar ou restaurar */}
               <div className={styles.detailActions}>
                 {isArchived ? (
                   <button className={styles.unarchiveBtn} onClick={() => handleUnarchive(selectedItem.id)}>
@@ -462,7 +545,7 @@ export function Sugestoes() {
         })()}
       </div>
 
-      {/* Painel de penalidade */}
+      {/* PenaltyPanel: abre quando penaltyUser é preenchido em handlePenalizeFromComplaint */}
       {penaltyUser && (
         <PenaltyPanel
           user={penaltyUser}

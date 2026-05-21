@@ -8,25 +8,25 @@
 .loadingWrap {
   display: flex;
   justify-content: center;
-  padding: 4rem;
+  padding: var(--spacing-16);
 }
 
 /* ── Cabeçalho ───────────────────────────────────────────── */
 
 .header {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-6);
 }
 
 .title {
-  margin: 0 0 6px;
-  font-size: 24px;
+  margin: 0 0 var(--spacing-1);
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .subtitle {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
@@ -35,60 +35,60 @@
 .statsRow {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-6);
 }
 
 .statCard {
   background-color: var(--surface-primary);
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 14px 16px;
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-3) var(--spacing-4);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--spacing-3);
 }
 
 .statValue {
   margin: 0 0 2px;
-  font-size: 20px;
+  font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .statLabel {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
 }
 
-.statIconBlue   { color: #3b82f6; }
-.statIconRed    { color: #ef4444; }
-.statIconYellow { color: #f59e0b; }
-.statIconGreen  { color: #22c55e; }
+.statIconBlue   { color: var(--color-blue-500); }
+.statIconRed    { color: var(--color-semantic-error); }
+.statIconYellow { color: var(--color-semantic-warning); }
+.statIconGreen  { color: var(--color-green-600); }
 
 /* ── Filtros ─────────────────────────────────────────────── */
 
 .filterTabs {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 20px;
+  gap: var(--spacing-1);
+  margin-bottom: var(--spacing-5);
   background-color: var(--surface-primary);
-  padding: 4px;
-  border-radius: 10px;
+  padding: var(--spacing-1);
+  border-radius: var(--border-radius-md);
   width: fit-content;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-100);
 }
 
 .filterBtn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 7px 14px;
+  padding: 7px var(--spacing-3);
   background-color: transparent;
   border: none;
-  border-radius: 7px;
+  border-radius: var(--border-radius-sm);
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -97,18 +97,18 @@
   font-family: inherit;
 }
 
-.filterBtn:hover { color: var(--text-primary); background-color: #f3f4f6; }
+.filterBtn:hover { color: var(--text-primary); background-color: var(--color-neutral-100); }
 
 .filterBtn.active {
   background-color: var(--btn-primary-bg);
-  color: #fff;
+  color: var(--btn-primary-text);
 }
 
 /* ── Mestre-detalhe ──────────────────────────────────────── */
 
 .layout {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-4);
   align-items: flex-start;
 }
 
@@ -117,7 +117,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--spacing-3);
 }
 
 .layoutWithDetail .listPanel {
@@ -129,11 +129,11 @@
 
 .listCard {
   background-color: var(--surface-primary);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-100);
   border-left-width: 4px;
   border-left-color: var(--btn-primary-bg);
-  border-radius: 10px;
-  padding: 14px 16px;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-3) var(--spacing-4);
   cursor: pointer;
   transition: box-shadow 0.15s;
 }
@@ -148,8 +148,8 @@
 .listCardTop {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-2);
 }
 
 .listCardInfo {
@@ -189,7 +189,7 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: var(--spacing-2);
 }
 
 /* ── Rota (card da lista) ────────────────────────────────── */
@@ -198,14 +198,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
   flex-wrap: nowrap;
   overflow: hidden;
 }
 
 .routePoint {
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
@@ -217,7 +217,7 @@
 .routeArrow {
   color: var(--text-secondary);
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
 }
 
 /* ── Vagas pill ──────────────────────────────────────────── */
@@ -225,12 +225,12 @@
 .vagasPill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacing-1);
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   font-size: 11px;
   font-weight: 600;
-  background-color: var(--color-green-100, #dcfce7);
+  background-color: var(--color-green-100);
   color: var(--btn-primary-bg);
   white-space: nowrap;
 }
@@ -240,9 +240,9 @@
 .avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background-color: #dbeafe;
-  color: #1d4ed8;
+  border-radius: var(--border-radius-full);
+  background-color: var(--color-blue-100);
+  color: var(--color-blue-700);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -254,9 +254,9 @@
 .avatarLg {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  background-color: #dbeafe;
-  color: #1d4ed8;
+  border-radius: var(--border-radius-full);
+  background-color: var(--color-blue-100);
+  color: var(--color-blue-700);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -271,12 +271,12 @@
   flex: 1;
   min-width: 0;
   background-color: var(--surface-primary);
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--border-radius-lg);
   display: flex;
   flex-direction: column;
   position: sticky;
-  top: 16px;
+  top: var(--spacing-4);
   max-height: calc(100vh - 120px);
   overflow-y: auto;
 }
@@ -285,19 +285,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: var(--spacing-4) var(--spacing-5);
+  border-bottom: 1px solid var(--color-neutral-100);
   flex-shrink: 0;
 }
 
 .detailHeaderLeft {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-3);
 }
 
 .detailDate {
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
 }
 
@@ -307,7 +307,7 @@
   justify-content: center;
   padding: 5px;
   background: transparent;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-100);
   border-radius: 6px;
   color: var(--text-secondary);
   cursor: pointer;
@@ -315,16 +315,16 @@
 }
 
 .closeDetailBtn:hover {
-  background-color: #f3f4f6;
+  background-color: var(--color-neutral-100);
   color: var(--text-primary);
 }
 
 .detailSender {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f3f4f6;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-5);
+  border-bottom: 1px solid var(--color-neutral-100);
 }
 
 .detailSenderName {
@@ -336,18 +336,18 @@
 
 .detailSenderSub {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacing-1);
 }
 
 /* ── Seções do detalhe ───────────────────────────────────── */
 
 .detailSection {
-  padding: 16px 20px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: var(--spacing-4) var(--spacing-5);
+  border-bottom: 1px solid var(--color-neutral-100);
 }
 
 .detailSection:last-child {
@@ -355,7 +355,7 @@
 }
 
 .detailSectionLabel {
-  margin: 0 0 10px;
+  margin: 0 0 var(--spacing-3);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -365,9 +365,9 @@
 
 .detailText {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
 }
 
 .detailId {
@@ -387,11 +387,11 @@
 .routeDetailRow {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: var(--spacing-2);
   font-size: 13px;
   color: var(--text-primary);
   line-height: 1.4;
-  padding: 4px 0;
+  padding: var(--spacing-1) 0;
 }
 
 .routeIconOrigin {
@@ -401,15 +401,15 @@
 }
 
 .routeIconDest {
-  color: #ef4444;
+  color: var(--color-semantic-error);
   flex-shrink: 0;
   margin-top: 1px;
 }
 
 .routeDetailConnector {
   width: 1px;
-  height: 16px;
-  background-color: #d1d5db;
+  height: var(--spacing-4);
+  background-color: var(--color-neutral-200);
   margin-left: 7px;
 }
 
@@ -418,25 +418,25 @@
 .passengerList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-2);
 }
 
 .passengerRow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-3);
 }
 
 .passengerAvatar {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
-  background-color: #f3f4f6;
+  border-radius: var(--border-radius-full);
+  background-color: var(--color-neutral-100);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -452,10 +452,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 48px 0;
+  gap: var(--spacing-3);
+  padding: var(--spacing-12) 0;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: var(--font-size-sm);
 }
 
 .emptyState svg { opacity: 0.25; color: var(--btn-primary-bg); }
