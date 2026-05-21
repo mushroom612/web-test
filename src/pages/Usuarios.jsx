@@ -138,20 +138,20 @@ export function Usuarios() {
 
   // Desativa um usuário (muda usu_status para 0) após confirmação.
   // confirm() → caixa de diálogo nativa do navegador (OK / Cancelar)
-  const handleDeleteUser = async (user) => {
-    if (!confirm(`Tem certeza que deseja desativar ${user.usu_nome}?`)) return;
-    try {
-      await api.updateUserStatus(user.usu_id, 0);
-      // Atualiza o status localmente para evitar recarregar a lista inteira
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.usu_id === user.usu_id ? { ...u, usu_status: 0 } : u
-        )
-      );
-    } catch (err) {
-      alert(`Erro ao desativar usuário: ${err.message}`);
-    }
-  };
+  // const handleDeleteUser = async (user) => {
+  //   if (!confirm(`Tem certeza que deseja desativar ${user.usu_nome}?`)) return;
+  //   try {
+  //     await api.updateUserStatus(user.usu_id, 0);
+  //     // Atualiza o status localmente para evitar recarregar a lista inteira
+  //     setUsers((prev) =>
+  //       prev.map((u) =>
+  //         u.usu_id === user.usu_id ? { ...u, usu_status: 0 } : u
+  //       )
+  //     );
+  //   } catch (err) {
+  //     alert(`Erro ao desativar usuário: ${err.message}`);
+  //   }
+  // };
 
   return (
     <div className={styles.container}>
@@ -239,7 +239,6 @@ export function Usuarios() {
                       user={user}
                       onEdit={handleEditUser}
                       onPenalize={handlePenaltyClick}
-                      onDelete={handleDeleteUser}
                       onView={handleViewUser}
                     />
                   </td>

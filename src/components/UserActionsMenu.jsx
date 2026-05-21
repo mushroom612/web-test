@@ -43,7 +43,7 @@ import {useState} from "react";
 import {Edit2, ShieldAlert, Trash2, Eye} from "lucide-react";
 import styles from "./UserActionsMenu.module.css";
 
-export function UserActionsMenu({user, onEdit, onPenalize, onDelete, onView}) {
+export function UserActionsMenu({user, onEdit, onPenalize, onView}) {
   // isOpen: controla se o menu está visível ou oculto
   const [isOpen, setIsOpen] = useState(false);
 
@@ -110,20 +110,6 @@ export function UserActionsMenu({user, onEdit, onPenalize, onDelete, onView}) {
             >
               <ShieldAlert size={16} />
               Penalizar
-            </button>
-
-            {/* Linha separadora visual entre grupos de ações */}
-            <div className={styles.divider}></div>
-
-            <button
-              className={`${styles.menuItem} ${styles.danger}`}
-              onClick={() => {
-                onDelete?.(user);
-                setIsOpen(false);
-              }}
-            >
-              <Trash2 size={16} />
-              Deletar
             </button>
           </div>
         </>

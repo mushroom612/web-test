@@ -270,8 +270,8 @@ export function Dashboard() {
                   O id "ridesGradient" é referenciado abaixo em fill="url(#...)". */}
               <defs>
                 <linearGradient id="ridesGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="30%" stopColor="var(--btn-primary-bg)" stopOpacity={100} />
-                  <stop offset="100%" stopColor="var(--btn-primary-bg)" stopOpacity={1} />
+                  <stop offset="30%" stopColor="var(--btn-primary-bg)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--btn-primary-bg)" stopOpacity={0.4} />
                 </linearGradient>
               </defs>
               {/* Grade de linhas de fundo (só horizontal, sem vertical) */}
