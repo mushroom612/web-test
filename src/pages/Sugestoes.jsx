@@ -5,81 +5,79 @@
 // melhoria e denúncias de problemas/comportamentos inadequados.
 // Usa layout mestre-detalhe igual à página de Caronas.
 //
+// Endpoints da API (consumidos via services/api.js):
+//   - GET  /api/sugestoes                    → lista (escopo automático)
+//   - PUT  /api/sugestoes/{id}/analisar      → status → 3 (Em análise)
+//   - PUT  /api/sugestoes/{id}/responder     → grava resposta + fecha (0)
+//   - POST /api/sugestoes/{id}/arquivar      → status → 2 (Arquivada)
+//
+// Limitações vindas da API (deliberadas no backend):
+//   - A resposta NÃO devolve usu_id do autor (privacidade). Por isso o
+//     botão "Aplicar penalidade ao usuário relatado" foi removido — o
+//     admin precisa buscar pelo nome em /usuarios.
+//   - Não existe vínculo "sug_carona_id" no schema; o botão "Ver carona
+//     relacionada" foi removido.
+//   - Arquivar é one-way: não há endpoint de desarquivar. O botão
+//     "Restaurar da lista" foi removido.
+//
 // Funcionalidades:
 //   - Filtros por tipo (Todos / Sugestão / Denúncia / Arquivados)
 //   - Cards de resumo (sugestões, denúncias, pendentes, resolvidos)
-//   - Painel de detalhe com: status, resposta, arquivar
-//   - Responder ao usuário via textarea
-//   - Alterar status: Pendente → Em análise → Resolvido
-//   - Arquivar/restaurar itens sem excluí-los
-//   - Aplicar penalidade ao usuário denunciado (abre PenaltyPanel)
-//   - Navegar para a carona vinculada (abre /caronas?id=N)
+//   - Painel de detalhe com status, resposta e arquivar
+//   - Responder ao usuário via textarea (fecha como Resolvido)
+//   - Marcar como Em análise (única transição direta de status)
 //   - Auto-seleção via URL (?id=N) quando navegado do Dashboard
 //
-// Componente filho: PenaltyPanel
-//
 // Estilo: Sugestoes.module.css
-//   Classes principais:
-//     .container            → área da página
-//     .header               → cabeçalho
-//     .statsRow / .statCard → resumo numérico por categoria
-//     .statIconBlue/Red/Yellow/Green → cores dos ícones dos cards
-//     .filterTabs / .filterBtn / .active → barra de filtros
-//     .filterDivider        → separador visual na barra de filtros
-//     .layout / .layoutWithDetail → layout mestre-detalhe
-//     .listPanel            → painel esquerdo (lista)
-//     .listCard             → card de cada item
-//     .listCardDenuncia / .listCardSugestao → borda lateral colorida
-//     .listCardSelected     → destaque do item selecionado
-//     .listCardArchived     → visual desbotado de arquivado
-//     .avatar / .avatarDenuncia / .avatarSugestao → avatar do remetente
-//     .typeBadge / .typeDenuncia / .typeSugestao → badge de tipo
-//     .statusPill / .status_Pendente / .status_Em_análise / .status_Resolvido
-//     .urgentTag / .repliedTag → tags de atenção e respondido
-//     .detailPanel          → painel direito (detalhe)
-//     .denunciaContext      → bloco de contexto de denúncia
-//     .penalizeBtn / .viewRideBtn → botões de ação em denúncias
-//     .replyInput / .sendBtn → área de resposta
-//     .archiveBtn / .unarchiveBtn → ações de arquivar/restaurar
-//     .archiveBanner        → aviso na visualização de arquivados
-//     .loadingWrap / .spin  → spinner
-//     .emptyState           → estado vazio da lista
 // ============================================================
 
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
-import { apiSuggestionsData } from '../data/mockData';
 import {
-  Send, MessageSquare, Archive, ArchiveRestore,
+  Send, MessageSquare, Archive,
   Loader2, AlertTriangle, CheckCircle, Clock,
-  Flag, ShieldAlert, User, ChevronRight, X,
-  CornerDownRight, Info, Car
+  Flag, User, ChevronRight, X,
+  CornerDownRight, Info
 } from 'lucide-react';
-import { PenaltyPanel } from '../components/PenaltyPanel';
 import styles from './Sugestoes.module.css';
 
-// apiToItem: converte o formato da API (sug_*) para o formato interno.
-// sug_tipo: 0 = Sugestão, 1 = Denúncia
-// sug_status: 0 = Pendente, 1 = Resolvido, 2 = Em análise
+// apiToItem: converte o registro da API (/api/sugestoes) para o
+// formato interno usado pelos componentes visuais.
+//
+// Mapeamento (API real → UI):
+//   autor       → userName       (mock antigo usava usu_nome)
+//   sug_data    → date (BR)      (mock antigo usava criado_em)
+//   sug_tipo    → type           (0 = Denúncia, 1 = Sugestão)
+//   sug_status  → status         (0 = Resolvido, 1 = Pendente,
+//                                 2 = Arquivado, 3 = Em análise)
+//   sug_resposta → response
+//
+// Campos REMOVIDOS por não estarem na resposta do backend:
+//   userId      (a API esconde usu_id do autor)
+//   caronaId    (não existe na tabela SUGESTAO_DENUNCIA)
 function apiToItem(s) {
+  const nome = s.autor || s.usu_nome || 'Usuário desconhecido';
+  const tipo = s.sug_tipo === 0 ? 'Denúncia' : 'Sugestão';
+  const status =
+    s.sug_status === 0 ? 'Resolvido'
+    : s.sug_status === 3 ? 'Em análise'
+    : s.sug_status === 2 ? 'Arquivado'
+    : 'Pendente';
   return {
     id: s.sug_id,
-    userId: s.usu_id,
-    userName: s.usu_nome || `Usuário #${s.usu_id}`,
-    avatar: (s.usu_nome || 'U').charAt(0).toUpperCase(),
-    date: new Date(s.criado_em).toLocaleDateString('pt-BR', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    }),
-    type: s.sug_tipo === 1 ? 'Denúncia' : 'Sugestão',
+    userName: nome,
+    avatar: nome.charAt(0).toUpperCase(),
+    date: s.sug_data
+      ? new Date(s.sug_data).toLocaleDateString('pt-BR', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        })
+      : '—',
+    type: tipo,
     text: s.sug_texto,
-    status: s.sug_status === 1 ? 'Resolvido'
-      : s.sug_status === 2 ? 'Em análise'
-      : 'Pendente',
-    response: s.sug_resposta || null,
-    caronaId: s.sug_carona_id || null,
-    _apiId: s.sug_id
+    status,
+    response: s.sug_resposta || null
   };
 }
 
@@ -96,32 +94,41 @@ const STATUS_ICONS = {
 export function Sugestoes() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  // error: preenchido quando GET /api/sugestoes falha. Mostra banner
+  // com botão de retry e suprime a UI principal até o usuário tentar
+  // de novo. Substitui o antigo fallback silencioso para mock.
+  const [error, setError] = useState(null);
   const [filterType, setFilterType] = useState('Todos');  // filtro ativo
   const [selectedId, setSelectedId] = useState(null);     // item selecionado no detalhe
   const [responseText, setResponseText] = useState('');   // texto da resposta digitada
-  // archivedIds: Set (conjunto) de IDs arquivados.
-  // Set é como um array, mas não permite duplicatas — ideal para IDs.
-  const [archivedIds, setArchivedIds] = useState(new Set());
-  // statusMap: sobrescreve o status de itens localmente sem precisar
-  // recarregar toda a lista da API após uma mudança de status.
-  const [statusMap, setStatusMap] = useState({});
   const [sending, setSending] = useState(false);          // aguardando envio de resposta
-  const [penaltyUser, setPenaltyUser] = useState(null);   // usuário a ser penalizado
+  // actionError: erro pontual de uma ação (analisar/arquivar/responder).
+  // Aparece no painel de detalhe sem destruir o estado da lista.
+  const [actionError, setActionError] = useState(null);
+  // pendingAction: nome da ação em andamento (ex: 'analisar', 'arquivar')
+  // para desabilitar os botões adequados durante a chamada à API.
+  const [pendingAction, setPendingAction] = useState(null);
 
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Carrega as sugestões da API ao montar o componente
-  useEffect(() => {
-    api
-      .getSugestoes()
-      .then((data) => {
-        const lista = data.sugestoes || data.data || [];
-        setItems(lista.length > 0 ? lista.map(apiToItem) : apiSuggestionsData.map(apiToItem));
-      })
-      .catch(() => setItems(apiSuggestionsData.map(apiToItem)))
-      .finally(() => setLoading(false));
+  // load: chamada na montagem e pelo botão "Tentar novamente".
+  // Mantida em useCallback para identidade estável e reuso.
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.getSugestoes();
+      const lista = data?.sugestoes || [];
+      setItems(lista.map(apiToItem));
+    } catch (err) {
+      setError(err.message || 'Não foi possível carregar sugestões e denúncias.');
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   // Auto-seleciona o item quando a URL contém ?id=N (ex: vindo do Dashboard)
   useEffect(() => {
@@ -140,20 +147,26 @@ export function Sugestoes() {
   // isArchiveView: true quando o filtro "Arquivados" está selecionado
   const isArchiveView = filterType === 'Arquivados';
 
-  // activeItems: itens que NÃO estão arquivados (para calcular resumos)
-  const activeItems = items.filter(i => !archivedIds.has(i.id));
+  // activeItems: itens que NÃO estão arquivados (status !== 'Arquivado').
+  // Antes era controlado por um Set local; agora vem direto do status
+  // do registro, que reflete sug_status=2 no banco.
+  const activeItems = items.filter(i => i.status !== 'Arquivado');
 
   // filteredItems: itens que aparecem na lista conforme o filtro ativo
   const filteredItems = items.filter((item) => {
-    const isArchived = archivedIds.has(item.id);
+    const isArchived = item.status === 'Arquivado';
     if (isArchiveView) return isArchived;      // mostra só arquivados
     if (isArchived) return false;              // esconde arquivados dos outros filtros
     return filterType === 'Todos' || item.type === filterType;
   });
 
+  // Contador para a aba "Arquivados (N)" — substitui o antigo archivedIds.size.
+  const archivedCount = items.filter(i => i.status === 'Arquivado').length;
+
   const selectedItem = items.find(i => i.id === selectedId) ?? null;
-  // statusMap[id] sobrescreve o status original se foi alterado localmente
-  const selectedStatus = selectedItem ? (statusMap[selectedItem.id] ?? selectedItem.status) : null;
+  // selectedStatus vem direto do item (sem statusMap intermediário) —
+  // sempre reflete a última resposta da API após atualização otimista.
+  const selectedStatus = selectedItem ? selectedItem.status : null;
 
   // Toggle: clica no mesmo item para fechar, ou em outro para abrir
   function handleSelectItem(id) {
@@ -165,66 +178,76 @@ export function Sugestoes() {
       const item = items.find(i => i.id === id);
       setResponseText(item?.response || '');
     }
+    setActionError(null);
   }
 
   function handleCloseDetail() {
     setSelectedId(null);
     setResponseText('');
+    setActionError(null);
   }
 
-  // Envia a resposta do admin para o usuário que fez a sugestão/denúncia.
-  // Atualiza o estado localmente para refletir a mudança imediatamente.
+  // updateItem: helper que mescla campos novos no item da lista pelo id.
+  function updateItem(id, patch) {
+    setItems(prev => prev.map(i => (i.id === id ? { ...i, ...patch } : i)));
+  }
+
+  // Envia a resposta ao usuário.
+  // Endpoint: PUT /api/sugestoes/{id}/responder { sug_resposta }.
+  // Sucesso → status muda para "Resolvido" e a resposta vira oficial.
   async function handleSendResponse() {
     if (!responseText.trim() || !selectedItem) return;
     setSending(true);
+    setActionError(null);
     try {
-      await api.responderSugestao(selectedItem._apiId || selectedItem.id, responseText.trim());
-    } catch { /* atualiza localmente mesmo sem API */ }
-    // Atualiza o item na lista sem recarregar tudo
-    setItems(prev => prev.map(i =>
-      i.id === selectedItem.id
-        ? { ...i, response: responseText.trim(), status: 'Resolvido' }
-        : i
-    ));
-    setStatusMap(prev => ({ ...prev, [selectedItem.id]: 'Resolvido' }));
-    setSending(false);
+      const texto = responseText.trim();
+      await api.responderSugestao(selectedItem.id, texto);
+      updateItem(selectedItem.id, { response: texto, status: 'Resolvido' });
+    } catch (err) {
+      setActionError(err.message || 'Não foi possível enviar a resposta.');
+    } finally {
+      setSending(false);
+    }
   }
 
-  // Altera o status de um item e sincroniza com a API quando necessário
-  async function handleStatusChange(id, newStatus) {
-    // Atualiza localmente primeiro (UI responsiva)
-    setStatusMap(prev => ({ ...prev, [id]: newStatus }));
+  // Marca como "Em análise" — única transição direta de status suportada
+  // pela API. Pendente → Em análise. Outras transições só acontecem via
+  // handleSendResponse (Resolvido) ou handleArchive (Arquivado).
+  async function handleMarkInAnalysis(id) {
+    setPendingAction('analisar');
+    setActionError(null);
     try {
-      if (newStatus === 'Em análise') await api.analisarSugestao(id);
-    } catch { /* estado local já atualizado */ }
+      await api.analisarSugestao(id);
+      updateItem(id, { status: 'Em análise' });
+    } catch (err) {
+      setActionError(err.message || 'Não foi possível marcar como Em análise.');
+    } finally {
+      setPendingAction(null);
+    }
   }
 
-  // Arquivar: adiciona o ID ao Set de arquivados e fecha o detalhe
-  function handleArchive(id) {
-    // new Set(prev) → cria uma cópia do Set antes de modificar
-    setArchivedIds(prev => new Set(prev).add(id));
-    if (selectedId === id) handleCloseDetail();
-  }
-
-  // Restaurar: remove o ID do Set de arquivados
-  function handleUnarchive(id) {
-    setArchivedIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+  // Arquiva a sugestão/denúncia.
+  // Endpoint: POST /api/sugestoes/{id}/arquivar. Operação one-way:
+  // não existe endpoint de desarquivar, então removemos esse botão.
+  async function handleArchive(id) {
+    setPendingAction('arquivar');
+    setActionError(null);
+    try {
+      await api.arquivarSugestao(id);
+      updateItem(id, { status: 'Arquivado' });
+      if (selectedId === id) handleCloseDetail();
+    } catch (err) {
+      setActionError(err.message || 'Não foi possível arquivar.');
+    } finally {
+      setPendingAction(null);
+    }
   }
 
   function handleFilterChange(type) {
     setFilterType(type);
     setSelectedId(null);
     setResponseText('');
-  }
-
-  // Abre o PenaltyPanel pré-configurado com o usuário denunciado
-  function handlePenalizeFromComplaint() {
-    if (!selectedItem) return;
-    setPenaltyUser({
-      usu_id: selectedItem.userId,
-      usu_nome: selectedItem.userName,
-      usu_email: `${selectedItem.userName.toLowerCase().replace(' ', '.')}@usuario.br`
-    });
+    setActionError(null);
   }
 
   if (loading) {
@@ -232,6 +255,55 @@ export function Sugestoes() {
       <div className={styles.container}>
         <div className={styles.loadingWrap}>
           <Loader2 size={28} className={styles.spin} />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <div>
+            <h1 className={styles.title}>Sugestões e Denúncias</h1>
+            <p className={styles.subtitle}>Gerencie os feedbacks, dúvidas e denúncias enviados pelos usuários</p>
+          </div>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 12,
+            padding: '48px 24px',
+            background: 'var(--surface-primary)',
+            border: '1px solid var(--color-neutral-100)',
+            borderRadius: 'var(--border-radius-lg)',
+            color: 'var(--text-secondary)',
+            textAlign: 'center'
+          }}
+        >
+          <AlertTriangle size={28} color="var(--color-semantic-error)" />
+          <p style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 600 }}>
+            Não foi possível carregar a lista.
+          </p>
+          <p style={{ margin: 0, fontSize: 13 }}>{error}</p>
+          <button
+            type="button"
+            onClick={load}
+            style={{
+              marginTop: 8,
+              padding: '8px 16px',
+              border: 'none',
+              borderRadius: 'var(--border-radius-md)',
+              background: 'var(--btn-primary-bg)',
+              color: 'var(--btn-primary-text)',
+              cursor: 'pointer',
+              fontWeight: 600
+            }}
+          >
+            Tentar novamente
+          </button>
         </div>
       </div>
     );
@@ -266,15 +338,15 @@ export function Sugestoes() {
         <div className={styles.statCard}>
           <Clock size={16} className={styles.statIconYellow} />
           <div>
-            {/* statusMap[i.id] ?? i.status → usa o status local se existir */}
-            <p className={styles.statValue}>{activeItems.filter(i => (statusMap[i.id] ?? i.status) === 'Pendente').length}</p>
+            {/* Status refletido diretamente do item (sem overlay local) */}
+            <p className={styles.statValue}>{activeItems.filter(i => i.status === 'Pendente').length}</p>
             <p className={styles.statLabel}>Pendentes</p>
           </div>
         </div>
         <div className={styles.statCard}>
           <CheckCircle size={16} className={styles.statIconGreen} />
           <div>
-            <p className={styles.statValue}>{activeItems.filter(i => (statusMap[i.id] ?? i.status) === 'Resolvido').length}</p>
+            <p className={styles.statValue}>{activeItems.filter(i => i.status === 'Resolvido').length}</p>
             <p className={styles.statLabel}>Resolvidos</p>
           </div>
         </div>
@@ -300,7 +372,7 @@ export function Sugestoes() {
           onClick={() => handleFilterChange('Arquivados')}
         >
           <Archive size={13} />
-          Arquivados ({archivedIds.size})
+          Arquivados ({archivedCount})
         </button>
       </div>
 
@@ -326,8 +398,8 @@ export function Sugestoes() {
 
           {filteredItems.map((item) => {
             const isSelected = selectedId === item.id;
-            const isArchived = archivedIds.has(item.id);
-            const currentStatus = statusMap[item.id] ?? item.status;
+            const isArchived = item.status === 'Arquivado';
+            const currentStatus = item.status;
             const isDenuncia = item.type === 'Denúncia';
             const StatusIcon = STATUS_ICONS[currentStatus] ?? Clock;
 

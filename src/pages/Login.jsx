@@ -17,20 +17,20 @@
 //   - lucide-react:
 //       Eye / EyeOff → ícones de olho para mostrar/esconder senha
 //
-// Serviço usado: api (services/api.js)
-//   api.login()  → autentica e salva o token no localStorage
-//   api.getMe()  → busca o perfil do usuário recém-logado
-//   api.logout() → remove os tokens do localStorage
+// Serviço usado: useAuth (context/AuthContext.jsx)
+//   login(email, senha) → autentica via API, salva tokens
+//                         e valida que o usuário é Admin/Dev
+//   isAuthenticated     → se já há sessão ativa, pula o form
 //
 // Estilo: Login.module.css
 // ============================================================
 
 // useState: importado do React para criar estados locais.
 // Estado = variável que, ao mudar, faz o componente redesenhar.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
-import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import styles from './Login.module.css';
 
 export function Login() {
@@ -49,10 +49,25 @@ export function Login() {
   // Usada após o login bem-sucedido para ir ao /dashboard.
   const navigate = useNavigate();
 
+  // useAuth: estado global de autenticação. Aqui consumimos:
+  //   login()           → realiza autenticação + validação de papel
+  //   isAuthenticated   → se já há sessão ativa
+  //   loading (do auth) → indica que o boot ainda está validando o token
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
+
+  // Se o usuário já está autenticado (ex: voltou da tela interna
+  // ou recarregou a aba com token válido), pula direto para o Dashboard.
+  // Esperamos o boot do AuthContext terminar antes de decidir.
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [authLoading, isAuthenticated, navigate]);
+
   // ── Função de submit do formulário ────────────────────────
   // handleSubmit: chamada quando o usuário clica em "Entrar".
-  // É uma função assíncrona (async/await) porque precisa
-  // esperar a resposta da API antes de continuar.
+  // Toda a lógica (autenticar, buscar perfil, validar papel) está
+  // no AuthContext — aqui só tratamos UI/erros.
   const handleSubmit = async (e) => {
     // e.preventDefault() → impede o comportamento padrão do HTML,
     // que seria recarregar a página ao enviar um formulário.
@@ -62,42 +77,16 @@ export function Login() {
     setLoading(true);  // exibe "Entrando..." no botão
 
     try {
-      // Passo 1: autenticar — a API salva o token no localStorage
-      // e retorna os dados do usuário.
-      await api.login(email, password);
-
-      // Passo 2: buscar o perfil completo para verificar o papel (role).
-      // per_tipo: número que representa o nível de acesso do usuário.
-      // O operador "??" (nullish coalescing) usa o valor da direita
-      // se o da esquerda for null ou undefined.
-      const profile = await api.getMe();
-      const role = profile?.perfil?.per_tipo ?? profile?.per_tipo ?? 0;
-
-      // Passo 3: verificar permissão.
-      // role < 1 significa usuário comum — sem acesso ao painel.
-      if (role < 1) {
-        api.logout(); // remove o token que acabou de ser salvo
-        setError('Acesso não autorizado. Apenas administradores e desenvolvedores podem acessar este painel.');
-        return; // interrompe a execução da função aqui
-      }
-
-      // Passo 4: salvar dados do usuário no localStorage para
-      // uso posterior em outros componentes (ex: Aside, Topbar).
-      // JSON.stringify converte o objeto para texto, pois o
-      // localStorage só armazena strings.
-      localStorage.setItem('user_role', role);
-      localStorage.setItem('user_info', JSON.stringify({
-        id: profile?.usu_id ?? profile?.usuario?.usu_id,
-        nome: profile?.usu_nome ?? profile?.usuario?.usu_nome ?? email,
-        email: profile?.usu_email ?? profile?.usuario?.usu_email ?? email,
-        role
-      }));
-
-      // Passo 5: redirecionar para o Dashboard.
+      // login() do AuthContext já cuida de:
+      //   1. POST /api/usuarios/login (salva tokens)
+      //   2. GET /api/usuarios/me (carrega perfil)
+      //   3. Bloquear usuários comuns (role < 1) com mensagem clara
+      await login(email, password);
       navigate('/dashboard');
-
     } catch (err) {
-      // Se qualquer passo acima lançar um erro, cai aqui.
+      // Erros possíveis: 401 (credenciais), 403 (sem acesso ao painel),
+      // rede fora (TypeError). Mensagem amigável já vem pronta do
+      // ApiError ou da validação de papel.
       setError(err.message || 'Email ou senha inválidos.');
     } finally {
       // "finally" sempre executa — com sucesso ou erro.

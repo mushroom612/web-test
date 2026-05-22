@@ -22,44 +22,60 @@
 //       Tooltip          → caixa de detalhes ao passar o mouse
 //       ResponsiveContainer → faz o gráfico se adaptar ao tamanho do contêiner
 //
-// Dados consumidos:
-//   - api.getStats()     → contadores de usuários, caronas, sugestões
-//   - api.getSugestoes() → feedbacks recentes para exibir no painel
-//   - metricsData        → fallback de métricas quando a API falha
-//   - feedbacksData      → fallback de feedbacks quando a API falha
-//   - chartData          → dados do gráfico (estáticos por enquanto)
+// Dados consumidos (API real):
+//   - api.getStats('usuarios' | 'caronas' | 'sugestoes')
+//       → GET /api/admin/stats/{tipo}, escopo automático por papel
+//   - api.getSugestoes({ limit }) → GET /api/sugestoes (top recentes)
+//
+// Ainda mockado: chartData (gráfico "Caronas por dia da semana").
+// Não há endpoint correspondente — o gráfico é decorativo por enquanto.
 //
 // Estilo: Dashboard.module.css
 // ============================================================
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Car, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
+import { Users, Car, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Loader2, AlertTriangle } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { api } from '../services/api';
-import { metricsData, feedbacksData, chartData } from '../data/mockData';
+import { chartData } from '../data/mockData';
 import { FeedbackCard } from '../components/FeedbackCard';
 import styles from './Dashboard.module.css';
 
-// formatSugestao: converte o formato de API (sug_*) para o formato
-// que os componentes visuais esperam (userName, type, status, etc.).
-// Isso desacopla a camada de dados da camada de apresentação.
+// formatSugestao: converte o registro vindo de /api/sugestoes
+// para o formato que os componentes visuais esperam.
+//
+// Mapeamento de campos (API → UI):
+//   autor       → userName       (mock antigo usava usu_nome)
+//   sug_data    → date (BR)      (mock antigo usava criado_em)
+//   sug_texto   → text
+//   sug_tipo    → type           (0 = Denúncia, 1 = Sugestão)  [v17 — API real]
+//   sug_status  → status         (0 = Resolvido, 1 = Pendente,
+//                                 2 = Arquivado, 3 = Em análise)
+//
+// Os fallbacks para usu_nome/criado_em existem para tolerar respostas
+// do mock antigo durante a transição — podem ser removidos depois.
 function formatSugestao(s) {
+  const nome = s.autor || s.usu_nome || `Usuário #${s.usu_id ?? ''}`;
+  const tipo = s.sug_tipo === 0 ? 'Denúncia' : 'Sugestão';
+  const status =
+    s.sug_status === 0 ? 'Resolvido'
+    : s.sug_status === 3 ? 'Em análise'
+    : s.sug_status === 2 ? 'Arquivado'
+    : 'Pendente';
+  const rawData = s.sug_data || s.criado_em;
   return {
     id: s.sug_id,
-    userName: s.usu_nome || `Usuário #${s.usu_id}`,
-    // charAt(0).toUpperCase() → pega a primeira letra do nome como avatar
-    avatar: (s.usu_nome || 'U').charAt(0).toUpperCase(),
+    userName: nome,
+    // charAt(0).toUpperCase() → primeira letra do nome como avatar
+    avatar: nome.charAt(0).toUpperCase(),
     text: s.sug_texto,
-    // Operador ternário encadeado: traduz o número do tipo para texto
-    type: s.sug_tipo === 1 ? 'Denúncia' : 'Sugestão',
-    status: s.sug_status === 1 ? 'Resolvido'
-      : s.sug_status === 2 ? 'Em análise'
-      : 'Pendente',
+    type: tipo,
+    status,
     // toLocaleDateString formata a data no padrão brasileiro (dd/mm/aaaa)
-    date: new Date(s.criado_em).toLocaleDateString('pt-BR')
+    date: rawData ? new Date(rawData).toLocaleDateString('pt-BR') : '—'
   };
 }
 
@@ -92,93 +108,94 @@ export function Dashboard() {
   // useNavigate: usado para redirecionar ao clicar em um feedback
   const navigate = useNavigate();
 
-  // metrics: dados das estatísticas vindos da API.
-  // null = ainda não carregou; quando preenchido, mostra dados reais.
+  // metrics: estatísticas consolidadas vindas da API.
+  // null = ainda não carregou (loading) ou erro.
   const [metrics, setMetrics] = useState(null);
 
-  // feedbacks: lista de feedbacks recentes. Começa com dados mock
-  // e é substituída pelos dados da API se a chamada tiver sucesso.
-  const [feedbacks, setFeedbacks] = useState(feedbacksData);
+  // feedbacks: top 4 sugestões/denúncias mais recentes (escopo
+  // automático conforme o papel do usuário).
+  const [feedbacks, setFeedbacks] = useState([]);
 
   const [loading, setLoading] = useState(true);
+  // error: mensagem se qualquer chamada falhou. Quando preenchido,
+  // a UI mostra um banner de erro + botão "Tentar novamente".
+  const [error, setError] = useState(null);
 
-  // useEffect: executa a função "load" uma única vez, quando o
-  // componente é montado (o array [] vazio é o sinal para isso).
-  // É usado aqui para buscar dados da API ao abrir a página.
-  useEffect(() => {
-    async function load() {
-      try {
-        // Promise.all: executa as 3 chamadas à API em paralelo
-        // (ao mesmo tempo) e espera todas terminarem.
-        // Muito mais rápido do que chamar uma por vez!
-        const [statsUsuarios, statsCaronas, statsSugestoes] = await Promise.all([
-          api.getStats('usuarios'),
-          api.getStats('caronas'),
-          api.getStats('sugestoes')
-        ]);
-        setMetrics({
-          usuarios: statsUsuarios.stats,
-          caronas: statsCaronas.stats,
-          sugestoes: statsSugestoes.stats
-        });
-      } catch {
-        // Se a API falhar, mantém null e usa metricsData (mock) abaixo
-      }
-
-      try {
-        const data = await api.getSugestoes();
-        const lista = data.sugestoes || data.data || [];
-        if (lista.length > 0) {
-          // .slice(0, 4) → pega apenas os 4 feedbacks mais recentes
-          // .map(formatSugestao) → converte cada item para o formato visual
-          setFeedbacks(lista.slice(0, 4).map(formatSugestao));
-        }
-      } catch {
-        // mantém feedbacksData (mock)
-      }
-
+  // load: encapsulada em useCallback para que o botão de retry
+  // possa reusar a mesma função sem recriá-la a cada render.
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Promise.all dispara as 4 chamadas em paralelo. Se qualquer
+      // uma falhar (rede caída, 5xx, sem permissão), o catch
+      // assume e exibimos um único banner — sem cair em mock.
+      const [statsUsuarios, statsCaronas, statsSugestoes, sugestoes] = await Promise.all([
+        api.getStats('usuarios'),
+        api.getStats('caronas'),
+        api.getStats('sugestoes'),
+        api.getSugestoes({ limit: 4 })
+      ]);
+      setMetrics({
+        usuarios: statsUsuarios.stats,
+        caronas: statsCaronas.stats,
+        sugestoes: statsSugestoes.stats
+      });
+      const lista = sugestoes?.sugestoes || [];
+      // O backend já devolve ordenado por sug_id DESC; o slice é
+      // defensivo caso algum dia o limit não seja respeitado.
+      setFeedbacks(lista.slice(0, 4).map(formatSugestao));
+    } catch (err) {
+      setError(err.message || 'Não foi possível carregar o Dashboard.');
+    } finally {
       setLoading(false);
     }
-    load();
-  }, []); // [] = executa só na montagem do componente
+  }, []);
 
-  // metricsDisplay: dados que serão exibidos nos cards.
-  // Se metrics (API) está preenchido, usa os dados reais.
-  // Se não (API falhou), usa metricsData do mockData.js.
-  // O operador ?? é "nullish coalescing": retorna o lado direito
-  // apenas se o lado esquerdo for null ou undefined.
+  // useEffect: dispara o carregamento uma única vez na montagem.
+  useEffect(() => { load(); }, [load]);
+
+  // metricsDisplay: monta os 4 cards a partir das stats reais.
+  // Quando metrics é null (loading ou erro), devolve um array vazio —
+  // a UI nesses estados é controlada pelos blocos abaixo (spinner/erro).
+  //
+  // Mapeamentos relevantes da API:
+  //   stats.usuarios.{total, ativos}
+  //   stats.caronas.{total, abertas, finalizadas}
+  //   stats.sugestoes.{total, abertas}  ← "abertas" = pendentes/em aberto
   const metricsDisplay = metrics
     ? [
         {
           id: 1,
           label: 'Total de Usuários',
-          value: metrics.usuarios.total,
-          trend: `${metrics.usuarios.ativos} ativos`,
+          value: metrics.usuarios.total ?? 0,
+          trend: `${metrics.usuarios.ativos ?? 0} ativos`,
           trendUp: true
         },
         {
           id: 2,
           label: 'Total de Caronas',
-          value: metrics.caronas.total,
-          trend: `${metrics.caronas.abertas} abertas`,
+          value: metrics.caronas.total ?? 0,
+          trend: `${metrics.caronas.abertas ?? 0} abertas`,
           trendUp: true
         },
         {
           id: 3,
           label: 'Caronas Finalizadas',
-          value: metrics.caronas.finalizadas,
+          value: metrics.caronas.finalizadas ?? 0,
           trend: 'realizadas com sucesso',
           trendUp: true
         },
         {
           id: 4,
           label: 'Sugestões Pendentes',
-          value: metrics.sugestoes.pendentes ?? 0,
-          trend: `${metrics.sugestoes.total} no total`,
-          trendUp: (metrics.sugestoes.pendentes ?? 0) === 0
+          value: metrics.sugestoes.abertas ?? 0,
+          trend: `${metrics.sugestoes.total ?? 0} no total`,
+          // trendUp=true só quando NÃO há pendências — sinaliza "tudo em dia"
+          trendUp: (metrics.sugestoes.abertas ?? 0) === 0
         }
       ]
-    : metricsData; // fallback para dados mock
+    : [];
 
   // Tela de carregamento: exibida enquanto a API não respondeu
   if (loading) {
@@ -188,6 +205,56 @@ export function Dashboard() {
         <div className={styles.loadingWrap}>
           {/* styles.spin → animação CSS de rotação aplicada ao ícone */}
           <Loader2 size={32} className={styles.spin} />
+        </div>
+      </div>
+    );
+  }
+
+  // Tela de erro: aparece quando qualquer chamada falhou. Substitui
+  // o antigo fallback silencioso para mock — agora o usuário sabe
+  // que algo deu errado e tem um botão explícito para retentar.
+  if (error) {
+    return (
+      <div className={styles.dashboard}>
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Dashboard</h1>
+          <p className={styles.pageSubtitle}>Visão geral da plataforma Tuctuc</p>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '48px 24px',
+            background: 'var(--surface-primary)',
+            border: '1px solid var(--color-neutral-100)',
+            borderRadius: 'var(--border-radius-lg)',
+            color: 'var(--text-secondary)',
+            textAlign: 'center'
+          }}
+        >
+          <AlertTriangle size={28} color="var(--color-semantic-error)" />
+          <p style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 600 }}>
+            Não foi possível carregar o Dashboard.
+          </p>
+          <p style={{ margin: 0, fontSize: 13 }}>{error}</p>
+          <button
+            type="button"
+            onClick={load}
+            style={{
+              marginTop: 8,
+              padding: '8px 16px',
+              border: 'none',
+              borderRadius: 'var(--border-radius-md)',
+              background: 'var(--btn-primary-bg)',
+              color: 'var(--btn-primary-text)',
+              cursor: 'pointer',
+              fontWeight: 600
+            }}
+          >
+            Tentar novamente
+          </button>
         </div>
       </div>
     );

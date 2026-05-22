@@ -28,6 +28,11 @@ import { BrowserRouter as Router, useRoutes } from 'react-router-dom';
 // como "/dashboard", "/usuarios", etc.
 import { routes } from './router/routes';
 
+// AuthProvider: fornece estado global de autenticação (usuário,
+// papel, login/logout) para toda a árvore. Componentes acessam
+// via o hook useAuth() exportado em ./context/AuthContext.jsx.
+import { AuthProvider } from './context/AuthContext';
+
 // App: componente interno que usa o hook useRoutes para
 // converter o array de rotas em um elemento JSX renderizável.
 // Ele precisa estar DENTRO do <Router> para funcionar,
@@ -48,7 +53,11 @@ function App() {
 function AppWrapper() {
   return (
     <Router>
-      <App />
+      {/* AuthProvider envolve as rotas para que PrivateRoute e Login
+          possam ler/alterar o estado de autenticação via useAuth(). */}
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </Router>
   );
 }

@@ -23,7 +23,7 @@
 // Estilo: Aside.module.css
 // ============================================================
 
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 // Importando ícones individuais da biblioteca lucide-react.
 // Cada nome é um ícone diferente — ex: Home = ícone de casa,
@@ -41,24 +41,39 @@ import {
   LogOut
 } from 'lucide-react';
 
-// adminUser: objeto com os dados do usuário logado atualmente.
-// Importado de mockData.js (dados fictícios para desenvolvimento).
-// Em produção, viria da API após o login.
-import { adminUser } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
 import styles from './Aside.module.css';
 
-export function Aside() {
-  // handleLogout: função chamada ao clicar no botão de sair.
-  // Redireciona para a raiz "/" (página de Login).
-  // window.location.href força uma recarga completa da página,
-  // diferente do navigate() do React Router que troca apenas o componente.
-  const handleLogout = () => {
-    window.location.href = '/';
-  };
+// getInitials: pega as 2 primeiras letras maiúsculas do nome
+// para mostrar como avatar (ex: "Admin Sistema" → "AS").
+// Fallback "?" quando o nome ainda não foi carregado.
+function getInitials(name = '') {
+  return (
+    name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase() || '?'
+  );
+}
 
-  // Verifica se o usuário logado tem perfil de "Desenvolvedor".
-  // Isso controla quais itens de menu aparecem para ele.
-  const isDeveloper = adminUser.role === 'Desenvolvedor';
+export function Aside() {
+  // useAuth: estado global de autenticação.
+  //   user   → objeto com os dados do usuário logado (vindo de /me)
+  //   isDev  → true se per_tipo === 2 (Desenvolvedor — vê tudo)
+  //   logout → encerra a sessão (limpa tokens + invalida no backend)
+  const { user, isDev, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // handleLogout: encerra a sessão e navega para o login.
+  // Async porque logout() faz uma chamada à API para invalidar
+  // o refresh token no servidor (best-effort, não bloqueia).
+  const handleLogout = async () => {
+    await logout();
+    navigate('/', { replace: true });
+  };
 
   // allMenuSections: array com TODOS os itens de menu possíveis,
   // organizados em seções/grupos.
@@ -67,7 +82,16 @@ export function Aside() {
   //   icon         → componente de ícone da lucide-react
   //   label        → texto exibido no menu
   //   path         → rota para onde o link leva
-  //   developerOnly → se true, só aparece para perfil Desenvolvedor
+  //   developerOnly → se true, só aparece para perfil Desenvolvedor.
+  //                   A flag espelha a guarda DevRoute em routes.jsx:
+  //                   itens com developerOnly=true correspondem a
+  //                   rotas que o DevRoute bloqueia para Admins.
+  //
+  // Spec atual:
+  //   Admin (per_tipo=1) vê: Dashboard, Usuários, Caronas,
+  //                          Sugestões, Relatórios, Contratos
+  //   Dev (per_tipo=2)   vê: tudo (acrescenta Cadastrar,
+  //                          Emitir Notificação e Auditoria)
   const allMenuSections = [
     {
       title: 'VISÃO GERAL',
@@ -79,7 +103,7 @@ export function Aside() {
     {
       title: 'USUÁRIOS',
       items: [
-        { icon: Search, label: 'Procurar Usuário', path: '/usuarios', developerOnly: true },
+        { icon: Search, label: 'Procurar Usuário', path: '/usuarios', developerOnly: false },
         { icon: Plus, label: 'Cadastrar', path: '/cadastrar', developerOnly: true }
       ]
     },
@@ -87,25 +111,31 @@ export function Aside() {
       title: 'OPERAÇÕES',
       items: [
         { icon: Car, label: 'Registros de Carona', path: '/caronas', developerOnly: false },
-        { icon: FileText, label: 'Contratos', path: '/contratos', developerOnly: true },
+        { icon: FileText, label: 'Contratos', path: '/contratos', developerOnly: false },
         { icon: MessageSquare, label: 'Sugestões/Denúncias', path: '/sugestoes', developerOnly: false },
         { icon: Bell, label: 'Emitir Notificação', path: '/notificacoes', developerOnly: true },
-        { icon: Shield, label: 'Auditoria', path: '/auditoria', developerOnly: false }
+        { icon: Shield, label: 'Auditoria', path: '/auditoria', developerOnly: true }
       ]
     }
   ];
 
   // menuSections: versão filtrada de allMenuSections.
   // Usa .map() para percorrer cada seção e filtrar seus itens:
-  //   - Se isDeveloper → mostra todos os itens
-  //   - Se não é dev   → mostra apenas itens com developerOnly: false
+  //   - Se isDev → mostra todos os itens
+  //   - Se não é Dev → mostra apenas itens com developerOnly: false
   // Depois, .filter() remove seções que ficaram sem itens.
   const menuSections = allMenuSections
     .map(section => ({
       ...section,  // copia todos os campos da seção (título, etc.)
-      items: section.items.filter(item => isDeveloper || !item.developerOnly)
+      items: section.items.filter(item => isDev || !item.developerOnly)
     }))
     .filter(section => section.items.length > 0);
+
+  // Dados visuais do usuário logado, derivados do AuthContext.
+  // Defaults defensivos cobrem o intervalo curto entre a montagem
+  // do Aside e a chegada do /me na primeira renderização.
+  const userName = user?.usu_nome || 'Usuário';
+  const userRoleLabel = isDev ? 'Desenvolvedor' : 'Administrador';
 
   return (
     <aside className={styles.aside}>
@@ -171,12 +201,15 @@ export function Aside() {
       {/* Rodapé do menu: card do usuário logado + botão de logout */}
       <div className={styles.footer}>
         <div className={styles.userCard}>
-          {/* avatar: emoji que representa o usuário (ex: 👨‍💼) */}
-          <div className={styles.avatar}>{adminUser.avatar}</div>
+          {/* avatar: iniciais do nome (ex: "Admin Sistema" → "AS").
+              Quando o backend passar a expor usu_foto, dá pra trocar
+              por <img> sem afetar o resto do layout. */}
+          <div className={styles.avatar}>{getInitials(userName)}</div>
           <div className={styles.userInfo}>
-            <p className={styles.userName}>{adminUser.name}</p>
-            {/* badge: exibe o papel do usuário (ex: "Desenvolvedor") */}
-            <span className={styles.badge}>{adminUser.role}</span>
+            <p className={styles.userName}>{userName}</p>
+            {/* badge: papel do usuário derivado de per_tipo
+                (Desenvolvedor para isDev, Administrador caso contrário). */}
+            <span className={styles.badge}>{userRoleLabel}</span>
           </div>
         </div>
         {/* Botão de logout — chama handleLogout ao ser clicado */}

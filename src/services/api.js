@@ -1,32 +1,27 @@
 // ============================================================
 // services/api.js — Serviço de comunicação com a API
 //
-// Este arquivo centraliza TODAS as chamadas à API do backend.
-// Por enquanto usa dados mockados (fictícios) para simular
-// o comportamento real da API durante o desenvolvimento.
+// Camada que expõe as operações de negócio para os componentes.
+// Mistura, hoje, dois mundos:
+//   1) Endpoints reais da API de Caronas (autenticação) — passam
+//      pelo http.js (Authorization, refresh automático, base URL).
+//   2) Operações ainda mockadas (usuários, caronas, sugestões,
+//      relatórios, etc.) — serão migradas progressivamente.
 //
-// Como funciona:
-//   Em vez de fazer requisições HTTP reais (fetch/axios),
-//   cada função espera um tempo (delay) e retorna dados
-//   do mockData.js — simulando latência de rede.
+// Os componentes não devem importar http.js diretamente; toda
+// chamada à API real deve ser feita via api.* para manter um
+// único ponto de troca quando for hora de migrar.
 //
-//   Quando o backend estiver pronto, basta substituir o
-//   conteúdo de cada função por um fetch() real, sem
-//   precisar mudar os componentes que as chamam.
-//
-// Dados consumidos: mockData.js (todos os arrays de api*)
-//
-// Padrão usado: objeto "api" com métodos async/await.
-//   async → marca a função como assíncrona (retorna Promise)
-//   await → pausa a execução até a Promise resolver
+// Dados mockados consumidos: mockData.js (arrays apiXxxxData)
+// Endpoints reais: ver services/http.js + documentação da API.
 // ============================================================
 
+import { http, tokens } from './http';
 import {
   apiUsersData,
   apiSchoolsData,
   apiRidesData,
   apiSuggestionsData,
-  apiStatsData,
   apiCoursesData,
   apiRecentReportsData,
   auditLogData
@@ -45,62 +40,67 @@ function delay(ms = 300) {
 //   await api.login(email, senha)
 export const api = {
 
-  // ── Autenticação ───────────────────────────────────────────
+  // ── Autenticação (REAL — fala com a API) ──────────────────
+  // Endpoints: POST /api/usuarios/login, GET /api/usuarios/me,
+  //            POST /api/usuarios/logout.
 
-  // login: autentica o usuário.
-  // Salva tokens no localStorage para manter a sessão ativa.
-  // localStorage → armazenamento do navegador (persiste entre abas).
-  // Date.now() → número único baseado no tempo atual (para tokens únicos).
+  // login: autentica o usuário contra a API.
+  // Resposta esperada: { access_token, refresh_token, user }.
+  // Os tokens são salvos via helper de http.js (localStorage).
   async login(email, senha) {
-    await delay(300);
-    const mockToken = 'mock_token_' + Date.now();
-    const mockRefreshToken = 'mock_refresh_token_' + Date.now();
-    localStorage.setItem('auth_token', mockToken);
-    localStorage.setItem('refresh_token', mockRefreshToken);
-    return {
-      access_token: mockToken,
-      refresh_token: mockRefreshToken,
-      user: { email, usu_id: 6, usu_nome: 'Admin Sistema' }
-    };
+    const data = await http.post(
+      '/api/usuarios/login',
+      { usu_email: email, usu_senha: senha },
+      { auth: false } // login não envia Authorization
+    );
+    tokens.set({
+      access: data.access_token,
+      refresh: data.refresh_token
+    });
+    return data;
   },
 
-  // getMe: busca os dados do usuário atualmente logado.
-  // Usado pelo Login.jsx após autenticar para verificar o perfil.
-  // per_tipo: 2 = Desenvolvedor, 1 = Administrador, 0 = Usuário comum.
+  // getMe: retorna o perfil do usuário autenticado.
+  // A API expõe GET /api/usuarios/me como atalho para perfil/{id}.
+  // O backend envelopa em { user: ... }; achatamos para o caller
+  // não precisar saber dessa diferença.
   async getMe() {
-    await delay(200);
-    return {
-      usu_id: 6,
-      usu_nome: 'Admin Sistema',
-      usu_email: 'admin@sistema.inova.br',
-      usu_status: 1,
-      usu_verificacao: 2,
-      per_tipo: 2
-    };
+    const data = await http.get('/api/usuarios/me');
+    return data?.user ?? data;
   },
 
-  // logout: remove todos os dados de sessão do localStorage.
-  // Não é async porque não precisa esperar nada — é síncrono.
-  logout() {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('user_info');
+  // logout: invalida o refresh token no backend (best-effort)
+  // e limpa as credenciais locais. Mesmo se o POST falhar
+  // (rede caída, token já expirado), a sessão local é encerrada.
+  async logout() {
+    try {
+      await http.post('/api/usuarios/logout');
+    } catch {
+      // ignora: o objetivo prioritário é encerrar a sessão local
+    }
+    tokens.clear();
   },
 
   // ── Estatísticas (Dashboard) ───────────────────────────────
-  // type: qual categoria de estatística buscar.
-  // Retorna objetos com contadores usados nos cards do Dashboard.
-
+  // Endpoints reais: GET /api/admin/stats/{usuarios,caronas,sugestoes}
+  // O backend já filtra por escola quando per_tipo=1 (Admin) e devolve
+  // dados globais quando per_tipo=2 (Dev). O front não precisa passar
+  // esc_id — o middleware adminGuard usa o do JWT.
+  //
+  // Shapes (retornadas pelo AdminController):
+  //   usuarios → { total, ativos, inativos, aguardando_otp,
+  //                acesso_temporario, acesso_temporario_com_veiculo,
+  //                matricula_verificada, completos, suspensos }
+  //   caronas  → { total, abertas, em_espera, finalizadas, canceladas }
+  //   sugestoes→ { total, abertas, em_analise, fechadas,
+  //                denuncias, sugestoes }
+  // Todas envelopadas em { message, stats }.
   async getStats(type) {
-    await delay(300);
-    // Mapeia o tipo recebido para a chave do objeto apiStatsData.
-    // O operador ternário encadeado (?:) funciona como if/else if/else.
-    const typeKey = type === 'usuarios' ? 'usuarios'
-                    : type === 'caronas' ? 'caronas'
-                    : type === 'sugestoes' ? 'sugestoes'
-                    : 'usuarios'; // padrão
-    return apiStatsData[typeKey] || { stats: {} };
+    const validTypes = ['usuarios', 'caronas', 'sugestoes'];
+    if (!validTypes.includes(type)) {
+      throw new Error(`Tipo de estatística inválido: ${type}`);
+    }
+    return http.get(`/api/admin/stats/${type}`);
   },
 
   // ── Escolas ─────────────────────────────────────────────────
@@ -236,30 +236,50 @@ export const api = {
   },
 
   // ── Sugestões e Denúncias ──────────────────────────────────
-
-  // Retorna todas as sugestões/denúncias.
-  async getSugestoes() {
-    await delay(300);
-    return { sugestoes: apiSuggestionsData };
+  // Endpoint real: GET /api/sugestoes
+  // Escopo automático: Admin vê apenas registros vinculados a usuários
+  // da sua escola; Dev vê todos. Paginação opcional via ?page&limit.
+  //
+  // Shape de resposta (SugestaoDenunciaController.listar):
+  //   { message, totalGeral, total, page, limit,
+  //     sugestoes: [
+  //       { sug_id, sug_texto, sug_data, sug_status, sug_tipo,
+  //         sug_resposta, autor }
+  //     ] }
+  //
+  // ATENÇÃO às convenções da API:
+  //   sug_tipo:   0 = Denúncia, 1 = Sugestão  (inverso do mock antigo)
+  //   sug_status: 0 = Fechada (Resolvida)
+  //               1 = Aberta  (Pendente)
+  //               2 = Arquivada
+  //               3 = Em análise
+  async getSugestoes({ page, limit } = {}) {
+    return http.get('/api/sugestoes', { query: { page, limit } });
   },
 
-  // Marca uma sugestão como "Em análise" (status 2).
+  // Marca uma sugestão/denúncia como "Em análise".
+  // Endpoint: PUT /api/sugestoes/{id}/analisar
+  // Efeito no backend: sug_status passa a 3 (Em análise).
+  // Bloqueado pela API se já estiver Em análise ou Fechada (409).
   async analisarSugestao(sugId) {
-    await delay(250);
-    const sug = apiSuggestionsData.find(s => s.sug_id === sugId);
-    if (!sug) throw new Error('Sugestão não encontrada');
-    sug.sug_status = 2;
-    return sug;
+    return http.put(`/api/sugestoes/${sugId}/analisar`);
   },
 
-  // Responde a uma sugestão e muda o status para "Resolvido" (1).
+  // Responde a uma sugestão/denúncia, fechando-a.
+  // Endpoint: PUT /api/sugestoes/{id}/responder
+  // Body: { sug_resposta }. O backend grava a resposta e seta
+  // sug_status = 0 (Fechada/Resolvida).
   async responderSugestao(sugId, resposta) {
-    await delay(250);
-    const sug = apiSuggestionsData.find(s => s.sug_id === sugId);
-    if (!sug) throw new Error('Sugestão não encontrada');
-    sug.sug_resposta = resposta;
-    sug.sug_status = 1;
-    return sug;
+    return http.put(`/api/sugestoes/${sugId}/responder`, { sug_resposta: resposta });
+  },
+
+  // Arquiva uma sugestão/denúncia sem resposta formal.
+  // Endpoint: POST /api/sugestoes/{id}/arquivar
+  // Efeito no backend: sug_status = 2 (Arquivada). Operação one-way:
+  // não existe endpoint de "desarquivar" — registros arquivados
+  // continuam visíveis apenas no filtro Arquivados.
+  async arquivarSugestao(sugId) {
+    return http.post(`/api/sugestoes/${sugId}/arquivar`);
   },
 
   // ── Notificações ───────────────────────────────────────────

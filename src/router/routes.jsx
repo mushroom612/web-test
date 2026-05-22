@@ -14,6 +14,7 @@
 // ============================================================
 
 import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // Layouts: "molduras" visuais que envolvem as páginas.
 // AdminLayout  → moldura com menu lateral + barra superior
@@ -34,21 +35,62 @@ import { Contratos } from '../pages/Contratos';
 import { Notificacoes } from '../pages/Notificacoes';
 import { Auditoria } from '../pages/Auditoria';
 
-// ── Guarda de rota (proteção de acesso) ───────────────────────
-// PrivateRoute: componente que funciona como um "porteiro".
-// Antes de mostrar a página, ele verifica se o usuário está
-// logado, checando se existe um token salvo no localStorage.
+// ── Guardas de rota ──────────────────────────────────────────
+// O sistema tem dois níveis de proteção:
+//   1. PrivateRoute  → exige autenticação + papel >= 1 (Admin ou Dev)
+//   2. DevRoute      → exige papel === 2 (apenas Desenvolvedor)
 //
-// localStorage → armazenamento do navegador que persiste
-// dados mesmo após fechar a aba (como cookies, mas em JS).
+// Páginas Admin+Dev:  /dashboard, /usuarios, /caronas,
+//                     /sugestoes, /relatorios, /contratos
+// Páginas só Dev:     /cadastrar, /notificacoes, /auditoria
 //
-// Se tiver token  → deixa passar (<Outlet /> renderiza a rota filha)
-// Se não tiver    → redireciona para "/" (tela de Login)
-// O "replace" evita que o usuário volte para a rota proibida
-// usando o botão "voltar" do navegador.
+// O backend já restringe Admin (per_tipo=1) aos dados da própria
+// escola via JWT; aqui só controlamos o acesso à navegação.
+
+// PrivateRoute: "porteiro" das páginas internas. Consulta o
+// AuthContext em vez de ler o localStorage diretamente — isso
+// garante que o estado da UI (Aside, Topbar, etc.) fique sempre
+// em sincronia com a decisão de redirecionamento.
+//
+// Estados possíveis:
+//   loading=true     → ainda hidratando o token salvo; mostra
+//                      placeholder neutro para não piscar o login
+//   isAuthenticated=false → redireciona para "/" (Login)
+//   role < 1         → usuário comum bloqueado; redireciona
+//   role >= 1        → libera (<Outlet />)
 function PrivateRoute() {
-  const token = localStorage.getItem('auth_token');
-  return token ? <Outlet /> : <Navigate to="/" replace />;
+  const { isAuthenticated, loading, role } = useAuth();
+
+  if (loading) {
+    // Placeholder simples: o boot é rápido (apenas uma chamada /me).
+    // Mantemos sem framework de loading porque é uma transição curta.
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
+        Carregando...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || role < 1) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
+// DevRoute: guarda secundária que protege páginas exclusivas
+// do Desenvolvedor. Já está aninhada dentro do PrivateRoute,
+// então pode assumir que o usuário está autenticado — só
+// precisa checar se o papel é Dev (2). Se não for, devolve
+// para /dashboard (onde o Admin pode estar).
+//
+// Importante: também protege contra acesso direto via URL.
+// Mesmo que o item do menu fique oculto para o Admin, digitar
+// /auditoria na barra cai aqui e é redirecionado.
+function DevRoute() {
+  const { isDev } = useAuth();
+  if (!isDev) return <Navigate to="/dashboard" replace />;
+  return <Outlet />;
 }
 
 // ── Array de rotas ─────────────────────────────────────────────
@@ -97,6 +139,10 @@ export const routes = [
         // com o menu lateral (Aside) e a barra superior (Topbar)
         element: <AdminLayout />,
         children: [
+          // ─── Páginas para Admin + Dev ───────────────────────
+          // Acesso liberado para qualquer usuário com papel >= 1.
+          // Para Admin (per_tipo=1) o backend filtra os dados por
+          // escola; para Dev (per_tipo=2) retorna todos.
           {
             path: '/dashboard',
             element: <Dashboard />
@@ -104,10 +150,6 @@ export const routes = [
           {
             path: '/usuarios',
             element: <Usuarios />
-          },
-          {
-            path: '/cadastrar',
-            element: <Cadastrar />
           },
           {
             path: '/caronas',
@@ -125,14 +167,28 @@ export const routes = [
             path: '/contratos',
             element: <Contratos />
           },
+
+          // ─── Páginas exclusivas do Desenvolvedor ────────────
+          // Cadastrar (novas escolas/admins), Notificações em
+          // massa e Auditoria envolvem operações globais que
+          // ultrapassam o escopo de uma única instituição.
           {
-            path: '/notificacoes',
-            element: <Notificacoes />
-          },
-          {
-            path: '/auditoria',
-            element: <Auditoria />
-          },
+            element: <DevRoute />,
+            children: [
+              {
+                path: '/cadastrar',
+                element: <Cadastrar />
+              },
+              {
+                path: '/notificacoes',
+                element: <Notificacoes />
+              },
+              {
+                path: '/auditoria',
+                element: <Auditoria />
+              }
+            ]
+          }
         ]
       }
     ]
