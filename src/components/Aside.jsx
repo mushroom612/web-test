@@ -1,17 +1,7 @@
-// ============================================================
-// components/Aside.jsx — Menu lateral de navegação (sidebar)
-//
+// Menu lateral de navegação (sidebar)
 // Este componente é a barra lateral fixa que aparece em todas
 // as páginas internas da aplicação.
-//
-// Responsabilidades:
-//   1. Exibir a logo do sistema
-//   2. Renderizar os links de navegação agrupados por seção
-//   3. Filtrar itens de menu conforme o perfil do usuário
-//      (alguns itens são exclusivos para Desenvolvedores)
-//   4. Mostrar o card do usuário logado no rodapé
-//   5. Botão de logout
-//
+
 // Bibliotecas usadas:
 //   - react-router-dom → NavLink: link de navegação que detecta
 //     automaticamente se a rota está ativa (para destacar
@@ -19,15 +9,11 @@
 //   - lucide-react → ícones SVG prontos para usar como componentes
 //     React. Cada ícone é um componente (ex: <Home size={20} />).
 //
-// Dados consumidos: adminUser (de mockData.js)
-// Estilo: Aside.module.css
-// ============================================================
 
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from "react-router-dom";
 
 // Importando ícones individuais da biblioteca lucide-react.
-// Cada nome é um ícone diferente — ex: Home = ícone de casa,
-// Car = ícone de carro, LogOut = ícone de seta saindo.
+// Cada nome é um ícone diferente — "ex: Home = ícone de casa"
 import {
   Home,
   BarChart3,
@@ -38,32 +24,29 @@ import {
   MessageSquare,
   Bell,
   Shield,
-  LogOut
-} from 'lucide-react';
+  LogOut,
+} from "lucide-react";
 
-import { useAuth } from '../context/AuthContext';
-import styles from './Aside.module.css';
+import { useAuth } from "../context/AuthContext";
+import styles from "./Aside.module.css";
 
 // getInitials: pega as 2 primeiras letras maiúsculas do nome
-// para mostrar como avatar (ex: "Admin Sistema" → "AS").
-// Fallback "?" quando o nome ainda não foi carregado.
-function getInitials(name = '') {
+// Fallback "?" erro ao carrgar o nome
+function getInitials(name = "") {
   return (
     name
-      .split(' ')
+      .split(" ")
       .filter(Boolean)
       .slice(0, 2)
       .map((n) => n[0])
-      .join('')
-      .toUpperCase() || '?'
+      .join("")
+      .toUpperCase() || "?"
   );
 }
 
 export function Aside() {
   // useAuth: estado global de autenticação.
-  //   user   → objeto com os dados do usuário logado (vindo de /me)
-  //   isDev  → true se per_tipo === 2 (Desenvolvedor — vê tudo)
-  //   logout → encerra a sessão (limpa tokens + invalida no backend)
+  // logout → encerra a sessão (limpa tokens + invalida no backend)
   const { user, isDev, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -72,7 +55,7 @@ export function Aside() {
   // o refresh token no servidor (best-effort, não bloqueia).
   const handleLogout = async () => {
     await logout();
-    navigate('/', { replace: true });
+    navigate("/", { replace: true });
   };
 
   // allMenuSections: array com TODOS os itens de menu possíveis,
@@ -88,35 +71,80 @@ export function Aside() {
   //                   rotas que o DevRoute bloqueia para Admins.
   //
   // Spec atual:
-  //   Admin (per_tipo=1) vê: Dashboard, Usuários, Caronas,
+  //   Admin (per_tipo=1) vê: Painel, Usuários, Caronas,
   //                          Sugestões, Relatórios, Contratos
   //   Dev (per_tipo=2)   vê: tudo (acrescenta Cadastrar,
   //                          Emitir Notificação e Auditoria)
   const allMenuSections = [
     {
-      title: 'VISÃO GERAL',
+      title: "VISÃO GERAL",
       items: [
-        { icon: Home, label: 'Dashboard', path: '/dashboard', developerOnly: false },
-        { icon: BarChart3, label: 'Relatórios', path: '/relatorios', developerOnly: false }
-      ]
+        {
+          icon: Home,
+          label: "Painel",
+          path: "/painel",
+          developerOnly: false,
+        },
+        {
+          icon: BarChart3,
+          label: "Relatórios",
+          path: "/relatorios",
+          developerOnly: false,
+        },
+      ],
     },
     {
-      title: 'USUÁRIOS',
+      title: "USUÁRIOS",
       items: [
-        { icon: Search, label: 'Procurar Usuário', path: '/usuarios', developerOnly: false },
-        { icon: Plus, label: 'Cadastrar', path: '/cadastrar', developerOnly: true }
-      ]
+        {
+          icon: Search,
+          label: "Procurar Usuário",
+          path: "/usuarios",
+          developerOnly: false,
+        },
+        {
+          icon: Plus,
+          label: "Cadastrar",
+          path: "/cadastrar",
+          developerOnly: true,
+        },
+      ],
     },
     {
-      title: 'OPERAÇÕES',
+      title: "OPERAÇÕES",
       items: [
-        { icon: Car, label: 'Registros de Carona', path: '/caronas', developerOnly: false },
-        { icon: FileText, label: 'Contratos', path: '/contratos', developerOnly: false },
-        { icon: MessageSquare, label: 'Sugestões/Denúncias', path: '/sugestoes', developerOnly: false },
-        { icon: Bell, label: 'Emitir Notificação', path: '/notificacoes', developerOnly: true },
-        { icon: Shield, label: 'Auditoria', path: '/auditoria', developerOnly: true }
-      ]
-    }
+        {
+          icon: Car,
+          label: "Registros de Carona",
+          path: "/caronas",
+          developerOnly: false,
+        },
+        {
+          icon: FileText,
+          label: "Contratos",
+          path: "/contratos",
+          developerOnly: false,
+        },
+        {
+          icon: MessageSquare,
+          label: "Sugestões/Denúncias",
+          path: "/sugestoes",
+          developerOnly: false,
+        },
+        {
+          icon: Bell,
+          label: "Emitir Notificação",
+          path: "/notificacoes",
+          developerOnly: true,
+        },
+        {
+          icon: Shield,
+          label: "Auditoria",
+          path: "/auditoria",
+          developerOnly: true,
+        },
+      ],
+    },
   ];
 
   // menuSections: versão filtrada de allMenuSections.
@@ -125,21 +153,20 @@ export function Aside() {
   //   - Se não é Dev → mostra apenas itens com developerOnly: false
   // Depois, .filter() remove seções que ficaram sem itens.
   const menuSections = allMenuSections
-    .map(section => ({
-      ...section,  // copia todos os campos da seção (título, etc.)
-      items: section.items.filter(item => isDev || !item.developerOnly)
+    .map((section) => ({
+      ...section, // copia todos os campos da seção (título, etc.)
+      items: section.items.filter((item) => isDev || !item.developerOnly),
     }))
-    .filter(section => section.items.length > 0);
+    .filter((section) => section.items.length > 0);
 
   // Dados visuais do usuário logado, derivados do AuthContext.
   // Defaults defensivos cobrem o intervalo curto entre a montagem
   // do Aside e a chegada do /me na primeira renderização.
-  const userName = user?.usu_nome || 'Usuário';
-  const userRoleLabel = isDev ? 'Desenvolvedor' : 'Administrador';
+  const userName = user?.usu_nome || "Usuário";
+  const userRoleLabel = isDev ? "Desenvolvedor" : "Administrador";
 
   return (
     <aside className={styles.aside}>
-
       {/* Cabeçalho com a logo do sistema */}
       <div className={styles.header}>
         <div className={styles.logo}>
@@ -148,7 +175,11 @@ export function Aside() {
           <span>CaronaCity</span> */}
 
           {/* OPÇÃO 2: Apenas com logo (descomente abaixo e comente a opção 1) */}
-           <img src="/logo-texto.png" alt="CaronaCity" className={styles.logoImg} />
+          <img
+            src="/logo-texto.png"
+            alt="CaronaCity"
+            className={styles.logoImg}
+          />
 
           {/* OPÇÃO 3: Logo + texto (descomente abaixo comete a opção 1) */}
           {/*
@@ -183,7 +214,7 @@ export function Aside() {
                     <NavLink
                       to={item.path}
                       className={({ isActive }) =>
-                        `${styles.link} ${isActive ? styles.active : ''}`
+                        `${styles.link} ${isActive ? styles.active : ""}`
                       }
                     >
                       {/* Renderiza o ícone com tamanho 20px */}

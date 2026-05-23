@@ -1,5 +1,4 @@
-// ============================================================
-// components/FeedbackCard.jsx — Card de feedback (sugestão ou denúncia)
+// Card de feedback (sugestão ou denúncia)
 //
 // Exibe as informações resumidas de um feedback:
 //   - Avatar com a inicial do nome do usuário
@@ -8,7 +7,7 @@
 //   - Texto da mensagem
 //
 // Interligação:
-//   - Importado por: Dashboard.jsx (exibe os 4 feedbacks mais recentes)
+//   - Importado por: Painel.jsx (exibe os 4 feedbacks mais recentes)
 //   - Usa: StatusBadge.jsx (para exibir o tipo como badge colorido)
 //
 // Props (parâmetros recebidos pelo componente):
@@ -34,8 +33,8 @@
 //     .text          → parágrafo com a mensagem do feedback
 // ============================================================
 
-import { StatusBadge } from './StatusBadge';
-import styles from './FeedbackCard.module.css';
+import { StatusBadge } from "./StatusBadge";
+import styles from "./FeedbackCard.module.css";
 
 export function FeedbackCard({ feedback, onClick }) {
   return (
@@ -44,7 +43,7 @@ export function FeedbackCard({ feedback, onClick }) {
     // O operador ternário ${onClick ? styles.cardClickable : ''}
     // adiciona ou omite a classe dinamicamente.
     <div
-      className={`${styles.card} ${onClick ? styles.cardClickable : ''}`}
+      className={`${styles.card} ${onClick ? styles.cardClickable : ""}`}
       onClick={onClick}
     >
       {/* Linha de cabeçalho: avatar + nome/data + badge de tipo */}

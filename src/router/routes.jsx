@@ -13,34 +13,34 @@
 //                 dentro de um layout pai
 // ============================================================
 
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 // Layouts: "molduras" visuais que envolvem as páginas.
 // AdminLayout  → moldura com menu lateral + barra superior
 //                usada em todas as páginas internas.
 // PublicLayout → moldura simples, só para a tela de Login.
-import { AdminLayout } from '../layouts/AdminLayout';
-import { PublicLayout } from '../layouts/PublicLayout';
+import { AdminLayout } from "../layouts/AdminLayout";
+import { PublicLayout } from "../layouts/PublicLayout";
 
 // Páginas da aplicação — cada import representa uma tela:
-import { Login } from '../pages/Login';
-import { Dashboard } from '../pages/Dashboard';
-import { Usuarios } from '../pages/Usuarios';
-import { Caronas } from '../pages/Caronas';
-import { Sugestoes } from '../pages/Sugestoes';
-import { Relatorios } from '../pages/Relatorios';
-import { Cadastrar } from '../pages/Cadastrar';
-import { Contratos } from '../pages/Contratos';
-import { Notificacoes } from '../pages/Notificacoes';
-import { Auditoria } from '../pages/Auditoria';
+import { Login } from "../pages/Login";
+import { Painel } from "../pages/Painel";
+import { Usuarios } from "../pages/Usuarios";
+import { Caronas } from "../pages/Caronas";
+import { Sugestoes } from "../pages/Sugestoes";
+import { Relatorios } from "../pages/Relatorios";
+import { Cadastrar } from "../pages/Cadastrar";
+import { Contratos } from "../pages/Contratos";
+import { Notificacoes } from "../pages/Notificacoes";
+import { Auditoria } from "../pages/Auditoria";
 
 // ── Guardas de rota ──────────────────────────────────────────
 // O sistema tem dois níveis de proteção:
 //   1. PrivateRoute  → exige autenticação + papel >= 1 (Admin ou Dev)
 //   2. DevRoute      → exige papel === 2 (apenas Desenvolvedor)
 //
-// Páginas Admin+Dev:  /dashboard, /usuarios, /caronas,
+// Páginas Admin+Dev:  /painel, /usuarios, /caronas,
 //                     /sugestoes, /relatorios, /contratos
 // Páginas só Dev:     /cadastrar, /notificacoes, /auditoria
 //
@@ -65,7 +65,15 @@ function PrivateRoute() {
     // Placeholder simples: o boot é rápido (apenas uma chamada /me).
     // Mantemos sem framework de loading porque é uma transição curta.
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#666",
+        }}
+      >
         Carregando...
       </div>
     );
@@ -82,14 +90,14 @@ function PrivateRoute() {
 // do Desenvolvedor. Já está aninhada dentro do PrivateRoute,
 // então pode assumir que o usuário está autenticado — só
 // precisa checar se o papel é Dev (2). Se não for, devolve
-// para /dashboard (onde o Admin pode estar).
+// para /painel (onde o Admin pode estar).
 //
 // Importante: também protege contra acesso direto via URL.
 // Mesmo que o item do menu fique oculto para o Admin, digitar
 // /auditoria na barra cai aqui e é redirecionado.
 function DevRoute() {
   const { isDev } = useAuth();
-  if (!isDev) return <Navigate to="/dashboard" replace />;
+  if (!isDev) return <Navigate to="/painel" replace />;
   return <Outlet />;
 }
 
@@ -104,7 +112,7 @@ function DevRoute() {
 //  │
 //  └── PrivateRoute          ← porteiro: verifica login
 //      └── AdminLayout       ← moldura com menu + topbar
-//          ├── "/dashboard"  → <Dashboard />
+//          ├── "/painel"  → <Painel />
 //          ├── "/usuarios"   → <Usuarios />
 //          ├── "/cadastrar"  → <Cadastrar />
 //          ├── "/caronas"    → <Caronas />
@@ -124,10 +132,10 @@ export const routes = [
     element: <PublicLayout />,
     children: [
       {
-        path: '/',         // URL raiz → mostra o Login
-        element: <Login />
-      }
-    ]
+        path: "/", // URL raiz → mostra o Login
+        element: <Login />,
+      },
+    ],
   },
   {
     // Grupo privado: o PrivateRoute verifica o token antes
@@ -144,28 +152,28 @@ export const routes = [
           // Para Admin (per_tipo=1) o backend filtra os dados por
           // escola; para Dev (per_tipo=2) retorna todos.
           {
-            path: '/dashboard',
-            element: <Dashboard />
+            path: "/painel",
+            element: <Painel />,
           },
           {
-            path: '/usuarios',
-            element: <Usuarios />
+            path: "/usuarios",
+            element: <Usuarios />,
           },
           {
-            path: '/caronas',
-            element: <Caronas />
+            path: "/caronas",
+            element: <Caronas />,
           },
           {
-            path: '/sugestoes',
-            element: <Sugestoes />
+            path: "/sugestoes",
+            element: <Sugestoes />,
           },
           {
-            path: '/relatorios',
-            element: <Relatorios />
+            path: "/relatorios",
+            element: <Relatorios />,
           },
           {
-            path: '/contratos',
-            element: <Contratos />
+            path: "/contratos",
+            element: <Contratos />,
           },
 
           // ─── Páginas exclusivas do Desenvolvedor ────────────
@@ -176,21 +184,21 @@ export const routes = [
             element: <DevRoute />,
             children: [
               {
-                path: '/cadastrar',
-                element: <Cadastrar />
+                path: "/cadastrar",
+                element: <Cadastrar />,
               },
               {
-                path: '/notificacoes',
-                element: <Notificacoes />
+                path: "/notificacoes",
+                element: <Notificacoes />,
               },
               {
-                path: '/auditoria',
-                element: <Auditoria />
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+                path: "/auditoria",
+                element: <Auditoria />,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 ];

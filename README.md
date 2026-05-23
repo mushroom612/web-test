@@ -5,6 +5,7 @@
 ## 🎯 O que é este projeto?
 
 Este é um **painel administrativo completo** para o aplicativo Tuctuc. Pense nele como um "dashboard" onde administradores podem:
+
 - 👥 Gerenciar usuários
 - 🚗 Acompanhar caronas
 - 💬 Ver sugestões e denúncias
@@ -16,8 +17,7 @@ Este é um **painel administrativo completo** para o aplicativo Tuctuc. Pense ne
 ---
 
 ## 📁 ESTRUTURA DE PASTAS - Onde tudo fica
-site para icones: https://tabler.io/icons
-utilizar para semelhança com o Mobile
+
 ```
 web-test/
 ├── src/                          ← Pasta principal (onde todo seu código fica)
@@ -25,51 +25,71 @@ web-test/
 │   ├── main.jsx                  ← Arquivo que INICIA tudo
 │   ├── App.jsx                   ← Arquivo que CONTROLA as rotas/páginas
 │   │
+│   ├── context/                  ← Contextos React (compartilhamento de estado)
+│   │   └── AuthContext.jsx       ← Contexto de autenticação do usuário
+│   │
 │   ├── data/
 │   │   └── mockData.js           ← "Banco de dados falso" (dados que aparecem nas telas)
 │   │
+│   ├── services/                 ← Serviços e chamadas de API
+│   │   ├── api.js                ← Funções mockadas de API
+│   │   └── http.js               ← Configuração de requisições HTTP
+│   │
 │   ├── components/               ← "Blocos de construção" reutilizáveis
-│   │   ├── Aside.jsx             ← A barra lateral (menu esquerdo)
-│   │   ├── Aside.module.css      ← Estilos da barra lateral
-│   │   ├── Topbar.jsx            ← A barra superior (header)
-│   │   ├── Topbar.module.css     ← Estilos do header
-│   │   ├── StatusBadge.jsx       ← Rótulos coloridos (Ativo, Inativo)
+│   │   ├── Aside.jsx
+│   │   ├── Aside.module.css
+│   │   ├── Topbar.jsx
+│   │   ├── Topbar.module.css
+│   │   ├── StatusBadge.jsx
 │   │   ├── StatusBadge.module.css
-│   │   ├── FeedbackCard.jsx      ← Card de sugestão/denúncia
+│   │   ├── FeedbackCard.jsx
 │   │   ├── FeedbackCard.module.css
 │   │   ├── PenaltyModal.jsx      ← Modal para aplicar penalidades
 │   │   ├── PenaltyModal.module.css
-│   │   ├── UserActionsMenu.jsx   ← Menu dropdown de ações do usuário
-│   │   └── UserActionsMenu.module.css
+│   │   ├── PenaltyPanel.jsx
+│   │   ├── PenaltyPanel.module.css
+│   │   ├── UserActionsMenu.jsx
+│   │   ├── UserActionsMenu.module.css
+│   │   ├── UserProfilePanel.jsx
+│   │   └── UserProfilePanel.module.css
 │   │
 │   ├── layouts/                  ← "Modelos de página" (estrutura base)
-│   │   ├── AdminLayout.jsx       ← Layout com sidebar + heade
+│   │   ├── AdminLayout.jsx
 │   │   ├── AdminLayout.module.css
-│   │   ├── DesenLayout.jsx       ← Layout alternativo de desenvolvimento
+│   │   ├── DesenLayout.jsx
 │   │   ├── DesenLayout.module.css
-│   │   ├── PublicLayout.jsx      ← Layout sem sidebar (só para login)
+│   │   ├── PublicLayout.jsx
 │   │   └── PublicLayout.module.css
 │   │
 │   ├── pages/                    ← As páginas reais que o usuário vê
-│   │   ├── Login.jsx             ← Página de login
-│   │   ├── Dashboard.jsx         ← Página inicial
-│   │   ├── Usuarios.jsx          ← Lista de usuários
-│   │   ├── Caronas.jsx           ← Registros de carona
-│   │   ├── Sugestoes.jsx         ← Sugestões/denúncias
-│   │   ├── Relatorios.jsx        ← Relatórios
-│   │   ├── Cadastrar.jsx         ← Cadastro de usuário
-│   │   ├── Contratos.jsx         ← Contratos
-│   │   ├── Notificacoes.jsx      ← Emissão de notificações
-│   │   ├── Auditoria.jsx         ← Log de ações
-│   │   └── Penalidades.jsx       ← Aplicação de penalidades
+│   │   ├── Login.jsx
+│   │   ├── Painel.jsx
+│   │   ├── Usuarios.jsx
+│   │   ├── Caronas.jsx
+│   │   ├── Sugestoes.jsx
+│   │   ├── Relatorios.jsx
+│   │   ├── Cadastrar.jsx
+│   │   ├── Contratos.jsx
+│   │   ├── Notificacoes.jsx
+│   │   ├── Auditoria.jsx
+│   │   ├── Penalidades.jsx
+│   │   └── [page].module.css
 │   │
 │   └── router/
-│       └── routes.jsx             ← "Mapa de rotas" (URLs)
+│       └── routes.jsx
 │
-├── public/                       ← Pasta para imagens, logos, etc
-├── package.json                  ← Dependências do projeto
-├── vite.config.js                ← Configuração do servidor
-└── index.html                    ← Arquivo HTML principal
+├── data/                         ← Arquivos SQL (schema do banco)
+│   ├── create.sql
+│   ├── insert.sql
+│   └── select.sql
+│
+├── public/
+├── package.json
+├── vite.config.js
+├── eslint.config.js
+├── index.html
+├── README.md
+└── MOCK_API_INFO.md
 ```
 
 ---
@@ -93,15 +113,38 @@ web-test/
 ### Quando você clica em "Entrar"
 
 ```
-1. Login.jsx redireciona para "/dashboard"
+1. Login.jsx redireciona para "/painel"
    ↓
-2. App.jsx vê que a URL é "/dashboard"
+2. App.jsx vê que a URL é "/painel"
    ↓
 3. Mostra AdminLayout.jsx (que tem Aside + Topbar)
    ↓
-4. AdminLayout coloca Dashboard.jsx no meio
+4. AdminLayout coloca Painel.jsx no meio
    ↓
-5. Dashboard.jsx pega dados de mockData.js e mostra na tela
+5. Painel.jsx pega dados de mockData.js e mostra na tela
+```
+
+---
+
+## 🔄 DADOS MOCKADOS - Como os dados funcionam
+
+> Este projeto usa **dados mockados** (simulados) em vez de chamadas HTTP reais. Isso permite que você desenvolva a interface enquanto a API backend está sendo construída.
+
+### Arquivos principais de dados:
+
+- **`src/services/api.js`** - Contém as funções que simulam chamadas de API
+- **`src/data/mockData.js`** - Contém todos os dados que aparecem nas telas
+
+### Como funciona?
+
+```javascript
+// Quando uma página precisa de dados:
+1. Chama uma função em api.js
+   Exemplo: api.getUsers()
+   ↓
+2. A função em api.js retorna dados de mockData.js
+   ↓
+3. A página exibe os dados na tela
 ```
 
 ---
@@ -113,6 +156,7 @@ web-test/
 Este arquivo tem **TODOS os dados** que aparecem nas telas. É como um Excel com informações.
 
 **Dados disponíveis:**
+
 - `adminUser` - Dados do admin logado
 - `metricsData` - Números do dashboard (1.243 usuários, 847 caronas, etc)
 - `feedbacksData` - Lista de feedbacks
@@ -125,10 +169,35 @@ Este arquivo tem **TODOS os dados** que aparecem nas telas. É como um Excel com
 - `chartData` - Dados para gráficos
 
 **Como alterar?**
+
 1. Abra `src/data/mockData.js`
 2. Mude os dados que quiser
 3. Salve (Ctrl+S)
 4. A página atualiza automaticamente
+
+---
+
+## 📌 CONTEXTOS REACT (src/context/)
+
+Os contextos são usados para compartilhar estado em toda a aplicação sem precisar passar props manualmente em todos os componentes.
+
+### **AuthContext.jsx** - Contexto de Autenticação
+
+- **O que é:** Armazena dados do usuário logado e controla autenticação
+- **Dados armazenados:**
+  - Dados do usuário (nome, email, permissões)
+  - Token de autenticação
+  - Status de login
+- **Como usar em um componente:**
+
+  ```javascript
+  import { useAuth } from "../context/AuthContext";
+
+  function MeuComponente() {
+    const { user, isAuthenticated } = useAuth();
+    return <div>{user?.name}</div>;
+  }
+  ```
 
 ---
 
@@ -137,6 +206,7 @@ Este arquivo tem **TODOS os dados** que aparecem nas telas. É como um Excel com
 São pequenos componentes reutilizáveis em várias páginas.
 
 #### ✅ **Aside.jsx** - A barra lateral
+
 - **O que é:** Menu esquerdo com todas as opções
 - **Onde fica:** Lado esquerdo da tela
 - **Como alterar menu:**
@@ -147,12 +217,14 @@ São pequenos componentes reutilizáveis em várias páginas.
     ```
 
 #### ✅ **Topbar.jsx** - A barra superior
+
 - **O que é:** Header com título, sino de notificações e botão sair
 - **Onde fica:** Topo da tela
 - **Como alterar:**
   - Procure por `pageNames` para mudar nomes de páginas
 
 #### ✅ **StatusBadge.jsx** - Rótulos coloridos
+
 - **O que é:** Retângulos com "Ativo", "Inativo", "Pendente"
 - **Como alterar cores:**
   ```javascript
@@ -161,29 +233,44 @@ São pequenos componentes reutilizáveis em várias páginas.
   ```
 
 #### ✅ **FeedbackCard.jsx** - Card de feedback
-- **O que é:** Um card que mostra feedback/sugestão/denúncia
-- **Reutilizado em:** Dashboard.jsx e Sugestoes.jsx
 
-#### ✅ **PenaltyModal.jsx** - Modal de penalidades
-- **O que é:** Modal para aplicar penalidades a usuários
-- **Funcionalidades:**
-  - Tipos de penalidade:
-    - Impedimento de oferecer caronas
-    - Impedimento de solicitar caronas
-    - Impedimento de oferecer e solicitar caronas
-    - Suspensão de conta
-  - Duração configurável (1 semana a 6 meses)
-  - Campo de motivo para documentação
-- **Reutilizado em:** Usuarios.jsx, Penalidades.jsx
+- **O que é:** Um card que mostra feedback/sugestão/denúncia
+- **Reutilizado em:** Painel.jsx e Sugestoes.jsx
 
 #### ✅ **UserActionsMenu.jsx** - Menu de ações do usuário
+
 - **O que é:** Menu dropdown com ações disponíveis para um usuário
 - **Ações incluídas:**
   - Visualizar detalhes
   - Editar
   - Aplicar penalidade
-  - Deletar
 - **Reutilizado em:** Usuarios.jsx, Caronas.jsx
+
+#### ✅ **PenaltyModal.jsx** - Modal de penalidades 🔐
+
+- **O que é:** Modal interativo para aplicar penalidades a usuários
+- **Onde abre:** Ao clicar em "Penalizar" no menu de ações do usuário
+- **Funcionalidades principais:**
+  - 4 tipos de penalidade com ícones:
+    1. 🚫 Impedimento de oferecer caronas
+    2. 🛑 Impedimento de solicitar caronas
+    3. ⚠️ Impedimento de ambos
+    4. 🔒 Suspensão de conta
+  - Duração configurável: 1 semana até 6 meses
+  - Campo de motivo (textarea) para documentação
+  - Animação suave (slideUp) ao abrir
+  - Responsivo para celular/tablet/desktop
+- **Como funciona:**
+  ```javascript
+  // Ao clicar em "Penalizar", Usuarios.jsx abre o modal
+  <PenaltyModal
+    isOpen={isPenaltyModalOpen}
+    user={selectedUser}
+    onClose={handleClosePenaltyModal}
+    onSubmit={handleApplyPenalty}
+  />
+  ```
+- **Reutilizado em:** Usuarios.jsx, Penalidades.jsx
 
 ---
 
@@ -192,6 +279,7 @@ São pequenos componentes reutilizáveis em várias páginas.
 Definem como as páginas são **estruturadas**.
 
 #### **AdminLayout.jsx** - Layout COM barra lateral + header
+
 ```
 ┌─────────────────────────────────┐
 │      TOPBAR (header)            │
@@ -204,11 +292,13 @@ Definem como as páginas são **estruturadas**.
 ```
 
 #### **DesenLayout.jsx** - Layout alternativo de desenvolvimento
+
 - **O que é:** Layout muito similar ao AdminLayout (com Aside + Topbar)
 - **Uso:** Layout alternativo para desenvolvimento e testes
 - **Estrutura:** Mesma estrutura do AdminLayout com sidebar + conteúdo + header
 
 #### **PublicLayout.jsx** - Layout SEM barra lateral (só para login)
+
 ```
 ┌──────────────────────────────┐
 │                              │
@@ -224,19 +314,18 @@ Definem como as páginas são **estruturadas**.
 
 Cada arquivo aqui é uma tela que o usuário vê.
 
-| Página | URL | Descrição |
-|--------|-----|-----------|
-| **Login.jsx** | `/` | Tela de login |
-| **Dashboard.jsx** | `/dashboard` | Tela inicial com métricas |
-| **Usuarios.jsx** | `/usuarios` | Lista de usuários |
-| **Cadastrar.jsx** | `/cadastrar` | Cadastro de usuário |
-| **Caronas.jsx** | `/caronas` | Registros de carona |
-| **Sugestoes.jsx** | `/sugestoes` | Sugestões e denúncias |
-| **Relatorios.jsx** | `/relatorios` | Página de relatórios |
-| **Contratos.jsx** | `/contratos` | Contratos/termos |
-| **Notificacoes.jsx** | `/notificacoes` | Envio de notificações |
-| **Auditoria.jsx** | `/auditoria` | Log de ações |
-| **Penalidades.jsx** | `/penalidades` | Aplicação de penalidades a usuários |
+| Página               | URL             | Descrição                 |
+| -------------------- | --------------- | ------------------------- |
+| **Login.jsx**        | `/`             | Tela de login             |
+| **Painel.jsx**       | `/painel`       | Tela inicial com métricas |
+| **Usuarios.jsx**     | `/usuarios`     | Lista de usuários         |
+| **Cadastrar.jsx**    | `/cadastrar`    | Cadastro de usuário       |
+| **Caronas.jsx**      | `/caronas`      | Registros de carona       |
+| **Sugestoes.jsx**    | `/sugestoes`    | Sugestões e denúncias     |
+| **Relatorios.jsx**   | `/relatorios`   | Página de relatórios      |
+| **Contratos.jsx**    | `/contratos`    | Contratos/termos          |
+| **Notificacoes.jsx** | `/notificacoes` | Envio de notificações     |
+| **Auditoria.jsx**    | `/auditoria`    | Log de ações              |
 
 ---
 
@@ -245,13 +334,13 @@ Cada arquivo aqui é uma tela que o usuário vê.
 Este arquivo tem as **cores padrão** de todo o app.
 
 ```css
---color-green-700: #4e8726   ← Verde principal (botões)
---color-green-100: #e9f5df  ← Verde claro (fundos)
---surface-page: #ececec     ← Cor de fundo
---text-primary: #171717     ← Cor do texto
+--color-green-700: #4e8726 ← Verde principal (botões) --color-green-100: #e9f5df
+  ← Verde claro (fundos) --surface-page: #ececec ← Cor de fundo
+  --text-primary: #171717 ← Cor do texto;
 ```
 
 **Como alterar uma cor?**
+
 1. Abra `src/global.css`
 2. Procure por `--color-green-700: #4e8726`
 3. Mude o código hex `#4e8726` para outra cor
@@ -264,7 +353,7 @@ Este arquivo tem as **cores padrão** de todo o app.
 Este arquivo diz: "Qual página mostrar em qual URL"
 
 ```javascript
-{ path: '/dashboard', element: <Dashboard /> }  // URL "/dashboard" mostra Dashboard
+{ path: '/painel', element: <Painel /> }       // URL "/painel" mostra Painel
 { path: '/usuarios', element: <Usuarios /> }    // URL "/usuarios" mostra Usuarios
 ```
 
@@ -273,7 +362,7 @@ Este arquivo diz: "Qual página mostrar em qual URL"
 1. Crie o arquivo da página: `src/pages/MinhaPage.jsx`
 2. Importe em `routes.jsx`:
    ```javascript
-   import { MinhaPage } from '../pages/MinhaPage';
+   import { MinhaPage } from "../pages/MinhaPage";
    ```
 3. Adicione a rota:
    ```javascript
@@ -287,8 +376,9 @@ Este arquivo diz: "Qual página mostrar em qual URL"
 Cada página `.jsx` tem um arquivo `.module.css` correspondente.
 
 **Exemplo:**
-- `Dashboard.jsx` ← componente React
-- `Dashboard.module.css` ← estilos
+
+- `Painel.jsx` ← componente React
+- `Painel.module.css` ← estilos
 
 **Como alterar estilos?**
 
@@ -333,7 +423,7 @@ Cada página `.jsx` tem um arquivo `.module.css` correspondente.
    ```javascript
    const [formData, setFormData] = useState({
      // ... campos antigas
-     telefone: ''  // ← novo
+     telefone: "", // ← novo
    });
    ```
 3. No formulário, adicione:
@@ -356,12 +446,55 @@ Os arquivos `.module.css` têm código para telas pequenas (celular):
 ```css
 @media (max-width: 768px) {
   .title {
-    font-size: 18px;  /* menor em celular */
+    font-size: 18px; /* menor em celular */
   }
 }
 ```
 
 Se algo ficar ruim em celular, ajuste essas linhas.
+
+---
+
+## 🛡️ SISTEMA DE PENALIDADES
+
+Este painel possui um sistema completo para aplicar penalidades a usuários infratores.
+
+### Como usar:
+
+1. **Vá para a página "Usuários"** (`/usuarios`)
+2. **Clique no ícone ⋮ (três pontos)** em qualquer linha de usuário
+3. **Selecione "Penalizar"** do menu
+4. **Na modal que abriu:**
+   - Escolha o **tipo de penalidade**
+   - Escolha a **duração**
+   - **Digite o motivo** (obrigatório)
+   - Clique em **"Aplicar Penalidade"**
+
+### Tipos de penalidade disponíveis:
+
+| Tipo                         | Ícone | Descrição                                       |
+| ---------------------------- | ----- | ----------------------------------------------- |
+| **Impedimento de oferecer**  | 🚫    | Usuário não pode oferecer caronas               |
+| **Impedimento de solicitar** | 🛑    | Usuário não pode solicitar caronas              |
+| **Impedimento duplo**        | ⚠️    | Usuário não pode oferecer NEM solicitar caronas |
+| **Suspensão de conta**       | 🔒    | Usuário tem acesso suspenso completamente       |
+
+### Durações disponíveis:
+
+- 1 semana
+- 2 semanas
+- 1 mês
+- 3 meses
+- 6 meses
+
+### Exemplo prático:
+
+```
+Usuário: Marina Oliveira
+Tipo: Impedimento de oferecer caronas
+Duração: 2 semanas
+Motivo: Cancelamento de caronas sem aviso prévio
+```
 
 ---
 
@@ -376,9 +509,77 @@ R: Vá em `src/data/mockData.js`, procure `feedbacksData` e adicione um novo obj
 **P: Onde vejo os erros se algo quebrar?**
 R: No console do navegador (F12 → Aba Console) ou no terminal onde rodou `npm run dev`.
 
+**P: Os dados que mudo desaparecem quando recarrego a página? Por que?**
+R: Porque o projeto usa **dados mockados** carregados de `src/data/mockData.js`. Quando a página recarrega, os dados originais são recarregados. Modificações diretas pela interface não são persistentes.
+
+**P: Como faço para que as alterações nos dados sejam permanentes?**
+R: Edite o arquivo `src/data/mockData.js` diretamente. Salve o arquivo e o servidor de desenvolvimento recarregará automaticamente com os novos dados.
+
+**P: Como adiciono um novo tipo de penalidade?**
+R:
+
+1. Abra `src/components/PenaltyModal.jsx`
+2. Procure por `const penaltyTypes = [`
+3. Adicione um novo objeto com `icon`, `title` e `description`
+4. Salve - o novo tipo aparecerá no modal
+
+**P: Será possível integrar com uma API real no futuro?**
+R: Sim! Os dados mockados estão isolados em `src/services/api.js`. Quando a API real estiver pronta, basta substituir as funções mock por chamadas HTTP reais usando `fetch()`. A interface dos componentes não precisa mudar.
+
+**P: Qual é a senha do login?**
+R: Qualquer email e senha funcionam no login mockado. Exemplo: `admin@test.com` / `senha123`. Os dados são carregados de `mockData.js`.
+
 ---
 
-## 🚀 Começando
+## ⚙️ CONFIGURAÇÃO - Variáveis de Ambiente
+
+Para futuro uso com API real, você pode configurar variáveis de ambiente.
+
+### Crie um arquivo `.env` na raiz do projeto:
+
+```
+VITE_API_URL=http://localhost:3000/api
+VITE_APP_NAME=Tuctuc Admin
+```
+
+### Use em qualquer arquivo:
+
+```javascript
+const API_URL = import.meta.env.VITE_API_URL;
+console.log(API_URL); // http://localhost:3000/api
+```
+
+---
+
+## 🐛 DEBUG E SOLUÇÃO DE PROBLEMAS
+
+### Como verificar erros?
+
+1. **Console do navegador (F12)**
+   - Pressione `F12` → Aba "Console"
+   - Todos os erros aparecerão em vermelho
+   - Use `console.log()` para debugar
+
+2. **Terminal do desenvolvimento**
+   - Erros de build aparecem no terminal onde rodou `npm run dev`
+   - Mensagens de Vite e warnings aparecem lá
+
+3. **Network tab (F12)**
+   - Vá em "Network" para ver requisições (quando integrar com API real)
+   - Mostra status, tempo de resposta, etc
+
+### Dicas de Debug:
+
+```javascript
+// Adicione ao seu código temporariamente:
+console.log("Dados recebidos:", data);
+console.log("Usuário atual:", user);
+console.log("URL atual:", window.location.pathname);
+
+// Remova após debugar!
+```
+
+---
 
 ```bash
 # Instalar dependências
@@ -393,4 +594,111 @@ npm run dev
 
 ---
 
+## 🎯 BOAS PRÁTICAS DE DESENVOLVIMENTO
+
+### ✅ Recomendações
+
+1. **Use nomes descritivos**
+   - ✅ `handleUserDelete()`
+   - ❌ `delete()`
+
+2. **Isole os estilos com CSS Modules**
+
+   ```javascript
+   import styles from "./MyComponent.module.css";
+   return <div className={styles.title}>...</div>;
+   ```
+
+3. **Use componentes reutilizáveis**
+   - Se uma coisa se repete em 2+ lugares, crie um componente
+
+4. **Mantenha componentes pequenos**
+   - Se um arquivo ultrapassar 300 linhas, divida em componentes menores
+
+5. **Documente funções importantes**
+   ```javascript
+   // Aplica penalidade ao usuário com validação
+   function applyPenalty(userId, penalty) {
+     // ...
+   }
+   ```
+
+---
+
+## 🔗 INTEGRAÇÃO COM API REAL - Próximos Passos
+
+Quando o backend estiver pronto, siga estes passos para integrar:
+
+### 1. Atualize `src/services/api.js`
+
+Substitua as funções mock por chamadas HTTP reais:
+
+```javascript
+// Antes (mock):
+export async function getUsers() {
+  await delay(300);
+  return apiUsersData;
+}
+
+// Depois (API real):
+export async function getUsers() {
+  const response = await fetch("http://seu-backend.com/api/users");
+  return response.json();
+}
+```
+
+### 2. Atualize URLs de backend
+
+Em `src/services/api.js`, há uma constante `API_BASE_URL` que pode ser configurada:
+
+```javascript
+// Mude para sua URL de backend
+const API_BASE_URL = "http://localhost:3000/api";
+```
+
+### 3. A interface não precisa mudar!
+
+Como todos os componentes usam `api.js`, eles continuarão funcionando com a API real sem modificações.
+
+---
+
+## 📦 DEPENDÊNCIAS DO PROJETO
+
+Este projeto usa:
+
+- **React 18** - Framework UI
+- **React Router DOM** - Roteamento de páginas
+- **Vite** - Build tool e dev server
+- **Lucide React** - Ícones SVG
+- **CSS Modules** - Estilos isolados
+
+---
+
+## 📚 REFERÊNCIAS E LINKS ÚTEIS
+
+- [Documentação React](https://react.dev)
+- [React Router](https://reactrouter.com)
+- [Vite](https://vitejs.dev)
+- [Lucide Icons](https://lucide.dev) - Ícones usados no projeto
+- [MDN Web Docs](https://developer.mozilla.org) - Referência de JavaScript/CSS
+
+---
+
+## ✨ Estado do Projeto
+
+- ✅ Sistema de login mockado
+- ✅ Dashboard com métricas
+- ✅ CRUD de usuários
+- ✅ Sistema de penalidades
+- ✅ Gestão de caronas
+- ✅ Sugestões/denúncias
+- ✅ Notificações
+- ✅ Auditoria
+- ✅ Responsividade (mobile/tablet/desktop)
+- ⏳ Integração com API real (em planejamento)
+
+---
+
 **Desenvolvido com React + Vite + React Router DOM + Lucide React**
+
+Versão: 1.0 | Último update: Maio 2026
