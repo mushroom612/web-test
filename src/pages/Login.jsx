@@ -27,11 +27,11 @@
 
 // useState: importado do React para criar estados locais.
 // Estado = variável que, ao mudar, faz o componente redesenhar.
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import styles from "./Login.module.css";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import styles from './Login.module.css';
 
 export function Login() {
   // ── Estados do formulário ──────────────────────────────────
@@ -39,11 +39,11 @@ export function Login() {
   // Quando chamamos setEmail('novo@valor'), o React redesenha
   // o componente com o novo valor de email.
 
-  const [email, setEmail] = useState(""); // valor do campo e-mail
-  const [password, setPassword] = useState(""); // valor do campo senha
+  const [email, setEmail] = useState('');           // valor do campo e-mail
+  const [password, setPassword] = useState('');     // valor do campo senha
   const [showPassword, setShowPassword] = useState(false); // senha visível?
-  const [error, setError] = useState(""); // mensagem de erro
-  const [loading, setLoading] = useState(false); // aguardando resposta?
+  const [error, setError] = useState('');           // mensagem de erro
+  const [loading, setLoading] = useState(false);    // aguardando resposta?
 
   // useNavigate: retorna a função navigate() para trocar de página.
   // Usada após o login bem-sucedido para ir ao /dashboard.
@@ -56,11 +56,11 @@ export function Login() {
   const { login, isAuthenticated, loading: authLoading } = useAuth();
 
   // Se o usuário já está autenticado (ex: voltou da tela interna
-  // ou recarregou a aba com token válido), pula direto para o Painel.
+  // ou recarregou a aba com token válido), pula direto para o Dashboard.
   // Esperamos o boot do AuthContext terminar antes de decidir.
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      navigate("/painel", { replace: true });
+      navigate('/dashboard', { replace: true });
     }
   }, [authLoading, isAuthenticated, navigate]);
 
@@ -73,8 +73,8 @@ export function Login() {
     // que seria recarregar a página ao enviar um formulário.
     e.preventDefault();
 
-    setError(""); // limpa erros anteriores
-    setLoading(true); // exibe "Entrando..." no botão
+    setError('');      // limpa erros anteriores
+    setLoading(true);  // exibe "Entrando..." no botão
 
     try {
       // login() do AuthContext já cuida de:
@@ -82,12 +82,12 @@ export function Login() {
       //   2. GET /api/usuarios/me (carrega perfil)
       //   3. Bloquear usuários comuns (role < 1) com mensagem clara
       await login(email, password);
-      navigate("/painel");
+      navigate('/dashboard');
     } catch (err) {
       // Erros possíveis: 401 (credenciais), 403 (sem acesso ao painel),
       // rede fora (TypeError). Mensagem amigável já vem pronta do
       // ApiError ou da validação de papel.
-      setError(err.message || "Email ou senha inválidos.");
+      setError(err.message || 'Email ou senha inválidos.');
     } finally {
       // "finally" sempre executa — com sucesso ou erro.
       // Restaura o botão ao estado normal.
@@ -99,6 +99,7 @@ export function Login() {
   return (
     <div className={styles.loginContainer}>
       <div className={styles.card}>
+
         {/* Cabeçalho do card com título e subtítulo */}
         <div className={styles.header}>
           <h1 className={styles.title}>Tuctuc</h1>
@@ -109,6 +110,7 @@ export function Login() {
             onSubmit={handleSubmit} → ao clicar em "Entrar" ou
             pressionar Enter, a função handleSubmit é chamada. */}
         <form className={styles.form} onSubmit={handleSubmit}>
+
           {/* Campo de e-mail */}
           <div className={styles.formGroup}>
             <label htmlFor="email" className={styles.label}>
@@ -119,7 +121,7 @@ export function Login() {
               id="email"
               className={styles.input}
               placeholder="admin@sistema.dominio"
-              value={email} // valor controlado pelo estado "email"
+              value={email}   // valor controlado pelo estado "email"
               onChange={(e) => setEmail(e.target.value)} // atualiza o estado a cada tecla
             />
           </div>
@@ -133,7 +135,7 @@ export function Login() {
               {/* type muda entre 'text' e 'password' conforme
                   o estado showPassword — isso mostra/esconde o texto */}
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 className={styles.input}
                 placeholder="Digite sua senha"
@@ -161,7 +163,7 @@ export function Login() {
               disabled={loading} → desabilita o botão enquanto
               aguarda resposta da API (evita cliques duplos). */}
           <button type="submit" className={styles.submitBtn} disabled={loading}>
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 

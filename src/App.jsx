@@ -7,13 +7,13 @@
 // Bibliotecas usadas:
 //   - react-router-dom → biblioteca de roteamento para React.
 //     "Rota" significa: qual página mostrar dependendo da URL.
-//     Ex: acessar "/painel"  → mostra o Painel
-//         acessar "/"        → mostra o Login
+//     Ex: acessar "/dashboard" → mostra o Dashboard
+//         acessar "/"          → mostra o Login
 // ============================================================
 
 // global.css → arquivo de estilos CSS que se aplica a toda
 // a aplicação (fontes, cores base, reset de margens, etc.)
-import "./global.css";
+import './global.css';
 
 // BrowserRouter (apelidado de "Router"): componente que
 // ativa o sistema de rotas. Ele "escuta" a URL do navegador
@@ -21,17 +21,17 @@ import "./global.css";
 //
 // useRoutes: hook (função especial do React) que transforma
 // o array de rotas definido em routes.jsx em componentes reais.
-import { BrowserRouter as Router, useRoutes } from "react-router-dom";
+import { BrowserRouter as Router, useRoutes } from 'react-router-dom';
 
 // routes: array com todas as rotas da aplicação.
 // Definido em ./router/routes.jsx — lá estão os caminhos
 // como "/dashboard", "/usuarios", etc.
-import { routes } from "./router/routes";
+import { routes } from './router/routes';
 
 // AuthProvider: fornece estado global de autenticação (usuário,
 // papel, login/logout) para toda a árvore. Componentes acessam
 // via o hook useAuth() exportado em ./context/AuthContext.jsx.
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from './context/AuthContext';
 
 // App: componente interno que usa o hook useRoutes para
 // converter o array de rotas em um elemento JSX renderizável.

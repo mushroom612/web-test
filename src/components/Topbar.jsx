@@ -20,24 +20,24 @@
 // Estilo: Topbar.module.css
 // ============================================================
 
-import { useLocation, useNavigate } from "react-router-dom";
-import { Bell, Settings, LogOut } from "lucide-react";
-import { notificationData } from "../data/mockData";
-import { useAuth } from "../context/AuthContext";
-import styles from "./Topbar.module.css";
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Bell, Settings, LogOut } from 'lucide-react';
+import { notificationData } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
+import styles from './Topbar.module.css';
 
 // getInitials: igual ao do Aside — pega 2 letras maiúsculas
 // do nome (ex: "Admin Sistema" → "AS") para usar como avatar
 // até o backend expor uma URL de foto.
-function getInitials(name = "") {
+function getInitials(name = '') {
   return (
     name
-      .split(" ")
+      .split(' ')
       .filter(Boolean)
       .slice(0, 2)
       .map((n) => n[0])
-      .join("")
-      .toUpperCase() || "?"
+      .join('')
+      .toUpperCase() || '?'
   );
 }
 
@@ -47,16 +47,16 @@ function getInitials(name = "") {
 // É um objeto JavaScript simples onde a chave é a URL
 // e o valor é o nome a exibir.
 const pageNames = {
-  "/painel": "Painel",
-  "/usuarios": "Usuários",
-  "/cadastrar": "Cadastrar Usuário",
-  "/caronas": "Registros de Carona",
-  "/sugestoes": "Sugestões e Denúncias",
-  "/relatorios": "Relatórios",
-  "/contratos": "Contratos",
-  "/notificacoes": "Emitir Notificação",
-  "/auditoria": "Auditoria",
-  "/penalidades": "Penalidades",
+  '/dashboard': 'Dashboard',
+  '/usuarios': 'Usuários',
+  '/cadastrar': 'Cadastrar Usuário',
+  '/caronas': 'Registros de Carona',
+  '/sugestoes': 'Sugestões e Denúncias',
+  '/relatorios': 'Relatórios',
+  '/contratos': 'Contratos',
+  '/notificacoes': 'Emitir Notificação',
+  '/auditoria': 'Auditoria',
+  '/penalidades': 'Penalidades'
 };
 
 export function Topbar() {
@@ -71,23 +71,24 @@ export function Topbar() {
   // useAuth: usuário real + logout. user pode ser null por instantes
   // (entre montagem e chegada do /me); defaults defensivos abaixo.
   const { user, isDev, logout } = useAuth();
-  const userName = user?.usu_nome || "Usuário";
+  const userName = user?.usu_nome || 'Usuário';
 
   // Busca no dicionário pageNames o título da rota atual.
   // Se a rota não estiver mapeada, usa 'Dashboard' como padrão.
-  const currentPageName = pageNames[location.pathname] || "Dashboard";
+  const currentPageName = pageNames[location.pathname] || 'Dashboard';
 
   // handleLogout: encerra a sessão (limpa tokens + notifica backend)
   // e navega para o login. await garante que o estado já foi zerado
   // quando o redirecionamento acontece — evita "piscar" o painel.
   const handleLogout = async () => {
     await logout();
-    navigate("/", { replace: true });
+    navigate('/', { replace: true });
   };
 
   return (
     // <header> → elemento HTML semântico para cabeçalhos de seção
     <header className={styles.topbar}>
+
       {/* Lado esquerdo: título da página atual */}
       <div className={styles.left}>
         <h1 className={styles.pageTitle}>{currentPageName}</h1>
@@ -95,6 +96,7 @@ export function Topbar() {
 
       {/* Lado direito: notificações, usuário e ações */}
       <div className={styles.right}>
+
         {/* Sino de notificações com badge de contagem.
             notificationData.count → número de notificações não lidas
             O badge só aparece se count > 0 (renderização condicional) */}
@@ -113,10 +115,7 @@ export function Topbar() {
             {/* Avatar: iniciais do nome real (ex: "Admin Sistema" → "AS").
                 title exibe o papel ao passar o mouse — útil para distinguir
                 Admin Escola de Desenvolvedor sem ocupar espaço extra. */}
-            <span
-              className={styles.userAvatar}
-              title={isDev ? "Desenvolvedor" : "Administrador"}
-            >
+            <span className={styles.userAvatar} title={isDev ? 'Desenvolvedor' : 'Administrador'}>
               {getInitials(userName)}
             </span>
             <span className={styles.userName}>{userName}</span>

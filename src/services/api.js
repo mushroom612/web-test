@@ -20,7 +20,6 @@ import { http, tokens } from './http';
 import {
   apiUsersData,
   apiSchoolsData,
-  apiRidesData,
   apiSuggestionsData,
   apiCoursesData,
   apiRecentReportsData,
@@ -228,11 +227,46 @@ export const api = {
   },
 
   // ── Caronas ────────────────────────────────────────────────
+  // Endpoints reais:
+  //   GET /api/admin/caronas — lista (Admin: própria escola; Dev: todas)
+  //   GET /api/caronas/{id}/resumo — detalhe (origem, destino, passageiros)
+  //
+  // O endpoint de lista é minimalista (não retorna pontos nem passageiros);
+  // por isso há um segundo método getCaronaResumo() chamado on-click para
+  // popular o painel de detalhe.
 
-  // Retorna todas as caronas cadastradas.
-  async getCaronas() {
-    await delay(300);
-    return apiRidesData;
+  // getCaronas: lista paginada com filtros opcionais.
+  //   status: 0=Cancelada, 1=Aberta, 2=Em espera, 3=Finalizada
+  //   data_inicio / data_fim: YYYY-MM-DD
+  //   esc_id: apenas Dev (Admin é forçado à própria escola)
+  //
+  // Shape:
+  //   { message, totalGeral, total, page, limit, esc_id,
+  //     caronas: [{ car_id, car_data, car_hor_saida, car_vagas_dispo,
+  //                 car_status, car_desc, motorista_id, motorista,
+  //                 motorista_email, vei_placa, vei_tipo }] }
+  async getCaronas({ status, page, limit, esc_id, data_inicio, data_fim } = {}) {
+    return http.get('/api/admin/caronas', {
+      query: { status, page, limit, esc_id, data_inicio, data_fim }
+    });
+  },
+
+  // getCaronaResumo: detalhe completo de uma carona (origem, destino,
+  // passageiros, veículo, avaliações). Disparado quando o usuário
+  // seleciona um card da lista no painel admin.
+  //
+  // Shape:
+  //   { message,
+  //     carona: { car_id, car_desc, car_data, car_hor_saida, car_vagas_dispo,
+  //               car_status, vei_marca_modelo, vei_placa, vei_tipo,
+  //               vei_cor, vei_vagas, motorista_id, motorista, ... },
+  //     pontos: [{ pon_id, pon_nome, pon_endereco, pon_tipo, ... }],
+  //     passageiros: [{ usu_id, usu_nome, usu_foto, origem }],
+  //     avaliacoes: [...],
+  //     minha_solicitacao: null }
+  async getCaronaResumo(carId) {
+    if (!carId) throw new Error('ID da carona é obrigatório.');
+    return http.get(`/api/caronas/${carId}/resumo`);
   },
 
   // ── Sugestões e Denúncias ──────────────────────────────────
@@ -257,29 +291,23 @@ export const api = {
     return http.get('/api/sugestoes', { query: { page, limit } });
   },
 
-  // Marca uma sugestão/denúncia como "Em análise".
-  // Endpoint: PUT /api/sugestoes/{id}/analisar
-  // Efeito no backend: sug_status passa a 3 (Em análise).
-  // Bloqueado pela API se já estiver Em análise ou Fechada (409).
+  // Marca uma sugestão como "Em análise" (status 2).
   async analisarSugestao(sugId) {
-    return http.put(`/api/sugestoes/${sugId}/analisar`);
+    await delay(250);
+    const sug = apiSuggestionsData.find(s => s.sug_id === sugId);
+    if (!sug) throw new Error('Sugestão não encontrada');
+    sug.sug_status = 2;
+    return sug;
   },
 
-  // Responde a uma sugestão/denúncia, fechando-a.
-  // Endpoint: PUT /api/sugestoes/{id}/responder
-  // Body: { sug_resposta }. O backend grava a resposta e seta
-  // sug_status = 0 (Fechada/Resolvida).
+  // Responde a uma sugestão e muda o status para "Resolvido" (1).
   async responderSugestao(sugId, resposta) {
-    return http.put(`/api/sugestoes/${sugId}/responder`, { sug_resposta: resposta });
-  },
-
-  // Arquiva uma sugestão/denúncia sem resposta formal.
-  // Endpoint: POST /api/sugestoes/{id}/arquivar
-  // Efeito no backend: sug_status = 2 (Arquivada). Operação one-way:
-  // não existe endpoint de "desarquivar" — registros arquivados
-  // continuam visíveis apenas no filtro Arquivados.
-  async arquivarSugestao(sugId) {
-    return http.post(`/api/sugestoes/${sugId}/arquivar`);
+    await delay(250);
+    const sug = apiSuggestionsData.find(s => s.sug_id === sugId);
+    if (!sug) throw new Error('Sugestão não encontrada');
+    sug.sug_resposta = resposta;
+    sug.sug_status = 1;
+    return sug;
   },
 
   // ── Notificações ───────────────────────────────────────────
