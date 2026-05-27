@@ -97,21 +97,30 @@
 //     .removeBtn       → botão "Remover" (aparece apenas em penalidades ativas)
 // ============================================================
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from "react";
 import {
-  Ban, Loader2, AlertCircle, CheckCircle,
-  Trash2, Plus, X, ShieldAlert, Clock, UserX, ArrowLeft
-} from 'lucide-react';
-import { api } from '../services/api';
-import { penaltiesData } from '../data/mockData';
-import styles from './PenaltyPanel.module.css';
+  Ban,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Trash2,
+  Plus,
+  X,
+  ShieldAlert,
+  Clock,
+  UserX,
+  ArrowLeft,
+} from "lucide-react";
+import { api } from "../services/api";
+import { penaltiesData } from "../data/mockData";
+import styles from "./PenaltyPanel.module.css";
 
 // TIPO_LABELS: descrição textual de cada tipo de penalidade.
 const TIPO_LABELS = {
-  1: 'Impedimento de oferecer caronas',
-  2: 'Impedimento de solicitar caronas',
-  3: 'Impedimento de oferecer e solicitar caronas',
-  4: 'Suspensão de conta'
+  1: "Impedimento de oferecer caronas",
+  2: "Impedimento de solicitar caronas",
+  3: "Impedimento de oferecer e solicitar caronas",
+  4: "Suspensão de conta",
 };
 
 // TIPO_ICONS: componente de ícone para cada tipo de penalidade.
@@ -119,32 +128,35 @@ const TIPO_ICONS = {
   1: ShieldAlert,
   2: ShieldAlert,
   3: Ban,
-  4: UserX
+  4: UserX,
 };
 
 // TIPO_SEVERITY: categoria de cor/gravidade para estilização do ícone.
 const TIPO_SEVERITY = {
-  1: 'warning',   // amarelo
-  2: 'warning',   // amarelo
-  3: 'danger',    // vermelho
-  4: 'critical'   // vermelho escuro
+  1: "warning", // amarelo
+  2: "warning", // amarelo
+  3: "danger", // vermelho
+  4: "critical", // vermelho escuro
 };
 
 // Opções de duração disponíveis no formulário de nova penalidade.
 const DURACAO_OPTIONS = [
-  { value: '1semana',  label: '1 semana' },
-  { value: '2semanas', label: '2 semanas' },
-  { value: '1mes',     label: '1 mês' },
-  { value: '3meses',   label: '3 meses' },
-  { value: '6meses',   label: '6 meses' }
+  { value: "1semana", label: "1 semana" },
+  { value: "2semanas", label: "2 semanas" },
+  { value: "1mes", label: "1 mês" },
+  { value: "3meses", label: "3 meses" },
+  { value: "6meses", label: "6 meses" },
 ];
 
 // formatDate: formata data ISO para o padrão brasileiro com horário.
 function formatDate(iso) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('pt-BR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -154,44 +166,56 @@ function formatDate(iso) {
 //   2. não ter expirado (ou ser permanente, sem data de expiração)
 function isPenaltyActive(pen) {
   if (!pen.pen_ativo) return false;
-  if (!pen.pen_expira_em) return true;  // sem data = permanente = sempre ativa
-  return new Date(pen.pen_expira_em) > new Date();  // ainda não expirou?
+  if (!pen.pen_expira_em) return true; // sem data = permanente = sempre ativa
+  return new Date(pen.pen_expira_em) > new Date(); // ainda não expirou?
 }
 
 // getPenaltyStatus: retorna o status textual de uma penalidade.
 // Usado para determinar qual badge exibir e quais aparecem no filtro "Ativas".
 function getPenaltyStatus(pen) {
-  if (!pen.pen_ativo) return 'removida';
-  if (pen.pen_expira_em && new Date(pen.pen_expira_em) <= new Date()) return 'expirada';
-  return 'ativa';
+  if (!pen.pen_ativo) return "removida";
+  if (pen.pen_expira_em && new Date(pen.pen_expira_em) <= new Date())
+    return "expirada";
+  return "ativa";
 }
 
 // getInitials: gera as iniciais do nome para o avatar.
-function getInitials(name = '') {
-  return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
+function getInitials(name = "") {
+  return (
+    name
+      .split(" ")
+      .slice(0, 2)
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() || "?"
+  );
 }
 
 export function PenaltyPanel({ user, onClose }) {
   // Estados da lista de penalidades
   const [penalties, setPenalties] = useState([]);
   const [listLoading, setListLoading] = useState(false);
-  const [listError, setListError] = useState('');
+  const [listError, setListError] = useState("");
 
   // filterStatus: qual filtro de aba está ativo ('Todas', 'Ativas', 'Inativas')
-  const [filterStatus, setFilterStatus] = useState('Todas');
+  const [filterStatus, setFilterStatus] = useState("Todas");
 
   // showForm: controla se o formulário de nova penalidade está visível
   const [showForm, setShowForm] = useState(false);
 
   // form: estado dos campos do formulário de nova penalidade
-  const [form, setForm] = useState({ pen_tipo: '', pen_duracao: '', pen_motivo: '' });
+  const [form, setForm] = useState({
+    pen_tipo: "",
+    pen_duracao: "",
+    pen_motivo: "",
+  });
   const [formLoading, setFormLoading] = useState(false);
-  const [formError, setFormError] = useState('');
-  const [formSuccess, setFormSuccess] = useState('');
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
 
   // removeLoading: ID da penalidade sendo removida (para spinner individual)
   const [removeLoading, setRemoveLoading] = useState(null);
-  const [removeError, setRemoveError] = useState('');
+  const [removeError, setRemoveError] = useState("");
 
   // userId: obtém o ID do usuário, suportando dois formatos de objeto
   // (formato da API com usu_id, ou formato do mock com id)
@@ -203,7 +227,7 @@ export function PenaltyPanel({ user, onClose }) {
   // loadPenalties estaria listada como dependência mas seria recriada a cada render.
   const loadPenalties = useCallback(async (id) => {
     setListLoading(true);
-    setListError('');
+    setListError("");
     try {
       const data = await api.getPenalidades(id);
       // ?? [] → usa array vazio se penalidades for null/undefined
@@ -223,10 +247,10 @@ export function PenaltyPanel({ user, onClose }) {
     if (userId) {
       setPenalties([]);
       setShowForm(false);
-      setForm({ pen_tipo: '', pen_duracao: '', pen_motivo: '' });
-      setFormError('');
-      setFormSuccess('');
-      setRemoveError('');
+      setForm({ pen_tipo: "", pen_duracao: "", pen_motivo: "" });
+      setFormError("");
+      setFormSuccess("");
+      setRemoveError("");
       loadPenalties(userId);
     }
   }, [userId, loadPenalties]);
@@ -236,24 +260,30 @@ export function PenaltyPanel({ user, onClose }) {
   // pois suspensão é permanente e não tem duração.
   function handleFormChange(e) {
     const { name, value } = e.target;
-    setForm(prev => {
+    setForm((prev) => {
       const next = { ...prev, [name]: value };
-      if (name === 'pen_tipo' && value === '4') next.pen_duracao = '';
+      if (name === "pen_tipo" && value === "4") next.pen_duracao = "";
       return next;
     });
   }
 
   async function handleApply(e) {
     e.preventDefault();
-    setFormError('');
-    setFormSuccess('');
+    setFormError("");
+    setFormSuccess("");
 
     // parseInt converte a string do select para número inteiro
     const tipo = parseInt(form.pen_tipo);
 
     // Validações antes de chamar a API
-    if (!tipo) { setFormError('Selecione o tipo de penalidade.'); return; }
-    if (tipo !== 4 && !form.pen_duracao) { setFormError('Selecione a duração.'); return; }
+    if (!tipo) {
+      setFormError("Selecione o tipo de penalidade.");
+      return;
+    }
+    if (tipo !== 4 && !form.pen_duracao) {
+      setFormError("Selecione a duração.");
+      return;
+    }
 
     setFormLoading(true);
     try {
@@ -262,16 +292,16 @@ export function PenaltyPanel({ user, onClose }) {
         // .trim() remove espaços; || undefined → não envia campo vazio
         pen_motivo: form.pen_motivo.trim() || undefined,
         // Spread condicional: adiciona pen_duracao apenas se NÃO for tipo 4
-        ...(tipo !== 4 ? { pen_duracao: form.pen_duracao } : {})
+        ...(tipo !== 4 ? { pen_duracao: form.pen_duracao } : {}),
       };
       await api.applyPenalidade(userId, payload);
       setFormSuccess(`Penalidade tipo ${tipo} aplicada com sucesso.`);
-      setForm({ pen_tipo: '', pen_duracao: '', pen_motivo: '' });
+      setForm({ pen_tipo: "", pen_duracao: "", pen_motivo: "" });
       setShowForm(false);
       // Recarrega a lista para mostrar a nova penalidade
       loadPenalties(userId);
     } catch (err) {
-      setFormError(err.message || 'Erro ao aplicar penalidade.');
+      setFormError(err.message || "Erro ao aplicar penalidade.");
     } finally {
       setFormLoading(false);
     }
@@ -281,27 +311,30 @@ export function PenaltyPanel({ user, onClose }) {
   // removeLoading = penId → mostra spinner apenas no botão dessa penalidade.
   async function handleRemove(penId) {
     setRemoveLoading(penId);
-    setRemoveError('');
+    setRemoveError("");
     try {
       await api.removePenalidade(penId);
-      loadPenalties(userId);  // recarrega para refletir a remoção
+      loadPenalties(userId); // recarrega para refletir a remoção
     } catch (err) {
-      setRemoveError(err.message || 'Erro ao remover penalidade.');
+      setRemoveError(err.message || "Erro ao remover penalidade.");
     } finally {
       setRemoveLoading(null);
     }
   }
 
   // filteredPenalties: aplica o filtro de aba à lista de penalidades.
-  const filteredPenalties = penalties.filter(pen => {
+  const filteredPenalties = penalties.filter((pen) => {
     const status = getPenaltyStatus(pen);
-    if (filterStatus === 'Ativas') return status === 'ativa';
-    if (filterStatus === 'Inativas') return status === 'expirada' || status === 'removida';
-    return true;  // 'Todas' → retorna tudo
+    if (filterStatus === "Ativas") return status === "ativa";
+    if (filterStatus === "Inativas")
+      return status === "expirada" || status === "removida";
+    return true; // 'Todas' → retorna tudo
   });
 
   // Conta quantas penalidades estão atualmente ativas para o badge do usuário
-  const activePenaltiesCount = penalties.filter(p => isPenaltyActive(p)).length;
+  const activePenaltiesCount = penalties.filter((p) =>
+    isPenaltyActive(p),
+  ).length;
 
   // Guarda: se não há usuário, não renderiza nada
   if (!user) return null;
@@ -318,7 +351,6 @@ export function PenaltyPanel({ user, onClose }) {
 
       {/* Painel principal: posição fixed cobrindo toda a tela */}
       <div className={styles.panel}>
-
         {/* ── Cabeçalho do painel ── */}
         <div className={styles.panelHeader}>
           <div className={styles.panelTitle}>
@@ -336,11 +368,12 @@ export function PenaltyPanel({ user, onClose }) {
         {/* ── Corpo com scroll ── */}
         <div className={styles.panelBody}>
           <div className={styles.inner}>
-
             {/* Card do usuário selecionado */}
             <div className={styles.userCard}>
               <div className={styles.userCardLeft}>
-                <span className={styles.userAvatar}>{getInitials(userName)}</span>
+                <span className={styles.userAvatar}>
+                  {getInitials(userName)}
+                </span>
                 <div>
                   <p className={styles.userName}>{userName}</p>
                   <p className={styles.userEmail}>{userEmail}</p>
@@ -348,7 +381,8 @@ export function PenaltyPanel({ user, onClose }) {
                 {/* Badge de penalidades ativas: só aparece se houver ao menos 1 */}
                 {activePenaltiesCount > 0 && (
                   <span className={styles.activeBadge}>
-                    {activePenaltiesCount} ativa{activePenaltiesCount > 1 ? 's' : ''}
+                    {activePenaltiesCount} ativa
+                    {activePenaltiesCount > 1 ? "s" : ""}
                   </span>
                 )}
               </div>
@@ -356,7 +390,11 @@ export function PenaltyPanel({ user, onClose }) {
               {!showForm && (
                 <button
                   className={styles.primaryBtn}
-                  onClick={() => { setShowForm(true); setFormError(''); setFormSuccess(''); }}
+                  onClick={() => {
+                    setShowForm(true);
+                    setFormError("");
+                    setFormSuccess("");
+                  }}
                 >
                   <Plus size={16} />
                   Aplicar Penalidade
@@ -373,43 +411,67 @@ export function PenaltyPanel({ user, onClose }) {
                     Nova penalidade
                   </div>
                   {/* Botão X para fechar o formulário sem aplicar */}
-                  <button className={styles.ghostBtn} onClick={() => setShowForm(false)}>
+                  <button
+                    className={styles.ghostBtn}
+                    onClick={() => setShowForm(false)}
+                  >
                     <X size={16} />
                   </button>
                 </div>
 
                 <form onSubmit={handleApply}>
                   <div className={styles.formGrid}>
-
                     {/* Campo: Tipo de penalidade */}
                     <div className={styles.formGroup}>
                       <label className={styles.label}>
                         Tipo <span className={styles.required}>*</span>
                       </label>
-                      <select name="pen_tipo" className={styles.input} value={form.pen_tipo} onChange={handleFormChange}>
+                      <select
+                        name="pen_tipo"
+                        className={styles.input}
+                        value={form.pen_tipo}
+                        onChange={handleFormChange}
+                      >
                         <option value="">Selecione...</option>
-                        <option value="1">1 — Impedir de oferecer caronas</option>
-                        <option value="2">2 — Impedir de solicitar caronas</option>
-                        <option value="3">3 — Impedir oferecer e solicitar</option>
-                        <option value="4">4 — Suspender conta (permanente)</option>
+                        <option value="1">
+                          1 — Impedir de oferecer caronas
+                        </option>
+                        <option value="2">
+                          2 — Impedir de solicitar caronas
+                        </option>
+                        <option value="3">
+                          3 — Impedir oferecer e solicitar
+                        </option>
+                        <option value="4">
+                          4 — Suspender conta (permanente)
+                        </option>
                       </select>
                     </div>
 
                     {/* Campo: Duração (desabilitado para tipo 4 = suspensão permanente) */}
                     <div className={styles.formGroup}>
                       <label className={styles.label}>
-                        Duração {form.pen_tipo !== '4' && <span className={styles.required}>*</span>}
+                        Duração{" "}
+                        {form.pen_tipo !== "4" && (
+                          <span className={styles.required}>*</span>
+                        )}
                       </label>
                       <select
                         name="pen_duracao"
                         className={styles.input}
                         value={form.pen_duracao}
                         onChange={handleFormChange}
-                        disabled={form.pen_tipo === '4'}  // desabilitado para suspensão
+                        disabled={form.pen_tipo === "4"} // desabilitado para suspensão
                       >
-                        <option value="">{form.pen_tipo === '4' ? 'Permanente (suspensão)' : 'Selecione...'}</option>
-                        {DURACAO_OPTIONS.map(o => (
-                          <option key={o.value} value={o.value}>{o.label}</option>
+                        <option value="">
+                          {form.pen_tipo === "4"
+                            ? "Permanente (suspensão)"
+                            : "Selecione..."}
+                        </option>
+                        {DURACAO_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -421,37 +483,57 @@ export function PenaltyPanel({ user, onClose }) {
                         name="pen_motivo"
                         className={styles.textarea}
                         rows={2}
-                        maxLength={255}  // limite máximo de caracteres
+                        maxLength={255} // limite máximo de caracteres
                         placeholder="Descreva o motivo da penalidade (opcional)..."
                         value={form.pen_motivo}
                         onChange={handleFormChange}
                       />
                       {/* Contador de caracteres: atualiza em tempo real */}
-                      <span className={styles.charCount}>{form.pen_motivo.length}/255</span>
+                      <span className={styles.charCount}>
+                        {form.pen_motivo.length}/255
+                      </span>
                     </div>
                   </div>
 
                   {/* Aviso especial para tipo 4 (Suspensão de conta) */}
-                  {form.pen_tipo === '4' && (
+                  {form.pen_tipo === "4" && (
                     <div className={styles.suspensionWarning}>
-                      <AlertCircle size={15} />
-                      A suspensão bloqueia o login do usuário e cancela todas as caronas ativas. Esta ação é permanente até ser removida manualmente.
+                      <AlertCircle size={15} />A suspensão bloqueia o login do
+                      usuário e cancela todas as caronas ativas. Esta ação é
+                      permanente até ser removida manualmente.
                     </div>
                   )}
 
                   {/* Mensagem de erro do formulário */}
                   {formError && (
-                    <div className={styles.alertError}><AlertCircle size={15} /> {formError}</div>
+                    <div className={styles.alertError}>
+                      <AlertCircle size={15} /> {formError}
+                    </div>
                   )}
 
                   <div className={styles.formActions}>
                     {/* Botão vermelho de confirmação com spinner */}
-                    <button type="submit" className={styles.dangerBtn} disabled={formLoading}>
-                      {formLoading
-                        ? <><Loader2 size={15} className={styles.spin} /> Aplicando...</>
-                        : <><Ban size={15} /> Aplicar Penalidade</>}
+                    <button
+                      type="submit"
+                      className={styles.dangerBtn}
+                      disabled={formLoading}
+                    >
+                      {formLoading ? (
+                        <>
+                          <Loader2 size={15} className={styles.spin} />{" "}
+                          Aplicando...
+                        </>
+                      ) : (
+                        <>
+                          <Ban size={15} /> Aplicar Penalidade
+                        </>
+                      )}
                     </button>
-                    <button type="button" className={styles.ghostBtn} onClick={() => setShowForm(false)}>
+                    <button
+                      type="button"
+                      className={styles.ghostBtn}
+                      onClick={() => setShowForm(false)}
+                    >
                       Cancelar
                     </button>
                   </div>
@@ -461,10 +543,14 @@ export function PenaltyPanel({ user, onClose }) {
 
             {/* Mensagens globais de sucesso e erro de remoção */}
             {formSuccess && (
-              <div className={styles.alertSuccess}><CheckCircle size={15} /> {formSuccess}</div>
+              <div className={styles.alertSuccess}>
+                <CheckCircle size={15} /> {formSuccess}
+              </div>
             )}
             {removeError && (
-              <div className={styles.alertError}><AlertCircle size={15} /> {removeError}</div>
+              <div className={styles.alertError}>
+                <AlertCircle size={15} /> {removeError}
+              </div>
             )}
 
             {/* ── Lista de penalidades ── */}
@@ -474,10 +560,10 @@ export function PenaltyPanel({ user, onClose }) {
 
                 {/* Filtros: Todas / Ativas / Inativas */}
                 <div className={styles.filterTabs}>
-                  {['Todas', 'Ativas', 'Inativas'].map(f => (
+                  {["Todas", "Ativas", "Inativas"].map((f) => (
                     <button
                       key={f}
-                      className={`${styles.filterBtn} ${filterStatus === f ? styles.filterActive : ''}`}
+                      className={`${styles.filterBtn} ${filterStatus === f ? styles.filterActive : ""}`}
                       onClick={() => setFilterStatus(f)}
                     >
                       {f}
@@ -496,22 +582,28 @@ export function PenaltyPanel({ user, onClose }) {
 
               {/* Erro ao carregar a lista */}
               {listError && !listLoading && (
-                <div className={styles.alertError}><AlertCircle size={15} /> {listError}</div>
+                <div className={styles.alertError}>
+                  <AlertCircle size={15} /> {listError}
+                </div>
               )}
 
               {/* Estado vazio: nenhuma penalidade encontrada */}
               {!listLoading && filteredPenalties.length === 0 && (
                 <div className={styles.emptyState}>
                   <CheckCircle size={32} />
-                  <p>{filterStatus === 'Ativas' ? 'Nenhuma penalidade ativa.' : 'Nenhuma penalidade encontrada.'}</p>
+                  <p>
+                    {filterStatus === "Ativas"
+                      ? "Nenhuma penalidade ativa."
+                      : "Nenhuma penalidade encontrada."}
+                  </p>
                 </div>
               )}
 
               {/* Cards de penalidade */}
               <div className={styles.penaltyList}>
-                {filteredPenalties.map(pen => {
+                {filteredPenalties.map((pen) => {
                   const status = getPenaltyStatus(pen);
-                  const active = status === 'ativa';
+                  const active = status === "ativa";
 
                   // ?? Ban → usa Ban como ícone padrão se o tipo não estiver no mapa
                   const Icon = TIPO_ICONS[pen.pen_tipo] ?? Ban;
@@ -521,12 +613,14 @@ export function PenaltyPanel({ user, onClose }) {
                     <div
                       key={pen.pen_id}
                       // styles.penaltyInactive → opacidade reduzida para penalidades inativas
-                      className={`${styles.penaltyCard} ${!active ? styles.penaltyInactive : ''}`}
+                      className={`${styles.penaltyCard} ${!active ? styles.penaltyInactive : ""}`}
                     >
                       <div className={styles.penaltyCardLeft}>
                         {/* Ícone com cor de fundo baseada na severidade:
                             styles[`icon_${severity}`] → icon_warning, icon_danger, icon_critical */}
-                        <div className={`${styles.penaltyIcon} ${styles[`icon_${severity}`]}`}>
+                        <div
+                          className={`${styles.penaltyIcon} ${styles[`icon_${severity}`]}`}
+                        >
                           <Icon size={18} />
                         </div>
 
@@ -536,7 +630,9 @@ export function PenaltyPanel({ user, onClose }) {
                               Tipo {pen.pen_tipo} — {TIPO_LABELS[pen.pen_tipo]}
                             </span>
                             {/* Badge de status com cor dinâmica: status_ativa, status_expirada, etc. */}
-                            <span className={`${styles.statusBadge} ${styles[`status_${status}`]}`}>
+                            <span
+                              className={`${styles.statusBadge} ${styles[`status_${status}`]}`}
+                            >
                               {/* charAt(0).toUpperCase() → capitaliza a primeira letra */}
                               {status.charAt(0).toUpperCase() + status.slice(1)}
                             </span>
@@ -544,16 +640,23 @@ export function PenaltyPanel({ user, onClose }) {
 
                           {/* Motivo: só exibe se estiver preenchido */}
                           {pen.pen_motivo && (
-                            <p className={styles.penaltyMotivo}>{pen.pen_motivo}</p>
+                            <p className={styles.penaltyMotivo}>
+                              {pen.pen_motivo}
+                            </p>
                           )}
 
                           {/* Datas de aplicação e expiração */}
                           <div className={styles.penaltyMeta}>
-                            <span><Clock size={12} /> Aplicada em {formatDate(pen.pen_aplicado_em)}</span>
+                            <span>
+                              <Clock size={12} /> Aplicada em{" "}
+                              {formatDate(pen.pen_aplicado_em)}
+                            </span>
                             <span>
                               {pen.pen_expira_em
                                 ? `Expira em ${formatDate(pen.pen_expira_em)}`
-                                : pen.pen_tipo === 4 ? 'Permanente' : '—'}
+                                : pen.pen_tipo === 4
+                                  ? "Permanente"
+                                  : "—"}
                             </span>
                           </div>
                         </div>
@@ -568,9 +671,11 @@ export function PenaltyPanel({ user, onClose }) {
                           disabled={removeLoading === pen.pen_id}
                           title="Remover penalidade"
                         >
-                          {removeLoading === pen.pen_id
-                            ? <Loader2 size={15} className={styles.spin} />
-                            : <Trash2 size={15} />}
+                          {removeLoading === pen.pen_id ? (
+                            <Loader2 size={15} className={styles.spin} />
+                          ) : (
+                            <Trash2 size={15} />
+                          )}
                           Remover
                         </button>
                       )}
@@ -579,7 +684,6 @@ export function PenaltyPanel({ user, onClose }) {
                 })}
               </div>
             </div>
-
           </div>
         </div>
       </div>

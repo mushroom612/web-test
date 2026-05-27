@@ -39,11 +39,11 @@
 //     .divider    → linha separadora horizontal entre itens do menu
 // ============================================================
 
-import {useState} from "react";
-import {Edit2, ShieldAlert, Trash2, Eye} from "lucide-react";
+import { useState } from "react";
+import { Edit2, ShieldAlert, Trash2, Eye } from "lucide-react";
 import styles from "./UserActionsMenu.module.css";
 
-export function UserActionsMenu({user, onEdit, onPenalize, onView}) {
+export function UserActionsMenu({ user, onEdit, onPenalize, onView }) {
   // isOpen: controla se o menu está visível ou oculto
   const [isOpen, setIsOpen] = useState(false);
 
@@ -54,7 +54,7 @@ export function UserActionsMenu({user, onEdit, onPenalize, onView}) {
       {/* Botão de três pontos: alterna o estado de aberto/fechado */}
       <button
         className={styles.menuBtn}
-        onClick={() => setIsOpen(!isOpen)}  // ! inverte: se true vira false e vice-versa
+        onClick={() => setIsOpen(!isOpen)} // ! inverte: se true vira false e vice-versa
         title="Mais opções"
       >
         ⋮
@@ -74,7 +74,6 @@ export function UserActionsMenu({user, onEdit, onPenalize, onView}) {
 
           {/* Menu suspenso com as opções */}
           <div className={styles.menu}>
-
             {/* Ver Detalhes: chama onView com o usuário e fecha o menu.
                 onView?.(user) → o ?. (optional chaining) evita erro se onView
                 não for fornecido (o componente funciona mesmo sem esta prop) */}

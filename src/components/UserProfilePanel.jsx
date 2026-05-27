@@ -87,39 +87,61 @@
 //     .spin            → animação de rotação no ícone Loader2
 // ============================================================
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
-  ArrowLeft, Edit2, Save, X, User, Mail, Phone,
-  Building2, BookOpen, ShieldCheck, Clock, Monitor,
-  CheckCircle, AlertCircle, Loader2
-} from 'lucide-react';
-import { usersData } from '../data/mockData';
-import { api } from '../services/api';
-import styles from './UserProfilePanel.module.css';
+  ArrowLeft,
+  Edit2,
+  Save,
+  X,
+  User,
+  Mail,
+  Phone,
+  Building2,
+  BookOpen,
+  ShieldCheck,
+  Clock,
+  Monitor,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
+import { usersData } from "../data/mockData";
+import { api } from "../services/api";
+import styles from "./UserProfilePanel.module.css";
 
 // VERIFICACAO_LABELS: traduz o código numérico de verificação para texto e cor.
 // usu_verificacao é um campo da API que indica o estágio de verificação da conta.
 const VERIFICACAO_LABELS = {
-  0: { label: 'Aguardando OTP', color: 'warning' },
-  1: { label: 'Admin verificado', color: 'success' },
-  2: { label: 'Verificado', color: 'success' },
-  5: { label: 'Cadastro pendente', color: 'warning' },
-  6: { label: 'Veículo pendente', color: 'warning' },
-  9: { label: 'Suspenso', color: 'danger' }
+  0: { label: "Aguardando OTP", color: "warning" },
+  1: { label: "Admin verificado", color: "success" },
+  2: { label: "Verificado", color: "success" },
+  5: { label: "Cadastro pendente", color: "warning" },
+  6: { label: "Veículo pendente", color: "warning" },
+  9: { label: "Suspenso", color: "danger" },
 };
 
 // getInitials: gera as iniciais do nome para o avatar.
 // Ex: "Carlos Souza" → "CS", "Ana" → "AN" (primeiras 2 letras das 2 primeiras palavras)
-function getInitials(name = '') {
-  return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
+function getInitials(name = "") {
+  return (
+    name
+      .split(" ")
+      .slice(0, 2)
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() || "?"
+  );
 }
 
 // formatDate: formata data ISO para o padrão brasileiro com hora.
 function formatDate(dateStr) {
-  if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('pt-BR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -129,7 +151,7 @@ function formatDate(dateStr) {
 // Enquanto o backend não expor esses campos, este enriquecimento é necessário.
 function enrichUser(apiUser) {
   const mock = usersData.find(
-    u => u.email === apiUser.usu_email || u.id === apiUser.usu_id
+    (u) => u.email === apiUser.usu_email || u.id === apiUser.usu_id,
   );
   return {
     usu_id: apiUser.usu_id,
@@ -139,15 +161,20 @@ function enrichUser(apiUser) {
     usu_verificacao: apiUser.usu_verificacao,
     usu_telefone: apiUser.usu_telefone ?? null,
     // Campos do mock (podem ser '—' se não encontrado)
-    school: mock?.school ?? '—',
-    course: mock?.course ?? '—',
-    type: mock?.type ?? '—',
+    school: mock?.school ?? "—",
+    course: mock?.course ?? "—",
+    type: mock?.type ?? "—",
     lastAccess: mock?.lastAccess ?? null,
-    ipLogin: mock?.ipLogin ?? null
+    ipLogin: mock?.ipLogin ?? null,
   };
 }
 
-export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUpdated }) {
+export function UserProfilePanel({
+  user,
+  initialMode = "view",
+  onClose,
+  onUserUpdated,
+}) {
   // enriched: versão completa do usuário (API + mock fundidos)
   const enriched = enrichUser(user);
 
@@ -158,42 +185,48 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
   // Inicializado com os dados atuais do usuário.
   const [form, setForm] = useState({
     usu_nome: enriched.usu_nome,
-    usu_telefone: enriched.usu_telefone ?? '',
-    usu_status: enriched.usu_status
+    usu_telefone: enriched.usu_telefone ?? "",
+    usu_status: enriched.usu_status,
   });
 
   const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState('');
-  const [saveSuccess, setSaveSuccess] = useState('');
+  const [saveError, setSaveError] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState("");
 
   // verif: objeto { label, color } com os dados de verificação para exibir no badge.
   // ?? → usa 'Desconhecido' se o código não estiver no mapa VERIFICACAO_LABELS.
-  const verif = VERIFICACAO_LABELS[enriched.usu_verificacao] ?? { label: 'Desconhecido', color: 'neutral' };
+  const verif = VERIFICACAO_LABELS[enriched.usu_verificacao] ?? {
+    label: "Desconhecido",
+    color: "neutral",
+  };
 
   // handleFormChange: atualiza apenas o campo que mudou.
   // [name]: value → chave computada: usa o nome do campo como chave dinâmica.
   function handleFormChange(e) {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   }
 
   async function handleSave(e) {
     e.preventDefault();
-    setSaveError('');
-    setSaveSuccess('');
+    setSaveError("");
+    setSaveSuccess("");
     // Validação simples: nome não pode ser vazio.
     // .trim() remove espaços do início e fim antes de verificar.
-    if (!form.usu_nome.trim()) { setSaveError('O nome não pode estar vazio.'); return; }
+    if (!form.usu_nome.trim()) {
+      setSaveError("O nome não pode estar vazio.");
+      return;
+    }
 
     setSaving(true);
     try {
       await api.updateUser(enriched.usu_id, {
         usu_nome: form.usu_nome.trim(),
-        usu_telefone: form.usu_telefone.trim() || null,  // string vazia → null
-        usu_status: Number(form.usu_status)              // converte string → número
+        usu_telefone: form.usu_telefone.trim() || null, // string vazia → null
+        usu_status: Number(form.usu_status), // converte string → número
       });
-      setSaveSuccess('Dados atualizados com sucesso.');
-      setMode('view');
+      setSaveSuccess("Dados atualizados com sucesso.");
+      setMode("view");
 
       // onUserUpdated?.() → chama a prop se fornecida (optional chaining).
       // Passa o usuário com os campos atualizados para que Usuarios.jsx
@@ -201,10 +234,10 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
       onUserUpdated?.({
         ...user,
         usu_nome: form.usu_nome.trim(),
-        usu_status: Number(form.usu_status)
+        usu_status: Number(form.usu_status),
       });
     } catch (err) {
-      setSaveError(err.message || 'Erro ao salvar alterações.');
+      setSaveError(err.message || "Erro ao salvar alterações.");
     } finally {
       setSaving(false);
     }
@@ -214,16 +247,15 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
   function handleCancelEdit() {
     setForm({
       usu_nome: enriched.usu_nome,
-      usu_telefone: enriched.usu_telefone ?? '',
-      usu_status: enriched.usu_status
+      usu_telefone: enriched.usu_telefone ?? "",
+      usu_status: enriched.usu_status,
     });
-    setSaveError('');
-    setMode('view');
+    setSaveError("");
+    setMode("view");
   }
 
   return (
     <div className={styles.panel}>
-
       {/* ── Cabeçalho do painel ── */}
       <div className={styles.panelHeader}>
         {/* Botão de voltar: chama onClose para fechar o painel */}
@@ -234,8 +266,15 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
 
         <div className={styles.headerActions}>
           {/* Exibe "Editar" no modo view e "Cancelar" no modo edit */}
-          {mode === 'view' ? (
-            <button className={styles.editBtn} onClick={() => { setMode('edit'); setSaveSuccess(''); setSaveError(''); }}>
+          {mode === "view" ? (
+            <button
+              className={styles.editBtn}
+              onClick={() => {
+                setMode("edit");
+                setSaveSuccess("");
+                setSaveError("");
+              }}
+            >
               <Edit2 size={15} />
               Editar
             </button>
@@ -251,10 +290,11 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
       {/* ── Corpo do painel (área com scroll) ── */}
       <div className={styles.panelBody}>
         <div className={styles.inner}>
-
           {/* Card de destaque: avatar grande + nome + badges de status */}
           <div className={styles.heroCard}>
-            <div className={styles.heroAvatar}>{getInitials(enriched.usu_nome)}</div>
+            <div className={styles.heroAvatar}>
+              {getInitials(enriched.usu_nome)}
+            </div>
             <div className={styles.heroInfo}>
               <h2 className={styles.heroName}>{enriched.usu_nome}</h2>
               <p className={styles.heroEmail}>{enriched.usu_email}</p>
@@ -262,15 +302,19 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
                 {/* Badge de status: verde se Ativo, vermelho se Inativo.
                     O nome da classe é montado dinamicamente:
                     styles[`badge_active`] ou styles[`badge_inactive`] */}
-                <span className={`${styles.badge} ${styles[`badge_${enriched.usu_status === 1 ? 'active' : 'inactive'}`]}`}>
-                  {enriched.usu_status === 1 ? 'Ativo' : 'Inativo'}
+                <span
+                  className={`${styles.badge} ${styles[`badge_${enriched.usu_status === 1 ? "active" : "inactive"}`]}`}
+                >
+                  {enriched.usu_status === 1 ? "Ativo" : "Inativo"}
                 </span>
                 {/* Badge de verificação: cor vinda de VERIFICACAO_LABELS */}
-                <span className={`${styles.badge} ${styles[`badge_${verif.color}`]}`}>
+                <span
+                  className={`${styles.badge} ${styles[`badge_${verif.color}`]}`}
+                >
                   {verif.label}
                 </span>
                 {/* Badge de tipo: só exibe se o tipo estiver preenchido */}
-                {enriched.type !== '—' && (
+                {enriched.type !== "—" && (
                   <span className={styles.badge}>{enriched.type}</span>
                 )}
               </div>
@@ -279,31 +323,43 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
 
           {/* Mensagens de sucesso e erro */}
           {saveSuccess && (
-            <div className={styles.alertSuccess}><CheckCircle size={15} /> {saveSuccess}</div>
+            <div className={styles.alertSuccess}>
+              <CheckCircle size={15} /> {saveSuccess}
+            </div>
           )}
           {saveError && (
-            <div className={styles.alertError}><AlertCircle size={15} /> {saveError}</div>
+            <div className={styles.alertError}>
+              <AlertCircle size={15} /> {saveError}
+            </div>
           )}
 
           {/* ── Modo VISUALIZAÇÃO: grade de cards de informação ── */}
-          {mode === 'view' && (
+          {mode === "view" && (
             <div className={styles.grid}>
               {/* InfoCard: componente interno definido abaixo neste mesmo arquivo.
                   Recebe ícone, rótulo e valor para exibir de forma consistente. */}
-              <InfoCard icon={User} label="Nome completo" value={enriched.usu_nome} />
+              <InfoCard
+                icon={User}
+                label="Nome completo"
+                value={enriched.usu_nome}
+              />
               <InfoCard icon={Mail} label="E-mail" value={enriched.usu_email} />
               <InfoCard
                 icon={Phone}
                 label="Telefone"
-                value={enriched.usu_telefone ? enriched.usu_telefone : '—'}
+                value={enriched.usu_telefone ? enriched.usu_telefone : "—"}
               />
-              <InfoCard icon={Building2} label="Instituição" value={enriched.school} />
+              <InfoCard
+                icon={Building2}
+                label="Instituição"
+                value={enriched.school}
+              />
               <InfoCard icon={BookOpen} label="Curso" value={enriched.course} />
               <InfoCard
                 icon={ShieldCheck}
                 label="Verificação"
                 value={verif.label}
-                valueColor={verif.color}  // aplica cor ao valor (ex: verde para 'success')
+                valueColor={verif.color} // aplica cor ao valor (ex: verde para 'success')
               />
               <InfoCard
                 icon={Clock}
@@ -313,17 +369,16 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
               <InfoCard
                 icon={Monitor}
                 label="IP do último login"
-                value={enriched.ipLogin ?? '—'}
-                mono    // fonte monospace para IPs (passado como prop booleana)
+                value={enriched.ipLogin ?? "—"}
+                mono // fonte monospace para IPs (passado como prop booleana)
               />
             </div>
           )}
 
           {/* ── Modo EDIÇÃO: formulário com campos editáveis ── */}
-          {mode === 'edit' && (
+          {mode === "edit" && (
             <form className={styles.editForm} onSubmit={handleSave}>
               <div className={styles.editGrid}>
-
                 {/* Campo: Nome */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
@@ -346,7 +401,7 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
                   <input
                     className={styles.input}
                     value={enriched.usu_email}
-                    disabled  // disabled → cinza, não editável
+                    disabled // disabled → cinza, não editável
                     title="O e-mail não pode ser alterado"
                   />
                 </div>
@@ -386,35 +441,57 @@ export function UserProfilePanel({ user, initialMode = 'view', onClose, onUserUp
                   <label className={styles.label}>
                     <Building2 size={14} /> Instituição
                   </label>
-                  <input className={styles.input} value={enriched.school} disabled />
+                  <input
+                    className={styles.input}
+                    value={enriched.school}
+                    disabled
+                  />
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
                     <BookOpen size={14} /> Curso
                   </label>
-                  <input className={styles.input} value={enriched.course} disabled />
+                  <input
+                    className={styles.input}
+                    value={enriched.course}
+                    disabled
+                  />
                 </div>
               </div>
 
               <p className={styles.editNote}>
-                Campos desabilitados são gerenciados pelo próprio usuário ou pela instituição.
+                Campos desabilitados são gerenciados pelo próprio usuário ou
+                pela instituição.
               </p>
 
               <div className={styles.editActions}>
                 {/* Botão salvar: mostra spinner enquanto está salvando */}
-                <button type="submit" className={styles.saveBtn} disabled={saving}>
-                  {saving
-                    ? <><Loader2 size={15} className={styles.spin} /> Salvando...</>
-                    : <><Save size={15} /> Salvar alterações</>}
+                <button
+                  type="submit"
+                  className={styles.saveBtn}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 size={15} className={styles.spin} /> Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={15} /> Salvar alterações
+                    </>
+                  )}
                 </button>
-                <button type="button" className={styles.cancelBtn} onClick={handleCancelEdit}>
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={handleCancelEdit}
+                >
                   Cancelar
                 </button>
               </div>
             </form>
           )}
-
         </div>
       </div>
     </div>
@@ -442,7 +519,9 @@ function InfoCard({ icon: Icon, label, value, valueColor, mono }) {
       {/* styles.color_success / styles.color_warning / styles.color_danger
           são adicionados condicionalmente via template literal.
           styles.mono é adicionado apenas se a prop mono for true. */}
-      <p className={`${styles.infoValue} ${valueColor ? styles[`color_${valueColor}`] : ''} ${mono ? styles.mono : ''}`}>
+      <p
+        className={`${styles.infoValue} ${valueColor ? styles[`color_${valueColor}`] : ""} ${mono ? styles.mono : ""}`}
+      >
         {value}
       </p>
     </div>

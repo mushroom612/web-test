@@ -85,8 +85,8 @@
   padding: 16px;
   border-top: 1px solid #e0e0e0;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 0;
 }
 
 .userCard {
@@ -156,4 +156,117 @@
   .aside {
     display: none;
   }
+}
+
+/* ── Rodapé expandível ─────────────────────────────────────── */
+
+.footerMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userCardBtn {
+  flex: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 6px;
+  text-align: left;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  min-width: 0;
+}
+
+.userCardBtn:hover {
+  background-color: var(--color-green-100);
+}
+
+/* Avatar com indicador de status online */
+.avatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.onlineDot {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 10px;
+  height: 10px;
+  background-color: #16a34a;
+  border-radius: 50%;
+  border: 2px solid var(--surface-primary);
+}
+
+/* Badge com tooltip CSS-only */
+.badgeWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1f2937;
+  color: white;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.badgeWrapper:hover .tooltip {
+  display: block;
+}
+
+/* Painel expandido com e-mail e permissões */
+.expandedInfo {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background-color: var(--color-green-100);
+  border-radius: 8px;
+}
+
+.userEmailText {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  word-break: break-all;
+}
+
+.permsList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.userEmailInline {
+  margin: 1px 0 3px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -29,9 +29,9 @@
 //   Se o status não estiver no mapa, usa as cores de 'Pendente' como padrão.
 // ============================================================
 
-import styles from './StatusBadge.module.css';
+import styles from "./StatusBadge.module.css";
 
-export function StatusBadge({ status, type = 'status' }) {
+export function StatusBadge({ status, type = "status" }) {
   // statusStyles: dicionário que associa cada texto de status a um par de cores.
   // As cores seguem uma convenção semântica:
   //   verde  → positivo (Ativo, Concluída, Resolvido, Sugestão)
@@ -40,29 +40,29 @@ export function StatusBadge({ status, type = 'status' }) {
   //   vermelho → negativo (Inativo, Cancelada, Denúncia, Vencido, Suspenso)
   //   roxo   → especial (Arquivado)
   const statusStyles = {
-    'Ativo': { bg: '#e9f5df', text: '#2d5016' },
-    'Inativo': { bg: '#fee2e2', text: '#b91c1c' },
-    'Pendente': { bg: '#fef3c7', text: '#92400e' },
-    'Concluída': { bg: '#d1fae5', text: '#047857' },
-    'Em andamento': { bg: '#dbeafe', text: '#0369a1' },
-    'Cancelada': { bg: '#fee2e2', text: '#b91c1c' },
-    'Sugestão': { bg: '#e9f5df', text: '#2d5016' },
-    'Denúncia': { bg: '#fee2e2', text: '#b91c1c' },
-    'Resolvido': { bg: '#d1fae5', text: '#047857' },
-    'Arquivado': { bg: '#ede9fe', text: '#5b21b6' },
-    'Aberta': { bg: '#dbeafe', text: '#0369a1' },
-    'Em espera': { bg: '#fef3c7', text: '#92400e' },
-    'Aberto': { bg: '#dbeafe', text: '#0369a1' },
-    'Em análise': { bg: '#fef3c7', text: '#92400e' },
-    'Aguardando verificação': { bg: '#fef3c7', text: '#92400e' },
-    'Suspenso': { bg: '#fee2e2', text: '#b91c1c' },
-    'Temporário': { bg: '#fef3c7', text: '#92400e' },
-    'Vencido': { bg: '#fee2e2', text: '#b91c1c' },
-    'Pendente de Assinatura': { bg: '#fef3c7', text: '#92400e' }
+    Ativo: { bg: "#e9f5df", text: "#2d5016" },
+    Inativo: { bg: "#fee2e2", text: "#b91c1c" },
+    Pendente: { bg: "#fef3c7", text: "#92400e" },
+    Concluída: { bg: "#d1fae5", text: "#047857" },
+    "Em andamento": { bg: "#dbeafe", text: "#0369a1" },
+    Cancelada: { bg: "#fee2e2", text: "#b91c1c" },
+    Sugestão: { bg: "#e9f5df", text: "#2d5016" },
+    Denúncia: { bg: "#fee2e2", text: "#b91c1c" },
+    Resolvido: { bg: "#d1fae5", text: "#047857" },
+    Arquivado: { bg: "#ede9fe", text: "#5b21b6" },
+    Aberta: { bg: "#dbeafe", text: "#0369a1" },
+    "Em espera": { bg: "#fef3c7", text: "#92400e" },
+    Aberto: { bg: "#dbeafe", text: "#0369a1" },
+    "Em análise": { bg: "#fef3c7", text: "#92400e" },
+    "Aguardando verificação": { bg: "#fef3c7", text: "#92400e" },
+    Suspenso: { bg: "#fee2e2", text: "#b91c1c" },
+    Temporário: { bg: "#fef3c7", text: "#92400e" },
+    Vencido: { bg: "#fee2e2", text: "#b91c1c" },
+    "Pendente de Assinatura": { bg: "#fef3c7", text: "#92400e" },
   };
 
   // Busca as cores pelo status; se não encontrar, usa as cores de 'Pendente' como fallback
-  const style = statusStyles[status] || statusStyles['Pendente'];
+  const style = statusStyles[status] || statusStyles["Pendente"];
 
   return (
     // styles.badge → aplica o formato visual base (bordas, padding, fonte).
@@ -73,7 +73,7 @@ export function StatusBadge({ status, type = 'status' }) {
       className={styles.badge}
       style={{
         backgroundColor: style.bg,
-        color: style.text
+        color: style.text,
       }}
     >
       {status}

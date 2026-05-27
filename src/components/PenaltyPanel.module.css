@@ -19,8 +19,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Barra superior ──────────────────────────────────────── */
@@ -501,9 +505,18 @@
   flex-shrink: 0;
 }
 
-.icon_warning  { background-color: #fef3c7; color: #b45309; }
-.icon_danger   { background-color: #fee2e2; color: #b91c1c; }
-.icon_critical { background-color: #fce7f3; color: #9d174d; }
+.icon_warning {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+.icon_danger {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+.icon_critical {
+  background-color: #fce7f3;
+  color: #9d174d;
+}
 
 .penaltyInfo {
   flex: 1;
@@ -535,9 +548,18 @@
   letter-spacing: 0.3px;
 }
 
-.status_ativa    { background-color: #dcfce7; color: #15803d; }
-.status_expirada { background-color: #f3f4f6; color: #6b7280; }
-.status_removida { background-color: #f3f4f6; color: #9ca3af; }
+.status_ativa {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+.status_expirada {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+.status_removida {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+}
 
 .penaltyMotivo {
   margin: 0 0 8px;
@@ -591,7 +613,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Responsivo ──────────────────────────────────────────── */

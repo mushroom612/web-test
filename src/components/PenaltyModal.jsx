@@ -54,8 +54,8 @@
 //     .btnSubmit  → botão "Aplicar Penalidade" (estilo primário/vermelho)
 // ============================================================
 
-import {useState} from "react";
-import {X, ShieldAlert, Ban, UserX, Clock} from "lucide-react";
+import { useState } from "react";
+import { X, ShieldAlert, Ban, UserX, Clock } from "lucide-react";
 import styles from "./PenaltyModal.module.css";
 
 // TIPO_LABELS: mapa de número → descrição do tipo de penalidade.
@@ -79,16 +79,16 @@ const TIPO_ICONS = {
 // DURACAO_OPTIONS: array de opções para o dropdown de duração.
 // value → enviado para a API | label → exibido para o usuário
 const DURACAO_OPTIONS = [
-  {value: "1semana", label: "1 semana"},
-  {value: "2semanas", label: "2 semanas"},
-  {value: "1mes", label: "1 mês"},
-  {value: "3meses", label: "3 meses"},
-  {value: "6meses", label: "6 meses"},
+  { value: "1semana", label: "1 semana" },
+  { value: "2semanas", label: "2 semanas" },
+  { value: "1mes", label: "1 mês" },
+  { value: "3meses", label: "3 meses" },
+  { value: "6meses", label: "6 meses" },
 ];
 
-export function PenaltyModal({isOpen, user, onClose, onSubmit}) {
+export function PenaltyModal({ isOpen, user, onClose, onSubmit }) {
   // Estados dos campos do formulário
-  const [tipoSelecionado, setTipoSelecionado] = useState("1");  // tipo selecionado (string)
+  const [tipoSelecionado, setTipoSelecionado] = useState("1"); // tipo selecionado (string)
   const [duracao, setDuracao] = useState("1semana");
   const [motivo, setMotivo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,7 +149,6 @@ export function PenaltyModal({isOpen, user, onClose, onSubmit}) {
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-
           {/* ── Seleção do tipo de penalidade ── */}
           <div className={styles.formGroup}>
             <label htmlFor="tipo" className={styles.label}>
@@ -165,7 +164,7 @@ export function PenaltyModal({isOpen, user, onClose, onSubmit}) {
                 return (
                   <button
                     key={id}
-                    type="button"  // type="button" → NÃO submete o form ao clicar
+                    type="button" // type="button" → NÃO submete o form ao clicar
                     onClick={() => setTipoSelecionado(id)}
                     // styles.selected é adicionado dinamicamente ao botão selecionado
                     className={`${styles.tipoOption} ${
