@@ -57,7 +57,6 @@ const pageNames = {
   "/contratos": "Contratos",
   "/notificacoes": "Emitir Notificação",
   "/auditoria": "Auditoria",
-  "/penalidades": "Penalidades",
 };
 
 export function Topbar() {
