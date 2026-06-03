@@ -105,7 +105,6 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import { usersData } from "../data/mockData";
 import { api } from "../services/api";
 import styles from "./UserProfilePanel.module.css";
 
@@ -122,7 +121,8 @@ const VERIFICACAO_LABELS = {
 
 // getInitials: gera as iniciais do nome para o avatar.
 // Ex: "Carlos Souza" → "CS", "Ana" → "AN" (primeiras 2 letras das 2 primeiras palavras)
-function getInitials(name = "") {
+function getInitials(name) {
+  if (!name) return "?";
   return (
     name
       .split(" ")
@@ -145,27 +145,36 @@ function formatDate(dateStr) {
   });
 }
 
-// enrichUser: complementa os dados da API com informações adicionais do mockData.
-// Busca o usuário no usersData pelo e-mail ou ID (dois critérios para maior chance
-// de correspondência). Campos que a API não retorna são preenchidos com dados mock.
-// Enquanto o backend não expor esses campos, este enriquecimento é necessário.
+// enrichUser: normaliza o objeto de usuário vindo da API para o formato
+// esperado pelo painel. Todos os campos são lidos diretamente da resposta
+// da API — não há mais dependência de dados mockados.
+//
+// Campos que o endpoint GET /api/admin/usuarios/:id pode retornar:
+//   esc_nome / escola_nome → nome da instituição
+//   cur_nome / curso_nome  → nome do curso
+//   per_tipo               → papel (0=Usuário, 1=Admin, 2=Dev)
+//   usu_ultimo_acesso      → timestamp do último login
+//   usu_ip_login           → IP do último login
+//
+// Campos não retornados pela API aparecem como '—'.
+const PER_TIPO_LABELS = { 0: 'Usuário', 1: 'Admin de Escola', 2: 'Desenvolvedor' };
+
 function enrichUser(apiUser) {
-  const mock = usersData.find(
-    (u) => u.email === apiUser.usu_email || u.id === apiUser.usu_id,
-  );
   return {
-    usu_id: apiUser.usu_id,
-    usu_nome: apiUser.usu_nome,
-    usu_email: apiUser.usu_email,
-    usu_status: apiUser.usu_status,
-    usu_verificacao: apiUser.usu_verificacao,
-    usu_telefone: apiUser.usu_telefone ?? null,
-    // Campos do mock (podem ser '—' se não encontrado)
-    school: mock?.school ?? "—",
-    course: mock?.course ?? "—",
-    type: mock?.type ?? "—",
-    lastAccess: mock?.lastAccess ?? null,
-    ipLogin: mock?.ipLogin ?? null,
+    usu_id:        apiUser.usu_id,
+    usu_nome:      apiUser.usu_nome,
+    usu_email:     apiUser.usu_email,
+    usu_status:    apiUser.usu_status ?? 1,
+    usu_verificacao: apiUser.usu_verificacao ?? 0,
+    usu_telefone:  apiUser.usu_telefone ?? null,
+    usu_foto:      apiUser.usu_foto ?? null,
+    school:        apiUser.esc_nome ?? apiUser.escola_nome ?? '—',
+    course:        apiUser.cur_nome ?? apiUser.curso_nome ?? '—',
+    type:          apiUser.per_tipo != null
+                     ? (PER_TIPO_LABELS[apiUser.per_tipo] ?? 'Usuário')
+                     : '—',
+    lastAccess:    apiUser.usu_ultimo_acesso ?? null,
+    ipLogin:       apiUser.usu_ip_login ?? null,
   };
 }
 
@@ -180,6 +189,10 @@ export function UserProfilePanel({
 
   // mode: alterna entre 'view' (visualização) e 'edit' (edição)
   const [mode, setMode] = useState(initialMode);
+
+  // photoError: true quando a foto da API falha ao carregar.
+  // Nesse caso exibe as iniciais como fallback.
+  const [photoError, setPhotoError] = useState(false);
 
   // form: estado dos campos editáveis.
   // Inicializado com os dados atuais do usuário.
@@ -292,8 +305,20 @@ export function UserProfilePanel({
         <div className={styles.inner}>
           {/* Card de destaque: avatar grande + nome + badges de status */}
           <div className={styles.heroCard}>
+            {/* heroAvatar: exibe a foto do usuário se disponível; caso contrário mostra iniciais.
+                photoError: fallback ativado quando a URL da foto retorna erro 404 ou similar. */}
             <div className={styles.heroAvatar}>
-              {getInitials(enriched.usu_nome)}
+              {enriched.usu_foto && !photoError
+                ? <img
+                    src={enriched.usu_foto}
+                    alt={enriched.usu_nome || 'avatar'}
+                    style={{
+                      width: '100%', height: '100%',
+                      objectFit: 'cover', borderRadius: 'inherit'
+                    }}
+                    onError={() => setPhotoError(true)}
+                  />
+                : getInitials(enriched.usu_nome)}
             </div>
             <div className={styles.heroInfo}>
               <h2 className={styles.heroName}>{enriched.usu_nome}</h2>

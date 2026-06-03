@@ -35,6 +35,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { Users, Car, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Loader2, AlertTriangle } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -79,6 +80,36 @@ function formatSugestao(s) {
   };
 }
 
+// formatDenuncia: converte o registro vindo de GET /api/denuncias
+// para o mesmo shape que formatSugestao produz, permitindo que o
+// FeedbackCard renderize ambos os tipos sem alteração.
+//
+// Mapeamento de campos (API → UI):
+//   denunciante  → userName
+//   den_data     → date (BR)
+//   den_motivo   → text  (resumo obrigatório da denúncia)
+//   den_status   → status (0=Resolvido, 1=Pendente, 2=Arquivado, 3=Em análise)
+//
+// Usado pelo Admin, que não tem acesso a /api/sugestoes (Dev only).
+function formatDenuncia(d) {
+  const nome = d.denunciante || `Usuário #${d.usu_id ?? ''}`;
+  const status =
+    d.den_status === 0 ? 'Resolvido'
+    : d.den_status === 3 ? 'Em análise'
+    : d.den_status === 2 ? 'Arquivado'
+    : 'Pendente';
+  return {
+    id:       d.den_id,
+    userName: nome,
+    avatar:   nome.charAt(0).toUpperCase(),
+    // Exibe o motivo resumido; den_texto é opcional e pode não existir
+    text:     d.den_motivo || d.den_texto || '—',
+    type:     'Denúncia',
+    status,
+    date:     d.den_data ? new Date(d.den_data).toLocaleDateString('pt-BR') : '—'
+  };
+}
+
 // METRIC_CONFIG: define o ícone e as cores de cada card de métrica.
 // Usa índice posicional — o card 0 (Total de Usuários) usa a config [0], etc.
 const METRIC_CONFIG = [
@@ -105,6 +136,10 @@ function ChartTooltip({ active, payload, label }) {
 }
 
 export function Dashboard() {
+  // isAdmin: lido do AuthContext para bifurcar o fetch de feedbacks.
+  // Admin (per_tipo=1) não acessa /api/sugestoes — usa /api/denuncias.
+  const { isAdmin } = useAuth();
+
   // useNavigate: usado para redirecionar ao clicar em um feedback
   const navigate = useNavigate();
 
@@ -123,34 +158,78 @@ export function Dashboard() {
 
   // load: encapsulada em useCallback para que o botão de retry
   // possa reusar a mesma função sem recriá-la a cada render.
+  //
+  // Duas fases independentes:
+  //   Fase 1 → stats em Promise.all (falha crítica — exibe banner de erro)
+  //   Fase 2 → feedbacks recentes com try/catch próprio (falha tolerável —
+  //             seção fica vazia mas o Dashboard continua funcional)
+  //
+  // A separação resolve o problema do Admin: getSugestoes retorna 403
+  // para per_tipo=1, pois /api/sugestoes é exclusivo do Desenvolvedor.
+  // Na Fase 2, Admin usa getDenuncias e Dev usa getSugestoes.
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // Promise.all dispara as 4 chamadas em paralelo. Se qualquer
-      // uma falhar (rede caída, 5xx, sem permissão), o catch
-      // assume e exibimos um único banner — sem cair em mock.
-      const [statsUsuarios, statsCaronas, statsSugestoes, sugestoes] = await Promise.all([
+      // Fase 1: as 3 stats são críticas — se qualquer uma cair o
+      // Dashboard não tem conteúdo útil para exibir.
+      const [statsUsuarios, statsCaronas, statsSugestoes] = await Promise.all([
         api.getStats('usuarios'),
         api.getStats('caronas'),
-        api.getStats('sugestoes'),
-        api.getSugestoes({ limit: 4 })
+        api.getStats('sugestoes')
       ]);
       setMetrics({
         usuarios: statsUsuarios.stats,
-        caronas: statsCaronas.stats,
+        caronas:  statsCaronas.stats,
         sugestoes: statsSugestoes.stats
       });
-      const lista = sugestoes?.sugestoes || [];
-      // O backend já devolve ordenado por sug_id DESC; o slice é
-      // defensivo caso algum dia o limit não seja respeitado.
-      setFeedbacks(lista.slice(0, 4).map(formatSugestao));
+
+      // Fase 2: feedbacks recentes — falha não derruba as métricas.
+      //   Admin → só getDenuncias (/api/sugestoes retorna 403 para per_tipo=1)
+      //   Dev   → getSugestoes + getDenuncias em paralelo, mesclados e
+      //           ordenados por data decrescente para exibir os 4 mais recentes
+      try {
+        let lista;
+        if (isAdmin) {
+          const data = await api.getDenuncias({ limit: 4 });
+          lista = (data?.denuncias || []).slice(0, 4).map(formatDenuncia);
+        } else {
+          // Busca ambos em paralelo e mescla por data
+          const [sugestoesData, denunciasData] = await Promise.all([
+            api.getSugestoes({ limit: 4 }),
+            api.getDenuncias({ limit: 4 })
+          ]);
+          // Anota o timestamp antes de formatar para poder ordenar,
+          // já que formatSugestao/formatDenuncia convertem a data para string.
+          lista = [
+            ...(sugestoesData?.sugestoes || []).map(s => ({
+              _raw: s,
+              _ts:  new Date(s.sug_data || 0).getTime(),
+              _tipo: 'sug'
+            })),
+            ...(denunciasData?.denuncias || []).map(d => ({
+              _raw: d,
+              _ts:  new Date(d.den_data || 0).getTime(),
+              _tipo: 'den'
+            }))
+          ]
+            .sort((a, b) => b._ts - a._ts) // mais recentes primeiro
+            .slice(0, 4)
+            .map(({ _raw, _tipo }) =>
+              _tipo === 'sug' ? formatSugestao(_raw) : formatDenuncia(_raw)
+            );
+        }
+        setFeedbacks(lista);
+      } catch {
+        // Feedbacks não carregaram — seção fica vazia sem banner de erro
+        setFeedbacks([]);
+      }
     } catch (err) {
       setError(err.message || 'Não foi possível carregar o Dashboard.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAdmin]);
 
   // useEffect: dispara o carregamento uma única vez na montagem.
   useEffect(() => { load(); }, [load]);
@@ -301,7 +380,9 @@ export function Dashboard() {
       {/* Lista de feedbacks recentes */}
         <div className={styles.feedbackSection}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Sugestões e Denúncias Recentes</h2>
+            <h2 className={styles.sectionTitle}>
+              {isAdmin ? 'Denúncias Recentes' : 'Sugestões e Denúncias Recentes'}
+            </h2>
           </div>
           <div className={styles.feedbackList}>
             {feedbacks.map((feedback) => (

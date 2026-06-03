@@ -37,12 +37,31 @@
 import { useState, useEffect } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { api } from '../services/api';
-import { usersData } from '../data/mockData';
 import { StatusBadge } from '../components/StatusBadge';
 import { PenaltyPanel } from '../components/PenaltyPanel';
 import { UserProfilePanel } from '../components/UserProfilePanel';
 import { UserActionsMenu } from '../components/UserActionsMenu';
 import styles from './Usuarios.module.css';
+
+// UserAvatar: avatar de linha da tabela.
+// Exibe a foto do usuário se usu_foto estiver preenchido e carregar com sucesso.
+// Se a foto falhar ou for nula, exibe as iniciais como fallback.
+// Definido fora do componente principal para não ser recriado a cada render.
+function UserAvatar({ src, name, className }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span className={className}>
+      {src && !failed
+        ? <img
+            src={src}
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
+            onError={() => setFailed(true)}
+          />
+        : getInitials(name)}
+    </span>
+  );
+}
 
 // getInitials: gera as iniciais do nome para usar como avatar.
 // Ex: "Carlos Silva" → "CS", "Admin" → "AD"
@@ -51,7 +70,8 @@ import styles from './Usuarios.module.css';
 // map(n => n[0]) → pega a primeira letra de cada
 // join('') → junta as letras
 // toUpperCase() → garante maiúsculas
-function getInitials(name = '') {
+function getInitials(name) {
+  if (!name) return '?';
   return name
     .split(' ')
     .slice(0, 2)
@@ -66,23 +86,20 @@ function statusLabel(usu_status) {
   return usu_status === 1 ? 'Ativo' : 'Inativo';
 }
 
-// mockAsApi: converte os dados de "usersData" (formato de interface)
-// para o formato da API (campos com prefixo usu_).
-// Usado como fallback quando a chamada à API falha.
-// O campo _mock: true marca que esses dados são fictícios.
-const mockAsApi = usersData.map((u) => ({
-  usu_id: u.id,
-  usu_nome: u.name,
-  usu_email: u.email,
-  usu_status: u.status === 'Ativo' ? 1 : 0,
-  _mock: true
-}));
+// perTipoLabel: converte per_tipo para texto legível na coluna Tipo.
+// 1=Admin de Escola, 2=Desenvolvedor, 0 ou outros=Usuário
+function perTipoLabel(per_tipo) {
+  if (per_tipo === 1) return 'Admin';
+  if (per_tipo === 2) return 'Dev';
+  return 'Usuário';
+}
 
 export function Usuarios() {
   // Estados de controle da interface:
   const [searchTerm, setSearchTerm] = useState('');       // texto digitado na busca
   const [users, setUsers] = useState([]);                  // lista de usuários carregada da API
   const [loading, setLoading] = useState(true);            // spinner de carregamento
+  const [error, setError] = useState('');                  // mensagem de erro do fetch inicial
 
   // selectedUser: usuário sobre o qual o PenaltyPanel será aberto
   const [selectedUser, setSelectedUser] = useState(null);
@@ -93,14 +110,11 @@ export function Usuarios() {
   const [profilePanel, setProfilePanel] = useState(null);
 
   // useEffect: carrega os usuários da API ao montar o componente.
-  // .then() → quando a API responde com sucesso
-  // .catch() → se der erro, usa os dados mock como fallback
-  // .finally() → sempre executa (esconde o spinner)
   useEffect(() => {
     api
       .getUsers({ limit: 100 })
       .then((data) => setUsers(data.usuarios || []))
-      .catch(() => setUsers(mockAsApi))
+      .catch((err) => setError(err.message || 'Não foi possível carregar os usuários.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -136,22 +150,24 @@ export function Usuarios() {
     );
   };
 
-  // Desativa um usuário (muda usu_status para 0) após confirmação.
-  // confirm() → caixa de diálogo nativa do navegador (OK / Cancelar)
-  // const handleDeleteUser = async (user) => {
-  //   if (!confirm(`Tem certeza que deseja desativar ${user.usu_nome}?`)) return;
-  //   try {
-  //     await api.updateUserStatus(user.usu_id, 0);
-  //     // Atualiza o status localmente para evitar recarregar a lista inteira
-  //     setUsers((prev) =>
-  //       prev.map((u) =>
-  //         u.usu_id === user.usu_id ? { ...u, usu_status: 0 } : u
-  //       )
-  //     );
-  //   } catch (err) {
-  //     alert(`Erro ao desativar usuário: ${err.message}`);
-  //   }
-  // };
+  // handleToggleStatus: alterna o status do usuário (Ativo ↔ Inativo) após confirmação.
+  // PATCH /api/admin/usuarios/:id/status  { usu_status: 0|1 }
+  // Atualiza localmente após sucesso para não recarregar a lista inteira.
+  const handleToggleStatus = async (user) => {
+    const novoStatus = user.usu_status === 1 ? 0 : 1;
+    const acao = novoStatus === 0 ? 'desativar' : 'reativar';
+    if (!window.confirm(`Tem certeza que deseja ${acao} ${user.usu_nome}?`)) return;
+    try {
+      await api.updateUserStatus(user.usu_id, novoStatus);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.usu_id === user.usu_id ? { ...u, usu_status: novoStatus } : u
+        )
+      );
+    } catch (err) {
+      alert(`Erro ao ${acao} usuário: ${err.message}`);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -180,8 +196,21 @@ export function Usuarios() {
       {/* Spinner: aparece apenas enquanto loading for true */}
       {loading && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
-          {/* style={{ animation: ... }} → animação de giro inline */}
           <Loader2 size={28} style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      )}
+
+      {/* Banner de erro: exibe quando o fetch inicial falha */}
+      {!loading && error && (
+        <div style={{
+          padding: '12px 16px',
+          background: 'var(--color-red-50, #fef2f2)',
+          border: '1px solid var(--color-red-200, #fecaca)',
+          borderRadius: 'var(--border-radius-md)',
+          color: 'var(--color-semantic-error, #dc2626)',
+          fontSize: 14
+        }}>
+          {error}
         </div>
       )}
 
@@ -211,35 +240,41 @@ export function Usuarios() {
                   {/* Célula de nome: avatar circular + nome + e-mail */}
                   <td className={styles.cellName}>
                     <div className={styles.userCell}>
-                      <span className={styles.avatar}>
-                        {getInitials(user.usu_nome)}
-                      </span>
+                      <UserAvatar
+                        src={user.usu_foto}
+                        name={user.usu_nome}
+                        className={styles.avatar}
+                      />
                       <div className={styles.userDetails}>
                         <p className={styles.userName}>{user.usu_nome}</p>
                         <span className={styles.userEmail}>{user.usu_email}</span>
                       </div>
                     </div>
                   </td>
+                  {/* per_tipo vem do endpoint /api/admin/usuarios */}
                   <td className={styles.cellType}>
-                    <span className={styles.typeLabel}>Usuário</span>
+                    <span className={styles.typeLabel}>{perTipoLabel(user.per_tipo)}</span>
                   </td>
+                  {/* esc_nome / cur_nome: campos retornados pelo endpoint de lista admin */}
                   <td className={styles.cellSchool}>
-                    <span className={styles.schoolLabel}>—</span>
+                    <span className={styles.schoolLabel}>{user.esc_nome ?? '—'}</span>
                   </td>
                   <td className={styles.cellCourse}>
-                    <span className={styles.courseLabel}>—</span>
+                    <span className={styles.courseLabel}>{user.cur_nome ?? '—'}</span>
                   </td>
                   {/* StatusBadge: componente reutilizável de badge colorido */}
                   <td className={styles.cellStatus}>
                     <StatusBadge status={statusLabel(user.usu_status)} />
                   </td>
-                  {/* UserActionsMenu: menu ⋮ com as opções da linha */}
+                  {/* UserActionsMenu: menu ⋮ com as opções da linha.
+                      onToggleStatus → ativa/desativa via PATCH /api/admin/usuarios/:id/status */}
                   <td className={styles.cellActions}>
                     <UserActionsMenu
                       user={user}
                       onEdit={handleEditUser}
                       onPenalize={handlePenaltyClick}
                       onView={handleViewUser}
+                      onToggleStatus={handleToggleStatus}
                     />
                   </td>
                 </tr>

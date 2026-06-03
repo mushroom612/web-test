@@ -40,10 +40,10 @@
 // ============================================================
 
 import { useState } from "react";
-import { Edit2, ShieldAlert, Trash2, Eye } from "lucide-react";
+import { Edit2, ShieldAlert, Eye, UserX, UserCheck } from "lucide-react";
 import styles from "./UserActionsMenu.module.css";
 
-export function UserActionsMenu({ user, onEdit, onPenalize, onView }) {
+export function UserActionsMenu({ user, onEdit, onPenalize, onView, onToggleStatus }) {
   // isOpen: controla se o menu está visível ou oculto
   const [isOpen, setIsOpen] = useState(false);
 
@@ -110,6 +110,22 @@ export function UserActionsMenu({ user, onEdit, onPenalize, onView }) {
               <ShieldAlert size={16} />
               Penalizar
             </button>
+
+            {/* Toggle status: Desativar (ativo→inativo) ou Reativar (inativo→ativo).
+                Usa PATCH /api/admin/usuarios/:id/status via onToggleStatus. */}
+            {onToggleStatus && (
+              <button
+                className={`${styles.menuItem} ${user.usu_status === 1 ? styles.danger : ''}`}
+                onClick={() => {
+                  onToggleStatus(user);
+                  setIsOpen(false);
+                }}
+              >
+                {user.usu_status === 1
+                  ? <><UserX size={16} /> Desativar</>
+                  : <><UserCheck size={16} /> Reativar</>}
+              </button>
+            )}
           </div>
         </>
       )}

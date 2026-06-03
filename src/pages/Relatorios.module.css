@@ -350,6 +350,53 @@
   background-color: var(--color-green-100);
 }
 
+/* ── Card bloqueado (relatórios Dev-only para Admin) ── */
+.reportCardLocked {
+  opacity: 0.6;
+  border: 1px dashed var(--color-neutral-200, #e5e7eb);
+}
+
+.iconWrapperLocked {
+  background-color: var(--color-neutral-100, #f3f4f6);
+  color: var(--text-secondary);
+}
+
+/* ── Painel de resumo de Atividade (dentro do card) ── */
+.atividadePanel {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: var(--surface-page, #f9fafb);
+  border: 1px solid var(--color-neutral-100, #e5e7eb);
+  border-radius: var(--border-radius-md, 8px);
+  font-size: 13px;
+}
+
+.atividadeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+}
+
+.atividadeItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.atividadeLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.atividadeValue {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
 /* ── Responsivo ─────────────────────────────────────────────────────────── */
 
 @media (max-width: 1200px) {

@@ -862,6 +862,66 @@
   background-color: var(--color-green-100);
 }
 
+/* ── Autocomplete de endereço ─────────────────────────────── */
+
+/* Texto de carregamento exibido enquanto o geocode está buscando */
+.geocodeLoading {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Dropdown de sugestões: posicionado abaixo do input */
+.suggestionsDropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background-color: var(--surface-primary);
+  border: 1px solid var(--color-neutral-100, #e5e7eb);
+  border-radius: var(--border-radius-md, 8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+  z-index: 100;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* Cada opção do dropdown */
+.suggestionItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.15s;
+  line-height: 1.4;
+  border-bottom: 1px solid var(--color-neutral-50, #f3f4f6);
+}
+
+.suggestionItem:last-child {
+  border-bottom: none;
+}
+
+.suggestionItem:hover {
+  background-color: var(--color-neutral-50, #f9fafb);
+}
+
+.suggestionItem svg {
+  margin-top: 2px;
+  flex-shrink: 0;
+  color: var(--btn-primary-bg);
+  opacity: 0.7;
+}
+
 /* File upload */
 .fileUploadZone {
   display: flex;

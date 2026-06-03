@@ -1,232 +1,203 @@
 // ============================================================
-// pages/Relatorios.jsx — Página de geração e visualização de relatórios
+// pages/Relatorios.jsx — Geração e download de relatórios
 //
-// Exibe cards para gerar 4 tipos de relatório (Usuários, Caronas,
-// Denúncias, Atividade Geral) e lista os relatórios gerados recentemente.
+// Exibe 4 cards de relatório com estatísticas em tempo real.
+// Cada botão "Baixar CSV" / "Ver Relatório" chama o endpoint real da API.
 //
-// Estrutura visual:
-//   ┌────────────────────────────────────┐
-//   │  [Filtros: instituição/curso/datas]│
-//   ├──────┬──────┬──────┬──────────────┤
-//   │ Card │ Card │ Card │ Card (gerar) │  ← reportsGrid
-//   ├────────────────────────────────────┤
-//   │  Relatórios Gerados Recentemente  │  ← recentSection
-//   └────────────────────────────────────┘
+// RBAC:
+//   Admin (per_tipo=1) → vê Caronas e Atividade; Usuários e Penalidades ocultos
+//   Dev (per_tipo=2)   → vê todos os 4 relatórios
 //
-// Funcionalidades:
-//   - Cards de relatório com estatísticas em tempo real (via API)
-//   - Cada card tem um botão "Gerar" que chama api.generateReport()
-//   - Um Set rastreia quais relatórios estão sendo gerados (para
-//     desabilitar o botão e mostrar spinner individualmente)
-//   - Filtros de instituição, curso e intervalo de datas
-//   - Cursos filtrados dinamicamente pela instituição selecionada
-//   - Lista de relatórios recentes (da API ou do mockData como fallback)
+// Endpoints de download (retornam CSV bruto quando ?formato=csv):
+//   Caronas     → GET /api/admin/relatorios/caronas?formato=csv   (Admin + Dev)
+//   Usuários    → GET /api/dev/relatorios/usuarios?formato=csv     (Dev only)
+//   Penalidades → GET /api/dev/relatorios/penalidades?formato=csv  (Dev only)
+//   Atividade   → GET /api/admin/relatorios/atividade              (JSON, painel inline)
 //
-// Bibliotecas usadas:
-//   - react → useState, useEffect
-//   - lucide-react → Download, Users, Car, AlertCircle, BarChart2,
-//                    Loader2, FileText, Filter
+// Filtros do formulário:
+//   institution → esc_id para Usuários e Penalidades
+//   dateFrom/dateTo → inicio/fim para Caronas
 //
-// Dados consumidos:
-//   - api.getStats('usuarios'), api.getStats('caronas'), api.getStats('sugestoes')
-//     → estatísticas para exibir nos cards
-//   - api.getRecentReports() → lista de relatórios recentes
-//   - api.generateReport()   → gera um novo relatório
-//   - api.getSchools()        → lista de instituições para o filtro
-//   - api.getCourses()        → lista de cursos para o filtro
-//   - reportsData             → definição estática dos 4 cards (de mockData.js)
-//   - recentReports           → lista inicial de relatórios recentes (de mockData.js)
-//
-// Interligação:
-//   - Importa: api.js, mockData.js (reportsData, recentReports)
+// Histórico de relatórios: in-session apenas (sem endpoint de listagem).
 //
 // Estilo: Relatorios.module.css
-//   Classes CSS utilizadas:
-//     .container       → área raiz da página
-//     .header          → cabeçalho com título
-//     .title           → texto "Relatórios"
-//     .filterCard      → card de filtros com borda e padding
-//     .filterHeader    → linha "Filtros" com ícone
-//     .filterGrid      → grade de campos de filtro
-//     .filterField     → grupo label + select/input de um filtro
-//     .filterLabel     → etiqueta do filtro (ex: "Instituição")
-//     .filterSelect    → dropdown de seleção
-//     .filterInput     → campo de data
-//     .filterActions   → linha de botões "Limpar" e "Aplicar"
-//     .clearBtn        → botão "Limpar"
-//     .applyBtn        → botão "Aplicar Filtros"
-//     .reportsGrid     → grade de cards de relatório (4 colunas)
-//     .reportCard      → card individual de relatório
-//     .cardTop         → linha superior do card: ícone + estatística
-//     .iconWrapper     → círculo com o ícone do relatório
-//     .cardMainStat    → exibe o número e rótulo da estatística principal
-//     .mainStatValue   → número grande (ex: "247")
-//     .mainStatLabel   → rótulo embaixo do número (ex: "usuários")
-//     .reportTitle     → título do relatório (ex: "Relatório de Usuários")
-//     .reportDescription → breve descrição do relatório
-//     .secondaryStat   → estatística secundária (ex: "200 ativos")
-//     .generateBtn     → botão "Gerar" (ou "Gerando..." com spinner)
-//     .btnSpinner      → ícone Loader2 giratório no botão
-//     .recentSection   → seção de relatórios recentes
-//     .sectionTitle    → título "Relatórios Gerados Recentemente"
-//     .reportsList     → lista de relatórios gerados
-//     .emptyMessage    → mensagem quando não há relatórios
-//     .reportItem      → linha de um relatório na lista recente
-//     .reportItemIcon  → ícone FileText à esquerda
-//     .reportInfo      → nome e data do relatório
-//     .reportName      → nome do arquivo de relatório
-//     .reportDate      → data de geração
-//     .reportMeta      → tamanho do arquivo + botão de download
-//     .reportSize      → tamanho (ex: "2.3 MB")
-//     .downloadBtn     → botão de download (ícone)
-//     .loadingWrapper  → spinner centralizado na tela de carregamento
-//     .spinner         → ícone Loader2 giratório
 // ============================================================
 
 import { useState, useEffect } from 'react';
-import { Download, Users, Car, AlertCircle, BarChart2, Loader2, FileText, Filter } from 'lucide-react';
+import {
+  Download, Users, Car, AlertCircle, BarChart2,
+  Loader2, FileText, Filter, ChevronDown, ChevronUp, Lock
+} from 'lucide-react';
 import { api } from '../services/api';
-import { reportsData, recentReports } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
 import styles from './Relatorios.module.css';
 
-// iconMap: associa o nome do ícone (string, vindo do mockData) ao componente JSX.
-// Isso permite usar os ícones dinamicamente pelo nome sem precisar de if/switch.
+// iconMap: associa o nome do ícone (string) ao componente JSX
 const iconMap = {
-  Users: <Users size={22} />,
-  Car: <Car size={22} />,
-  AlertCircle: <AlertCircle size={22} />,
-  BarChart2: <BarChart2 size={22} />
+  Users:        <Users size={22} />,
+  Car:          <Car size={22} />,
+  AlertCircle:  <AlertCircle size={22} />,
+  BarChart2:    <BarChart2 size={22} />
 };
 
-// statConfig: para cada tipo de relatório (identificado pelo nome do ícone),
-// define como extrair os dados de stats para exibir no card.
-//   mainLabel   → rótulo da estatística principal (ex: 'usuários')
-//   getMain     → função que extrai o valor principal do objeto stats
-//   getSecondary → função que extrai a estatística secundária (pode retornar null)
-// O operador ?. (optional chaining) acessa propriedades sem erro se o objeto for null.
-// O operador ?? (nullish coalescing) retorna '—' se o valor for null/undefined.
-const statConfig = {
-  Users: {
-    mainLabel: 'usuários',
-    getMain: (s) => s?.usuarios?.total ?? '—',
-    getSecondary: (s) => s?.usuarios?.ativos != null ? `${s.usuarios.ativos} ativos` : null,
+// REPORT_CARDS: definição estática dos 4 tipos de relatório.
+// devOnly: true → visível apenas para Desenvolvedor (per_tipo=2)
+const REPORT_CARDS = [
+  {
+    id:          'caronas',
+    icon:        'Car',
+    title:       'Relatório de Caronas',
+    description: 'Exporta dados de caronas por período (total, status, motoristas).',
+    devOnly:     false,
+    actionLabel: 'Baixar CSV',
   },
+  {
+    id:          'usuarios',
+    icon:        'Users',
+    title:       'Relatório de Usuários',
+    description: 'Exporta dados de todos os usuários cadastrados na plataforma.',
+    devOnly:     true,
+    actionLabel: 'Baixar CSV',
+  },
+  {
+    id:          'penalidades',
+    icon:        'AlertCircle',
+    title:       'Relatório de Penalidades',
+    description: 'Exporta histórico de penalidades aplicadas a usuários.',
+    devOnly:     true,
+    actionLabel: 'Baixar CSV',
+  },
+  {
+    id:          'atividade',
+    icon:        'BarChart2',
+    title:       'Relatório de Atividade',
+    description: 'Resumo de atividades da plataforma no período selecionado.',
+    devOnly:     false,
+    actionLabel: 'Ver Relatório',
+  }
+];
+
+// statConfig: extrai os valores das estatísticas retornadas por api.getStats()
+// para exibir no cabeçalho de cada card.
+const statConfig = {
   Car: {
-    mainLabel: 'caronas',
-    getMain: (s) => s?.caronas?.total ?? '—',
-    getSecondary: (s) => s?.caronas?.finalizadas != null ? `${s.caronas.finalizadas} concluídas` : null,
+    mainLabel:    'caronas',
+    getMain:      (s) => s?.caronas?.total ?? '—',
+    getSecondary: (s) => s?.caronas?.finalizadas != null ? `${s.caronas.finalizadas} concluídas` : null
+  },
+  Users: {
+    mainLabel:    'usuários',
+    getMain:      (s) => s?.usuarios?.total ?? '—',
+    getSecondary: (s) => s?.usuarios?.ativos != null ? `${s.usuarios.ativos} ativos` : null
   },
   AlertCircle: {
-    mainLabel: 'denúncias',
-    getMain: (s) => s?.sugestoes?.denuncias ?? '—',
-    getSecondary: (s) => s?.sugestoes?.pendentes != null ? `${s.sugestoes.pendentes} pendentes` : null,
+    mainLabel:    'denúncias',
+    getMain:      (s) => s?.sugestoes?.denuncias ?? '—',
+    getSecondary: (s) => s?.sugestoes?.pendentes != null ? `${s.sugestoes.pendentes} pendentes` : null
   },
   BarChart2: {
-    mainLabel: 'registros',
-    // Soma total de usuários + total de caronas como "atividade geral"
-    getMain: (s) => (s?.usuarios?.total ?? 0) + (s?.caronas?.total ?? 0),
-    getSecondary: (s) => s?.sugestoes?.resolvidas != null ? `${s.sugestoes.resolvidas} resolvidos` : null,
+    mainLabel:    'registros',
+    getMain:      (s) => (s?.usuarios?.total ?? 0) + (s?.caronas?.total ?? 0),
+    getSecondary: (s) => s?.sugestoes?.resolvidas != null ? `${s.sugestoes.resolvidas} resolvidos` : null
   }
 };
 
-// formatDate: converte uma string ISO de data para o padrão brasileiro (dd/mm/aaaa).
-function formatDate(dateStr) {
-  if (!dateStr) return '—';
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return dateStr;
-  return date.toLocaleDateString('pt-BR');
+// downloadCSV: cria um Blob a partir do texto CSV e dispara o download no browser.
+function downloadCSV(csvText, filename) {
+  // '﻿' = BOM UTF-8: garante que Excel abre o CSV com acentos corretamente
+  const blob = new Blob(['﻿' + csvText], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// formatDate: converte ISO string para data pt-BR
+function formatDate(str) {
+  if (!str) return '—';
+  return new Date(str).toLocaleDateString('pt-BR');
 }
 
 export function Relatorios() {
-  // recentList: lista de relatórios gerados recentemente.
-  // Começa com dados mock e é substituída pelos dados da API se disponíveis.
-  const [recentList, setRecentList] = useState(recentReports);
+  const { isAdmin, isDev } = useAuth();
 
-  // stats: objeto com estatísticas das 3 categorias (usuarios, caronas, sugestoes).
-  // null = ainda carregando; preenchido = dados reais da API.
-  const [stats, setStats] = useState(null);
-
+  // stats: estatísticas das 3 categorias para exibir nos cards
+  const [stats, setStats]     = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // generating: Set (conjunto) com os IDs dos relatórios em processo de geração.
-  // Usar Set em vez de array porque Set.has() é mais eficiente para verificar presença.
-  // Isso permite spinner e disabled individuais por card.
+  // generating: Set com IDs dos relatórios em processo de geração/download
   const [generating, setGenerating] = useState(new Set());
 
-  const [schools, setSchools] = useState([]);
-  const [courses, setCourses] = useState([]);
+  // recentList: histórico de downloads feitos na sessão atual
+  const [recentList, setRecentList] = useState([]);
 
-  // filters: estado do formulário de filtros.
-  const [filters, setFilters] = useState({ institution: '', course: '', dateFrom: '', dateTo: '' });
+  // schools / courses: para os dropdowns de filtro
+  const [schools, setSchools]   = useState([]);
+  const [courses, setCourses]   = useState([]);
 
-  // useEffect: carrega dados da API ao montar o componente.
-  // Três chamadas simultâneas (Promise.all) + duas sequenciais separadas.
+  // filters: estado dos campos de filtro do formulário
+  const [filters, setFilters] = useState({
+    institution: '',
+    course:      '',
+    dateFrom:    '',
+    dateTo:      ''
+  });
+
+  // atividadeData: resultado do GET /api/admin/relatorios/atividade (JSON)
+  // null = não carregado, objeto = resultado atual
+  const [atividadeData, setAtividadeData]     = useState(null);
+  const [atividadeOpen, setAtividadeOpen]     = useState(false);
+  const [atividadeLoading, setAtividadeLoading] = useState(false);
+
   useEffect(() => {
     async function load() {
+      // Fase 1: estatísticas para os cards (crítico)
       try {
-        // Promise.all: executa as 3 chamadas em paralelo para ganhar tempo
-        const [statsUsuarios, statsCaronas, statsSugestoes] = await Promise.all([
+        const [sUsuarios, sCaronas, sSugestoes] = await Promise.all([
           api.getStats('usuarios'),
           api.getStats('caronas'),
           api.getStats('sugestoes')
         ]);
         setStats({
-          usuarios: statsUsuarios.stats,
-          caronas: statsCaronas.stats,
-          sugestoes: statsSugestoes.stats
+          usuarios:  sUsuarios.stats,
+          caronas:   sCaronas.stats,
+          sugestoes: sSugestoes.stats
         });
       } catch {
-        // Se a API falhar, stats permanece null e os cards mostram '—'
+        // stats permanece null; cards mostram '—'
       }
 
+      // Fase 2: listas para filtros (tolerante a falha)
       try {
-        const data = await api.getRecentReports();
-        const lista = data.relatorios || data.data || [];
-        if (lista.length > 0) {
-          // Converte o formato da API para o formato da lista
-          setRecentList(lista.map(r => ({
-            id: r.rel_id,
-            title: r.rel_titulo,
-            date: formatDate(r.rel_gerado_em),
-            size: r.rel_tamanho
-          })));
-        }
-      } catch {
-        // Mantém recentReports do mockData como fallback
-      }
-
-      try {
-        // Promise.all para buscar escolas e cursos em paralelo
-        const [schoolsList, coursesList] = await Promise.all([
-          api.getSchools(),
-          api.getCourses()
-        ]);
-        setSchools(schoolsList);
-        setCourses(coursesList);
-      } catch {
-        // Mantém listas vazias
-      }
+        const data = await api.getSchools();
+        setSchools(data?.escolas ?? (Array.isArray(data) ? data : []));
+      } catch { /* mantém lista vazia */ }
 
       setLoading(false);
     }
     load();
-  }, []); // [] = executa uma única vez ao montar
+  }, []);
 
-  // filteredCourses: quando uma instituição está selecionada, mostra
-  // apenas os cursos daquela instituição no dropdown.
-  const filteredCourses = filters.institution
-    ? courses.filter(c => {
-        // Encontra o objeto da escola pelo nome para obter o esc_id
-        const school = schools.find(s => s.esc_nome === filters.institution);
-        return school ? c.esc_id === school.esc_id : true;
-      })
-    : courses;
+  // Carrega cursos quando uma instituição é selecionada no filtro
+  useEffect(() => {
+    if (!filters.institution) { setCourses([]); return; }
+    const school = schools.find(s => s.esc_nome === filters.institution);
+    if (!school) return;
+    api.getCourses(school.esc_id)
+      .then(d => setCourses(d?.cursos ?? (Array.isArray(d) ? d : [])))
+      .catch(() => setCourses([]));
+  }, [filters.institution, schools]);
 
-  // handleFilterChange: atualiza um campo dos filtros.
-  // Ao mudar a instituição, também limpa o curso selecionado
-  // (pois os cursos disponíveis mudam com a instituição).
-  // Isso usa o spread condicional: ...(condition ? { key: val } : {})
-  // — se a condição for verdadeira, adiciona o campo; caso contrário, não.
+  // selectedEscId: resolve o esc_id a partir do nome da escola selecionada no filtro.
+  // Usado por Usuários e Penalidades que aceitam esc_id como parâmetro.
+  const selectedEscId = filters.institution
+    ? schools.find(s => s.esc_nome === filters.institution)?.esc_id
+    : undefined;
+
   function handleFilterChange(field, value) {
     setFilters(prev => ({
       ...prev,
@@ -239,27 +210,73 @@ export function Relatorios() {
     setFilters({ institution: '', course: '', dateFrom: '', dateTo: '' });
   }
 
-  // handleGenerate: gera um relatório e adiciona na lista de recentes.
-  // Adiciona o ID ao Set "generating" antes da chamada e remove depois.
-  // Isso cria o efeito de "loading individual por botão".
+  // handleGenerate: despacha para o endpoint correto conforme o id do card.
+  // CSV → blob download + adiciona ao histórico de sessão.
+  // Atividade → painel inline com dados JSON.
   async function handleGenerate(report) {
-    // new Set(prev).add(report.id) → cria um novo Set (React exige novos objetos)
-    // com o ID do relatório adicionado
+    // Atividade: toggle do painel de resumo
+    if (report.id === 'atividade') {
+      if (atividadeOpen) { setAtividadeOpen(false); return; }
+      setAtividadeLoading(true);
+      setAtividadeOpen(true);
+      try {
+        const data = await api.getRelatorioAtividade({ dias: 30 });
+        setAtividadeData(data);
+      } catch (err) {
+        alert('Erro ao carregar relatório de atividade: ' + err.message);
+        setAtividadeOpen(false);
+      } finally {
+        setAtividadeLoading(false);
+      }
+      return;
+    }
+
     setGenerating(prev => new Set(prev).add(report.id));
     try {
-      const generated = await api.generateReport(report.icon);
-      // Adiciona o novo relatório no início da lista (mais recente primeiro)
-      setRecentList(prev => [
-        {
-          id: generated.rel_id,
-          title: generated.rel_titulo,
-          date: formatDate(generated.rel_gerado_em),
-          size: generated.rel_tamanho
-        },
-        ...prev  // ... spread: mantém todos os relatórios anteriores após o novo
-      ]);
+      let csvText, filename;
+      const hoje = new Date().toISOString().slice(0, 10);
+
+      switch (report.id) {
+        case 'caronas':
+          csvText  = await api.downloadRelatorioCaronas({
+            inicio: filters.dateFrom || undefined,
+            fim:    filters.dateTo   || undefined
+          });
+          filename = `caronas-${hoje}.csv`;
+          break;
+
+        case 'usuarios':
+          csvText  = await api.downloadRelatorioUsuarios({ esc_id: selectedEscId });
+          filename = `usuarios-${hoje}.csv`;
+          break;
+
+        case 'penalidades':
+          csvText  = await api.downloadRelatorioPenalidades({ esc_id: selectedEscId });
+          filename = `penalidades-${hoje}.csv`;
+          break;
+
+        default:
+          return;
+      }
+
+      if (typeof csvText !== 'string' || !csvText.trim()) {
+        alert('Nenhum dado encontrado para os filtros selecionados.');
+        return;
+      }
+
+      downloadCSV(csvText, filename);
+
+      // Adiciona ao histórico da sessão
+      setRecentList(prev => [{
+        id:    Date.now(),
+        title: report.title,
+        date:  new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        size:  `${(csvText.length / 1024).toFixed(1)} KB`
+      }, ...prev]);
+
+    } catch (err) {
+      alert(`Erro ao gerar relatório: ${err.message}`);
     } finally {
-      // Remove o ID do Set após concluir (sucesso ou erro)
       setGenerating(prev => {
         const next = new Set(prev);
         next.delete(report.id);
@@ -268,7 +285,9 @@ export function Relatorios() {
     }
   }
 
-  // Tela de carregamento: exibida enquanto a API não responde
+  // visibleCards: oculta relatórios Dev-only para Admin
+  const visibleCards = REPORT_CARDS.filter(r => !r.devOnly || isDev);
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -285,7 +304,7 @@ export function Relatorios() {
         <h1 className={styles.title}>Relatórios</h1>
       </div>
 
-      {/* ── Card de filtros ────────────────────────────────────── */}
+      {/* ── Card de filtros ── */}
       <div className={styles.filterCard}>
         <div className={styles.filterHeader}>
           <Filter size={15} />
@@ -293,38 +312,42 @@ export function Relatorios() {
         </div>
         <div className={styles.filterGrid}>
 
-          {/* Filtro: Instituição */}
-          <div className={styles.filterField}>
-            <label className={styles.filterLabel}>Instituição</label>
-            <select
-              className={styles.filterSelect}
-              value={filters.institution}
-              onChange={e => handleFilterChange('institution', e.target.value)}
-            >
-              <option value="">Todas as instituições</option>
-              {schools.map(s => (
-                <option key={s.esc_id} value={s.esc_nome}>{s.esc_nome}</option>
-              ))}
-            </select>
-          </div>
+          {/* Instituição: usado por Usuários e Penalidades (Dev only) */}
+          {isDev && (
+            <div className={styles.filterField}>
+              <label className={styles.filterLabel}>Instituição</label>
+              <select
+                className={styles.filterSelect}
+                value={filters.institution}
+                onChange={e => handleFilterChange('institution', e.target.value)}
+              >
+                <option value="">Todas as instituições</option>
+                {schools.map(s => (
+                  <option key={s.esc_id} value={s.esc_nome}>{s.esc_nome}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
-          {/* Filtro: Curso (desabilitado se nenhuma instituição selecionada) */}
-          <div className={styles.filterField}>
-            <label className={styles.filterLabel}>Curso</label>
-            <select
-              className={styles.filterSelect}
-              value={filters.course}
-              onChange={e => handleFilterChange('course', e.target.value)}
-              disabled={!filters.institution}  // desabilitado sem instituição
-            >
-              <option value="">Todos os cursos</option>
-              {filteredCourses.map(c => (
-                <option key={c.cur_id} value={c.cur_nome}>{c.cur_nome}</option>
-              ))}
-            </select>
-          </div>
+          {/* Curso: filtro visual (sem endpoint que aceite cur_id ainda) */}
+          {isDev && (
+            <div className={styles.filterField}>
+              <label className={styles.filterLabel}>Curso</label>
+              <select
+                className={styles.filterSelect}
+                value={filters.course}
+                onChange={e => handleFilterChange('course', e.target.value)}
+                disabled={!filters.institution}
+              >
+                <option value="">Todos os cursos</option>
+                {courses.map(c => (
+                  <option key={c.cur_id} value={c.cur_nome}>{c.cur_nome}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
-          {/* Filtro: intervalo de datas */}
+          {/* Datas: usadas pelo relatório de Caronas */}
           <div className={styles.filterField}>
             <label className={styles.filterLabel}>De</label>
             <input
@@ -347,28 +370,23 @@ export function Relatorios() {
 
         <div className={styles.filterActions}>
           <button className={styles.clearBtn} onClick={handleClearFilters}>Limpar</button>
-          <button className={styles.applyBtn}>Aplicar Filtros</button>
         </div>
       </div>
 
-      {/* ── Grade de cards de relatório ───────────────────────── */}
+      {/* ── Grade de cards de relatório ── */}
       <div className={styles.reportsGrid}>
-        {/* reportsData vem do mockData.js e define os 4 tipos de relatório */}
-        {reportsData.map((report) => {
-          // cfg: configuração de como exibir as estatísticas para este tipo
-          const cfg = statConfig[report.icon];
-          // Extrai os valores numéricos do objeto stats (pode ser null)
-          const mainValue = cfg?.getMain(stats) ?? '—';
+        {visibleCards.map((report) => {
+          const cfg          = statConfig[report.icon];
+          const mainValue    = cfg?.getMain(stats) ?? '—';
           const secondaryValue = cfg?.getSecondary(stats);
-          // isGenerating: verifica se este relatório específico está gerando agora
           const isGenerating = generating.has(report.id);
+          const isAtividade  = report.id === 'atividade';
 
           return (
             <div key={report.id} className={styles.reportCard}>
-              {/* Linha superior: ícone + estatística principal */}
+              {/* Linha superior: ícone + estatística */}
               <div className={styles.cardTop}>
                 <div className={styles.iconWrapper}>
-                  {/* iconMap[report.icon] → componente JSX do ícone (ex: <Users />) */}
                   {iconMap[report.icon]}
                 </div>
                 <div className={styles.cardMainStat}>
@@ -380,46 +398,102 @@ export function Relatorios() {
               <h3 className={styles.reportTitle}>{report.title}</h3>
               <p className={styles.reportDescription}>{report.description}</p>
 
-              {/* Estatística secundária: só exibe se existir */}
               {secondaryValue && (
                 <p className={styles.secondaryStat}>{secondaryValue}</p>
               )}
 
-              {/* Botão "Gerar": mostra spinner e texto "Gerando..." enquanto processa */}
+              {/* Botão principal */}
               <button
                 className={styles.generateBtn}
                 onClick={() => handleGenerate(report)}
-                disabled={isGenerating}
+                disabled={isGenerating || (isAtividade && atividadeLoading)}
               >
-                {isGenerating && <Loader2 size={14} className={styles.btnSpinner} />}
-                {isGenerating ? 'Gerando...' : 'Gerar'}
+                {isGenerating || (isAtividade && atividadeLoading)
+                  ? <><Loader2 size={14} className={styles.btnSpinner} /> Carregando...</>
+                  : isAtividade
+                    ? <>{atividadeOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />} {atividadeOpen ? 'Fechar' : report.actionLabel}</>
+                    : <><Download size={14} /> {report.actionLabel}</>}
               </button>
+
+              {/* Painel de atividade (só para o card Atividade) */}
+              {isAtividade && atividadeOpen && (
+                <div className={styles.atividadePanel}>
+                  {atividadeLoading || !atividadeData ? (
+                    <Loader2 size={16} className={styles.btnSpinner} />
+                  ) : (
+                    <div className={styles.atividadeGrid}>
+                      <div className={styles.atividadeItem}>
+                        <span className={styles.atividadeLabel}>Período</span>
+                        <span className={styles.atividadeValue}>
+                          {atividadeData.periodo?.dias ?? 30} dias
+                          {atividadeData.periodo?.inicio && ` (desde ${formatDate(atividadeData.periodo.inicio)})`}
+                        </span>
+                      </div>
+                      <div className={styles.atividadeItem}>
+                        <span className={styles.atividadeLabel}>Caronas no período</span>
+                        <span className={styles.atividadeValue}>{atividadeData.caronas?.total ?? '—'}</span>
+                      </div>
+                      <div className={styles.atividadeItem}>
+                        <span className={styles.atividadeLabel}>Finalizadas</span>
+                        <span className={styles.atividadeValue}>{atividadeData.caronas?.finalizadas ?? '—'}</span>
+                      </div>
+                      <div className={styles.atividadeItem}>
+                        <span className={styles.atividadeLabel}>Canceladas</span>
+                        <span className={styles.atividadeValue}>{atividadeData.caronas?.canceladas ?? '—'}</span>
+                      </div>
+                      <div className={styles.atividadeItem}>
+                        <span className={styles.atividadeLabel}>Novos usuários</span>
+                        <span className={styles.atividadeValue}>{atividadeData.usuarios?.novos ?? '—'}</span>
+                      </div>
+                      <div className={styles.atividadeItem}>
+                        <span className={styles.atividadeLabel}>Avaliações</span>
+                        <span className={styles.atividadeValue}>
+                          {atividadeData.avaliacoes?.total ?? '—'}
+                          {atividadeData.avaliacoes?.media != null && ` (média ${Number(atividadeData.avaliacoes.media).toFixed(1)})`}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
+
+        {/* Mensagem para Admin informando que outros relatórios são Dev-only */}
+        {isAdmin && (
+          <div className={`${styles.reportCard} ${styles.reportCardLocked}`}>
+            <div className={styles.cardTop}>
+              <div className={`${styles.iconWrapper} ${styles.iconWrapperLocked}`}>
+                <Lock size={22} />
+              </div>
+            </div>
+            <h3 className={styles.reportTitle}>Usuários &amp; Penalidades</h3>
+            <p className={styles.reportDescription}>
+              Os relatórios de Usuários e Penalidades são exclusivos para Desenvolvedores.
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* ── Lista de relatórios recentes ──────────────────────── */}
+      {/* ── Histórico de downloads da sessão ── */}
       <div className={styles.recentSection}>
-        <h2 className={styles.sectionTitle}>Relatórios Gerados Recentemente</h2>
+        <h2 className={styles.sectionTitle}>Relatórios Baixados nesta Sessão</h2>
         <div className={styles.reportsList}>
           {recentList.length === 0 && (
-            <p className={styles.emptyMessage}>Nenhum relatório gerado ainda.</p>
+            <p className={styles.emptyMessage}>Nenhum relatório baixado ainda. Use os botões acima para gerar.</p>
           )}
-          {recentList.map((report) => (
-            <div key={report.id} className={styles.reportItem}>
+          {recentList.map((r) => (
+            <div key={r.id} className={styles.reportItem}>
               <div className={styles.reportItemIcon}>
                 <FileText size={18} />
               </div>
               <div className={styles.reportInfo}>
-                <p className={styles.reportName}>{report.title}</p>
-                <span className={styles.reportDate}>{report.date}</span>
+                <p className={styles.reportName}>{r.title}</p>
+                <span className={styles.reportDate}>{r.date}</span>
               </div>
               <div className={styles.reportMeta}>
-                <span className={styles.reportSize}>{report.size}</span>
-                <button className={styles.downloadBtn} title="Baixar">
-                  <Download size={18} />
-                </button>
+                <span className={styles.reportSize}>{r.size}</span>
               </div>
             </div>
           ))}

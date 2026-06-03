@@ -58,7 +58,7 @@
 //     .spin                → animação de rotação do Loader2
 // ============================================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Building2, MapPin, Mail, Users, Trash2,
   UserPlus, X, CheckCircle, AlertCircle, Loader2,
@@ -126,6 +126,16 @@ export function Cadastrar() {
   // contractFile: arquivo PDF/DOC selecionado pelo usuário
   const [contractFile, setContractFile] = useState(null);
 
+  // ── Autocomplete de endereço (etapa 1) ──────────────────────
+  // suggestions: sugestões retornadas pelo endpoint GET /api/pontos/geocode
+  const [suggestions, setSuggestions] = useState([]);
+  // geocodeLoading: true enquanto aguarda a resposta do geocode
+  const [geocodeLoading, setGeocodeLoading] = useState(false);
+  // showSuggestions: controla visibilidade do dropdown
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  // geocodeTimer: ref para o ID do setTimeout de debounce (não causa re-render)
+  const geocodeTimer = useRef(null);
+
   // ── Feedback de submit ──────────────────────────────────────
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -156,8 +166,8 @@ export function Cadastrar() {
     setListError('');
     try {
       const data = await api.getSchools();
-      // Array.isArray: verifica se é um array direto ou objeto com .escolas
-      setInstitutions(Array.isArray(data) ? data : data.escolas ?? []);
+      // GET /api/dev/escolas retorna { escolas: [...] }
+      setInstitutions(data?.escolas ?? (Array.isArray(data) ? data : []));
     } catch (err) {
       setListError(err.message || 'Não foi possível carregar as instituições.');
     } finally {
@@ -166,11 +176,13 @@ export function Cadastrar() {
   }
 
   // Carrega os cursos de uma instituição específica (lazy loading)
+  // GET /api/infra/escolas/:id/cursos retorna { cursos: [...] }, não um array direto.
   async function loadInstCourses(escId) {
     setInstCourseLoading(prev => ({ ...prev, [escId]: true }));
     try {
-      const courses = await api.getCourses(escId);
-      setInstitutionCourses(prev => ({ ...prev, [escId]: Array.isArray(courses) ? courses : [] }));
+      const data = await api.getCourses(escId);
+      const lista = data?.cursos ?? (Array.isArray(data) ? data : []);
+      setInstitutionCourses(prev => ({ ...prev, [escId]: lista }));
     } catch {
       setInstitutionCourses(prev => ({ ...prev, [escId]: [] }));
     } finally {
@@ -187,6 +199,45 @@ export function Cadastrar() {
   function handleChange(e) {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  }
+
+  // handleAddressChange: atualiza o campo de endereço E dispara o geocode
+  // com debounce de 400ms para não estourar o rate limit (20 req/min).
+  // Só busca se o usuário digitou pelo menos 3 caracteres.
+  function handleAddressChange(e) {
+    const value = e.target.value;
+    setFormData(prev => ({ ...prev, esc_endereco: value }));
+
+    if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
+
+    if (value.length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    geocodeTimer.current = setTimeout(async () => {
+      setGeocodeLoading(true);
+      try {
+        const results = await api.geocodeAddress(value);
+        const lista = Array.isArray(results) ? results : (results?.sugestoes ?? []);
+        setSuggestions(lista);
+        setShowSuggestions(lista.length > 0);
+      } catch {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      } finally {
+        setGeocodeLoading(false);
+      }
+    }, 400);
+  }
+
+  // handleSelectSuggestion: preenche o campo com o endereço escolhido e fecha o dropdown.
+  function handleSelectSuggestion(displayName) {
+    setFormData(prev => ({ ...prev, esc_endereco: displayName }));
+    setSuggestions([]);
+    setShowSuggestions(false);
+    if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
   }
 
   function handleAdminChange(e) {
@@ -296,50 +347,59 @@ export function Cadastrar() {
     setSubmitLoading(true);
 
     try {
-      // Passo 1: criar o admin da instituição
-      const adminPayload = {
-        usu_nome: adminData.usu_nome,
-        usu_email: adminData.usu_email,
-        usu_telefone: adminData.usu_telefone || null,
-        per_tipo: 1 // 1 = Administrador de escola
-      };
-      const createdAdmin = await api.createUser(adminPayload);
-      const newAdminId = createdAdmin.usuario?.usu_id;
-
-      // Passo 2: criar a escola.
-      // O spread condicional (...(cond ? { campo: valor } : {}))
-      // só inclui o campo se ele tiver valor preenchido.
+      // Passo 1: criar a escola via POST /api/dev/escolas
+      // O contrato é criado separadamente para manter as responsabilidades separadas.
       const schoolPayload = {
         esc_nome: formData.esc_nome,
         esc_endereco: formData.esc_endereco,
         ...(formData.esc_dominio ? { esc_dominio: formData.esc_dominio } : {}),
-        ...(formData.esc_max_usuarios ? { esc_max_usuarios: parseInt(formData.esc_max_usuarios) } : {}),
-        ...(formData.esc_contrato_duracao && formData.esc_contrato_inicio ? {
-          esc_contrato_duracao: formData.esc_contrato_duracao,
-          esc_contrato_inicio: formData.esc_contrato_inicio,
-          esc_contrato_expira: calcExpiry(formData.esc_contrato_inicio, formData.esc_contrato_duracao)
-        } : {
-          esc_contrato_duracao: null,
-          esc_contrato_inicio: null,
-          esc_contrato_expira: null
-        })
+        ...(formData.esc_max_usuarios ? { esc_max_usuarios: parseInt(formData.esc_max_usuarios) } : {})
       };
       const createdSchool = await api.createSchool(schoolPayload);
-      const escId = createdSchool.escola?.esc_id || createdSchool.esc_id;
+      const escId = createdSchool.escola?.esc_id ?? createdSchool.esc_id;
 
-      // Vincula o admin à escola criada
-      await api.updateUserProfile(newAdminId, { per_tipo: 1, per_escola_id: escId });
+      // Passo 2a: criar o contrato se duração e data de início foram fornecidos
+      // POST /api/dev/escolas/:id/contrato  { duracao, data_inicio }
+      if (formData.esc_contrato_duracao && formData.esc_contrato_inicio) {
+        try {
+          await api.createContract(escId, {
+            duracao: formData.esc_contrato_duracao,
+            data_inicio: formData.esc_contrato_inicio
+          });
+        } catch { /* contrato pode ser adicionado depois — não bloqueia o cadastro */ }
+      }
 
-      // Passo 3: criar os cursos em sequência (for...of espera cada um)
+      // Passo 2b: enviar o arquivo PDF do contrato se foi selecionado
+      // POST /api/dev/escolas/:id/contrato/arquivo  (multipart/form-data)
+      if (contractFile) {
+        try {
+          await api.uploadContractFile(escId, contractFile);
+        } catch { /* arquivo pode ser enviado depois — não bloqueia o cadastro */ }
+      }
+
+      // Passo 3: criar o admin já vinculado à escola via POST /api/dev/cadastrar
+      // per_escola_id é passado diretamente, eliminando a chamada de updateUserProfile
+      const createdAdmin = await api.createUser({
+        usu_nome: adminData.usu_nome,
+        usu_email: adminData.usu_email,
+        usu_senha: adminData.usu_senha,
+        usu_telefone: adminData.usu_telefone || undefined,
+        per_tipo: 1,
+        per_escola_id: escId
+      });
+      const newAdminId = createdAdmin.usuario?.usu_id ?? createdAdmin.usu_id;
+      // Suprime warning de variável não usada — o ID pode ser útil futuramente
+      void newAdminId;
+
+      // Passo 4: criar os cursos em sequência (for...of aguarda cada um)
       const courseErrors = [];
       for (const course of coursesList) {
         try {
           await api.createCourse({
             cur_nome: course.cur_nome,
-            cur_descricao: course.cur_descricao || null,
-            cur_semestres: course.cur_semestres ? parseInt(course.cur_semestres) : null,
-            esc_id: escId,
-            cur_ativo: 1
+            cur_descricao: course.cur_descricao || undefined,
+            cur_semestres: course.cur_semestres ? parseInt(course.cur_semestres) : undefined,
+            esc_id: escId
           });
         } catch {
           courseErrors.push(course.cur_nome);
@@ -374,6 +434,10 @@ export function Cadastrar() {
     setContractFile(null);
     setSubmitError('');
     setSubmitSuccess('');
+    // Limpa estados do autocomplete de endereço
+    setSuggestions([]);
+    setShowSuggestions(false);
+    if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
   }
 
   // Remove uma instituição da lista após confirmação
@@ -451,15 +515,23 @@ export function Cadastrar() {
     };
     try {
       if (type === 'add') {
-        const created = await api.createCourse({ ...payload, esc_id: escId, cur_ativo: 1 });
-        // Adiciona o novo curso ao cache local da instituição
-        setInstitutionCourses(prev => ({ ...prev, [escId]: [...(prev[escId] || []), created] }));
+        const res = await api.createCourse({ ...payload, esc_id: escId });
+        // POST /api/dev/escolas/:id/cursos retorna { curso: {...} } — extraímos o objeto interno
+        const novoCurso = res?.curso ?? res;
+        setInstitutionCourses(prev => ({ ...prev, [escId]: [...(prev[escId] || []), novoCurso] }));
       } else {
-        const updated = await api.updateCourse(course.cur_id, payload);
-        // Substitui o curso editado no cache local
+        // PUT /api/dev/cursos/:id retorna apenas { message: '...' } sem o curso atualizado.
+        // Por isso usamos os dados do formulário para atualizar o cache localmente.
+        await api.updateCourse(course.cur_id, payload);
+        const cursoAtualizado = {
+          ...course,
+          cur_nome: payload.cur_nome,
+          cur_descricao: payload.cur_descricao,
+          cur_semestre: payload.cur_semestres ?? course.cur_semestre
+        };
         setInstitutionCourses(prev => ({
           ...prev,
-          [escId]: prev[escId].map(c => c.cur_id === course.cur_id ? updated : c)
+          [escId]: prev[escId].map(c => c.cur_id === course.cur_id ? cursoAtualizado : c)
         }));
       }
       setInstCourseAction(null);
@@ -550,13 +622,45 @@ export function Cadastrar() {
                     value={formData.esc_nome} onChange={handleChange} />
                 </div>
 
-                <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                {/* Campo de endereço com autocomplete via GET /api/pontos/geocode */}
+                <div className={styles.formGroup} style={{ gridColumn: '1 / -1', position: 'relative' }}>
                   <label htmlFor="esc_endereco" className={styles.label}>
                     <MapPin size={14} /> Endereço <span className={styles.required}>*</span>
                   </label>
-                  <input type="text" id="esc_endereco" name="esc_endereco" className={styles.input}
-                    placeholder="Ex: Av. Paulista, 1000, São Paulo - SP"
-                    value={formData.esc_endereco} onChange={handleChange} />
+                  <input
+                    type="text"
+                    id="esc_endereco"
+                    name="esc_endereco"
+                    className={styles.input}
+                    placeholder="Digite o endereço para buscar sugestões..."
+                    value={formData.esc_endereco}
+                    onChange={handleAddressChange}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                    autoComplete="off"
+                  />
+                  {/* Indicador de carregamento abaixo do input */}
+                  {geocodeLoading && (
+                    <span className={styles.geocodeLoading}>
+                      <Loader2 size={12} className={styles.spin} /> Buscando endereços...
+                    </span>
+                  )}
+                  {/* Dropdown de sugestões */}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className={styles.suggestionsDropdown}>
+                      {suggestions.map((s, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          className={styles.suggestionItem}
+                          onMouseDown={() => handleSelectSuggestion(s.display_name ?? s)}
+                        >
+                          <MapPin size={12} />
+                          {s.display_name ?? s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.formGroup}>

@@ -112,7 +112,6 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { api } from "../services/api";
-import { penaltiesData } from "../data/mockData";
 import styles from "./PenaltyPanel.module.css";
 
 // TIPO_LABELS: descrição textual de cada tipo de penalidade.
@@ -180,7 +179,8 @@ function getPenaltyStatus(pen) {
 }
 
 // getInitials: gera as iniciais do nome para o avatar.
-function getInitials(name = "") {
+function getInitials(name) {
+  if (!name) return "?";
   return (
     name
       .split(" ")
@@ -230,11 +230,9 @@ export function PenaltyPanel({ user, onClose }) {
     setListError("");
     try {
       const data = await api.getPenalidades(id);
-      // ?? [] → usa array vazio se penalidades for null/undefined
       setPenalties(data.penalidades ?? []);
-    } catch {
-      // Fallback: usa dados mock indexados pelo ID do usuário
-      setPenalties(penaltiesData[id] ?? []);
+    } catch (err) {
+      setListError(err.message || 'Não foi possível carregar as penalidades.');
     } finally {
       setListLoading(false);
     }

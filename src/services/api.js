@@ -18,11 +18,8 @@
 
 import { http, tokens } from './http';
 import {
-  apiUsersData,
   apiSchoolsData,
-  apiSuggestionsData,
   apiCoursesData,
-  apiRecentReportsData,
   auditLogData
 } from '../data/mockData';
 
@@ -103,125 +100,137 @@ export const api = {
   },
 
   // ── Escolas ─────────────────────────────────────────────────
+  // Todos os endpoints de escolas são Dev-only (/api/dev/escolas).
+  // A resposta inclui dados de contrato (esc_contrato_duracao, etc.).
 
-  // Retorna todas as escolas cadastradas.
+  // Endpoint: GET /api/dev/escolas?q=&status_contrato=
+  // Retorna todas as escolas com dados de contrato para listagem.
   async getSchools() {
-    await delay(300);
-    return apiSchoolsData;
+    return http.get('/api/dev/escolas');
   },
 
-  // Cria uma nova escola.
-  // Math.max(...array.map(...)) → pega o maior ID existente e soma 1.
-  // O spread operator (...) expande o array como argumentos individuais.
+  // Endpoint: POST /api/dev/escolas
+  // Body: { esc_nome, esc_endereco, esc_dominio?, esc_max_usuarios? }
   async createSchool(data) {
-    await delay(300);
-    const newId = Math.max(...apiSchoolsData.map(s => s.esc_id)) + 1;
-    const newSchool = { ...data, esc_id: newId }; // copia data e adiciona o ID
-    apiSchoolsData.push(newSchool); // adiciona ao array em memória
-    return newSchool;
+    return http.post('/api/dev/escolas', data);
   },
 
-  // Atualiza os dados de uma escola existente.
-  // findIndex → retorna a posição do item no array (-1 se não achar).
+  // Endpoint: PUT /api/dev/escolas/:id
   async updateSchool(id, data) {
-    await delay(300);
-    const idx = apiSchoolsData.findIndex(s => s.esc_id === id);
-    if (idx === -1) throw new Error('Escola não encontrada');
-    const updated = { ...apiSchoolsData[idx], ...data }; // mescla dados antigos com novos
-    apiSchoolsData[idx] = updated;
-    return updated;
+    return http.put(`/api/dev/escolas/${id}`, data);
   },
 
-  // Remove uma escola do array (simula DELETE na API).
-  // splice(idx, 1) → remove 1 elemento na posição idx.
+  // Endpoint: DELETE /api/dev/escolas/:id  (204 No Content)
+  // Só funciona se não houver cursos vinculados.
   async deleteSchool(id) {
-    await delay(300);
-    const idx = apiSchoolsData.findIndex(s => s.esc_id === id);
-    if (idx === -1) throw new Error('Escola não encontrada');
-    apiSchoolsData.splice(idx, 1);
-    return { success: true };
+    return http.del(`/api/dev/escolas/${id}`);
   },
 
-  // ── Usuários (criação) ─────────────────────────────────────
+  // getMyContract: retorna os dados do contrato da escola do Admin logado.
+  // Endpoint: GET /api/admin/contrato  (Admin only)
+  // Shape: { contrato: { esc_id, esc_nome, esc_dominio, esc_max_usuarios,
+  //           esc_contrato_duracao, esc_contrato_inicio, esc_contrato_expira,
+  //           dias_restantes, status_contrato } }
+  async getMyContract() {
+    return http.get('/api/admin/contrato');
+  },
 
-  // Cria um novo usuário com status inicial "pendente de verificação".
-  async createUser(data) {
-    await delay(300);
-    const newId = Math.max(...apiUsersData.map(u => u.usu_id)) + 1;
-    const newUser = {
-      usu_id: newId,
-      usu_nome: data.usu_nome,
-      usu_email: data.usu_email,
-      usu_telefone: data.usu_telefone || null,
-      usu_status: 1,        // 1 = ativo
-      usu_verificacao: 0,   // 0 = não verificado
-      usu_foto: null
-    };
-    apiUsersData.push(newUser);
-    return { usuario: newUser };
+  // uploadContractFile: envia o PDF do contrato.
+  // Endpoint: POST /api/dev/escolas/:id/contrato/arquivo  (multipart/form-data)
+  // O arquivo é salvo em /public/contratos/ e o caminho é gravado em esc_contrato_arquivo.
+  async uploadContractFile(escId, file) {
+    const form = new FormData();
+    form.append('contrato', file);
+    return http.post(`/api/dev/escolas/${escId}/contrato/arquivo`, form);
+  },
+
+  // Endpoint: POST /api/dev/escolas/:id/contrato
+  // Body: { duracao: '1ano'|'2anos'|'5anos', data_inicio?: 'YYYY-MM-DD' }
+  // Define ou renova o contrato de uma escola após ela ser criada.
+  async createContract(escId, { duracao, data_inicio }) {
+    return http.post(`/api/dev/escolas/${escId}/contrato`, {
+      duracao,
+      ...(data_inicio ? { data_inicio } : {})
+    });
+  },
+
+  // ── Geocodificação de endereço ────────────────────────────
+  // Endpoint: GET /api/pontos/geocode?q=<texto>&limite=<n>
+  // Utiliza Nominatim (OpenStreetMap) para sugestões de endereço.
+  // Mínimo de 3 caracteres; rate limit: 20 req/min.
+  // Shape da resposta: array de { display_name, lat, lon, ... }
+  async geocodeAddress(q, limite = 5) {
+    return http.get('/api/pontos/geocode', { query: { q, limite } });
+  },
+
+  // ── Usuários (criação — Dev only) ─────────────────────────
+  // Endpoint: POST /api/dev/cadastrar
+  // Cria conta de Admin (per_tipo=1) ou Dev (per_tipo=2) sem fluxo de OTP.
+  // Usado por Cadastrar.jsx para criar o admin de uma nova instituição.
+  async createUser({ usu_nome, usu_email, usu_senha, usu_telefone, per_tipo, per_escola_id }) {
+    return http.post('/api/dev/cadastrar', {
+      usu_nome,
+      usu_email,
+      usu_senha,
+      ...(usu_telefone ? { usu_telefone } : {}),
+      per_tipo: per_tipo ?? 1,
+      ...(per_escola_id ? { per_escola_id } : {})
+    });
   },
 
   // ── Usuários (Admin) ───────────────────────────────────────
-
-  // Busca lista de usuários com suporte a paginação e filtro de texto.
-  // Desestruturação com valores padrão: { page = 1, limit = 50, q = '' }
-  // significa que esses parâmetros são opcionais.
+  // Endpoint: GET /api/admin/usuarios?q=&page=&limit=
+  // Admin: retorna apenas usuários da sua instituição (backend filtra via JWT).
+  // Dev:   retorna todos os usuários da plataforma.
+  // Shape: { message, totalGeral, total, page, limit,
+  //          usuarios: [{ usu_id, usu_nome, usu_email, usu_status,
+  //                       usu_verificacao, esc_nome, cur_nome, per_tipo }] }
   async getUsers({ page = 1, limit = 50, q = '' } = {}) {
-    await delay(300);
-    let filtered = apiUsersData;
-
-    // Filtra por nome ou e-mail se uma busca (q) foi fornecida.
-    // toLowerCase() normaliza maiúsculas/minúsculas para a comparação.
-    if (q) {
-      const query = q.toLowerCase();
-      filtered = filtered.filter(u =>
-        (u.usu_nome?.toLowerCase().includes(query) || false) ||
-        (u.usu_email?.toLowerCase().includes(query) || false)
-      );
-    }
-
-    // Paginação: calcula o índice de início e fim do "pedaço" (slice).
-    // Página 1: itens 0 a 49. Página 2: itens 50 a 99. Etc.
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    return {
-      usuarios: filtered.slice(start, end), // "fatia" do array para esta página
-      total: filtered.length,               // total sem paginação (para a UI saber quantas páginas há)
-      page,
-      limit
-    };
+    return http.get('/api/admin/usuarios', {
+      query: { page, limit, ...(q ? { q } : {}) }
+    });
   },
 
-  // Busca um único usuário pelo seu ID.
-  // find → retorna o primeiro elemento que satisfaz a condição.
+  // Endpoint: GET /api/admin/usuarios/:id
+  // Retorna dados completos do usuário (inclui escola, curso, penalidades ativas).
   async getUser(userId) {
-    await delay(200);
-    const user = apiUsersData.find(u => u.usu_id === userId);
-    if (!user) throw new Error('Usuário não encontrado');
-    return user;
+    return http.get(`/api/admin/usuarios/${userId}`);
   },
 
-  // Altera o status de um usuário (ativo/inativo/suspenso).
+  // Endpoint: PATCH /api/admin/usuarios/:id/status
+  // Ativa (usu_status=1) ou desativa (usu_status=0) a conta.
   async updateUserStatus(userId, status) {
-    await delay(250);
-    const user = apiUsersData.find(u => u.usu_id === userId);
-    if (!user) throw new Error('Usuário não encontrado');
-    user.usu_status = status;
-    return user;
+    return http.patch(`/api/admin/usuarios/${userId}/status`, { usu_status: status });
   },
 
-  // Atualiza dados do perfil de um usuário.
-  // Object.assign(alvo, fonte) → copia as propriedades de "fonte" para "alvo".
+  // updateUser: atualiza nome/telefone do usuário E/OU seu status.
+  // Usado por UserProfilePanel ao salvar o formulário de edição.
+  //
+  // Status → PATCH /api/admin/usuarios/:id/status (Admin endpoint, sempre funciona)
+  // Nome/telefone → PUT /api/usuarios/:id (best-effort: pode ser restrito a conta própria)
+  async updateUser(userId, { usu_nome, usu_telefone, usu_status } = {}) {
+    if (usu_status !== undefined) {
+      await http.patch(`/api/admin/usuarios/${userId}/status`, { usu_status: Number(usu_status) });
+    }
+    if (usu_nome !== undefined || usu_telefone !== undefined) {
+      const body = {};
+      if (usu_nome !== undefined) body.usu_nome = usu_nome;
+      if (usu_telefone !== undefined) body.usu_telefone = usu_telefone;
+      try {
+        await http.put(`/api/usuarios/${userId}`, body);
+      } catch { /* backend pode restringir edição de perfil alheio */ }
+    }
+    return { usu_id: userId, usu_nome, usu_telefone, usu_status };
+  },
+
+  // updateUserProfile: vincula um usuário a uma escola e define seu papel.
+  // Endpoint: PUT /api/dev/usuarios/:id/perfil  { per_tipo, per_escola_id }
+  // Usado por Cadastrar.jsx após criar a escola para linkar o admin.
   async updateUserProfile(userId, profileData) {
-    await delay(250);
-    const user = apiUsersData.find(u => u.usu_id === userId);
-    if (!user) throw new Error('Usuário não encontrado');
-    Object.assign(user, profileData);
-    return user;
+    return http.put(`/api/dev/usuarios/${userId}/perfil`, profileData);
   },
 
-  // Alias mantido para compatibilidade com código antigo.
-  // Delega para getUsers passando a string de busca.
+  // Alias mantido para compatibilidade.
   async searchUsers(query) {
     return this.getUsers({ q: query });
   },
@@ -269,45 +278,73 @@ export const api = {
     return http.get(`/api/caronas/${carId}/resumo`);
   },
 
-  // ── Sugestões e Denúncias ──────────────────────────────────
-  // Endpoint real: GET /api/sugestoes
-  // Escopo automático: Admin vê apenas registros vinculados a usuários
-  // da sua escola; Dev vê todos. Paginação opcional via ?page&limit.
-  //
-  // Shape de resposta (SugestaoDenunciaController.listar):
-  //   { message, totalGeral, total, page, limit,
-  //     sugestoes: [
-  //       { sug_id, sug_texto, sug_data, sug_status, sug_tipo,
-  //         sug_resposta, autor }
-  //     ] }
-  //
-  // ATENÇÃO às convenções da API:
-  //   sug_tipo:   0 = Denúncia, 1 = Sugestão  (inverso do mock antigo)
-  //   sug_status: 0 = Fechada (Resolvida)
-  //               1 = Aberta  (Pendente)
-  //               2 = Arquivada
-  //               3 = Em análise
+  // ── Sugestões (apenas Desenvolvedor) ─────────────────────────
+  // Endpoint: GET /api/sugestoes  (per_tipo=2 obrigatório)
+  // Shape: { message, totalGeral, total, page, limit,
+  //          sugestoes: [{ sug_id, sug_texto, sug_data, sug_status,
+  //                        sug_resposta, autor }] }
+  // sug_status: 0=Fechado(Resolvido) 1=Aberto(Pendente) 2=Arquivado 3=Em análise
   async getSugestoes({ page, limit } = {}) {
     return http.get('/api/sugestoes', { query: { page, limit } });
   },
 
-  // Marca uma sugestão como "Em análise" (status 2).
+  // Marca uma sugestão como "Em análise" — PUT /api/sugestoes/:id/analisar
   async analisarSugestao(sugId) {
-    await delay(250);
-    const sug = apiSuggestionsData.find(s => s.sug_id === sugId);
-    if (!sug) throw new Error('Sugestão não encontrada');
-    sug.sug_status = 2;
-    return sug;
+    return http.put(`/api/sugestoes/${sugId}/analisar`);
   },
 
-  // Responde a uma sugestão e muda o status para "Resolvido" (1).
+  // Responde e fecha a sugestão — PUT /api/sugestoes/:id/responder
+  // Body esperado: { sug_resposta }
   async responderSugestao(sugId, resposta) {
-    await delay(250);
-    const sug = apiSuggestionsData.find(s => s.sug_id === sugId);
-    if (!sug) throw new Error('Sugestão não encontrada');
-    sug.sug_resposta = resposta;
-    sug.sug_status = 1;
-    return sug;
+    return http.put(`/api/sugestoes/${sugId}/responder`, { sug_resposta: resposta });
+  },
+
+  // Arquiva a sugestão — POST /api/sugestoes/:id/arquivar
+  async arquivarSugestao(sugId) {
+    return http.post(`/api/sugestoes/${sugId}/arquivar`);
+  },
+
+  // ── Denúncias (Administrador + Desenvolvedor) ─────────────────
+  // Endpoint: GET /api/denuncias
+  // Admin: escopo automático à sua escola (backend filtra via JWT)
+  // Dev:   acesso a todas as denúncias
+  // Shape: { message, totalGeral, total, page, limit,
+  //          denuncias: [{ den_id, den_tipo, den_motivo, den_texto,
+  //                        den_data, den_status, den_resposta,
+  //                        denunciante, usuario_alvo, car_id, den_usu_alvo }] }
+  // den_tipo:   0=Denúncia de carona  1=Denúncia de usuário
+  // den_status: 0=Fechado(Resolvido)  1=Aberto(Pendente)  2=Arquivado  3=Em análise
+  async getDenuncias({ page, limit } = {}) {
+    return http.get('/api/denuncias', { query: { page, limit } });
+  },
+
+  // Marca uma denúncia como "Em análise" — PUT /api/denuncias/:id/analisar
+  async analisarDenuncia(denId) {
+    return http.put(`/api/denuncias/${denId}/analisar`);
+  },
+
+  // Responde e fecha a denúncia — PUT /api/denuncias/:id/responder
+  // Body esperado: { den_resposta }
+  async responderDenuncia(denId, resposta) {
+    return http.put(`/api/denuncias/${denId}/responder`, { den_resposta: resposta });
+  },
+
+  // Arquiva a denúncia — POST /api/denuncias/:id/arquivar
+  async arquivarDenuncia(denId) {
+    return http.post(`/api/denuncias/${denId}/arquivar`);
+  },
+
+  // Exclui (soft delete) uma sugestão — DELETE /api/sugestoes/:id
+  // Apenas Desenvolvedor (per_tipo=2) tem permissão.
+  // Resposta esperada: 204 No Content (http.js retorna null).
+  async deleteSugestao(sugId) {
+    return http.del(`/api/sugestoes/${sugId}`);
+  },
+
+  // Exclui (soft delete) uma denúncia — DELETE /api/denuncias/:id
+  // Apenas Desenvolvedor (per_tipo=2) tem permissão.
+  async deleteDenuncia(denId) {
+    return http.del(`/api/denuncias/${denId}`);
   },
 
   // ── Notificações ───────────────────────────────────────────
@@ -401,149 +438,124 @@ export const api = {
   },
 
   // ── Penalidades ────────────────────────────────────────────
-
-  // Busca as penalidades de um usuário específico pelo userId.
-  // Os dados estão em um objeto onde a chave é o ID do usuário.
+  // Endpoint: GET /api/admin/usuarios/:id/penalidades?ativas=1
+  // Retorna o histórico de penalidades do usuário.
+  // ativas=1 → filtra apenas penalidades ativas (omitir = todas).
+  // Shape: { penalidades: [{ pen_id, pen_tipo, pen_motivo, pen_duracao,
+  //                          pen_aplicado_em, pen_expira_em, pen_ativo }] }
   async getPenalidades(userId, { ativas, page, limit } = {}) {
-    await delay(300);
-    const penaltyData = {
-      // Usuário 5 (Lucas) tem 1 penalidade ativa
-      5: [
-        {
-          pen_id: 1,
-          pen_tipo: 2,
-          pen_motivo: 'Comportamento inadequado com motorista.',
-          pen_aplicado_em: '2026-03-31T10:00:00.000Z',
-          pen_expira_em: '2026-04-29T10:00:00.000Z',
-          pen_aplicado_por: 6,
-          pen_ativo: 1
-        }
-      ],
-      // Usuário 9 (Fábio Suspenso) tem 2 penalidades
-      9: [
-        {
-          pen_id: 2,
-          pen_tipo: 1,
-          pen_motivo: 'Cancelamento de última hora recorrente.',
-          pen_aplicado_em: '2026-04-01T12:00:00.000Z',
-          pen_expira_em: '2026-04-28T12:00:00.000Z',
-          pen_aplicado_por: 6,
-          pen_ativo: 1  // ativa
-        },
-        {
-          pen_id: 3,
-          pen_tipo: 3,
-          pen_motivo: 'Reincidência após penalidade anterior.',
-          pen_aplicado_em: '2026-01-10T09:00:00.000Z',
-          pen_expira_em: '2026-02-10T09:00:00.000Z',
-          pen_aplicado_por: 6,
-          pen_ativo: 0  // expirada
-        }
-      ]
-    };
-
-    // Busca penalidades do userId. Se não houver, retorna array vazio.
-    const penalties = penaltyData[userId] || [];
-    return {
-      penalidades: penalties,
-      total: penalties.length
-    };
+    return http.get(`/api/admin/usuarios/${userId}/penalidades`, {
+      query: {
+        ...(ativas ? { ativas: 1 } : {}),
+        ...(page ? { page } : {}),
+        ...(limit ? { limit } : {})
+      }
+    });
   },
 
-  // Aplica uma nova penalidade a um usuário.
+  // Endpoint: POST /api/admin/usuarios/:id/penalidades
+  // Body: { pen_tipo, pen_duracao, pen_motivo? }
   async applyPenalidade(userId, { pen_tipo, pen_duracao, pen_motivo }) {
-    await delay(300);
-    return {
-      pen_id: Date.now(), // ID único
-      usu_id: userId,
+    return http.post(`/api/admin/usuarios/${userId}/penalidades`, {
       pen_tipo,
-      pen_duracao,
-      pen_motivo,
-      pen_aplicado_em: new Date().toISOString(),
-      pen_ativo: 1
-    };
+      ...(pen_duracao ? { pen_duracao } : {}),
+      ...(pen_motivo ? { pen_motivo } : {})
+    });
   },
 
-  // Remove (desativa) uma penalidade pelo seu ID.
+  // Endpoint: DELETE /api/admin/penalidades/:id  (204 No Content)
   async removePenalidade(penId) {
-    await delay(250);
-    return { success: true, pen_id: penId };
+    return http.del(`/api/admin/penalidades/${penId}`);
   },
 
   // ── Cursos ─────────────────────────────────────────────────
 
-  // Busca cursos, opcionalmente filtrando por escola (escId).
-  // escId != null → usa != (não estrito) para pegar null E undefined.
+  // getCourses: busca cursos de uma escola específica (ou todos para Admin/Dev).
+  //
+  // Com escId → GET /api/infra/escolas/:id/cursos  (público, sem auth)
+  //   Usado por Cadastrar.jsx no lazy loading de cursos por instituição.
+  // Sem escId → GET /api/admin/cursos  (Admin: escola própria; Dev: todos)
+  //   Usado por Relatorios.jsx para popular o filtro de cursos.
   async getCourses(escId) {
-    await delay(300);
     if (escId != null) {
-      return apiCoursesData.filter(c => c.esc_id === escId);
+      return http.get(`/api/infra/escolas/${escId}/cursos`);
     }
-    return apiCoursesData;
+    return http.get('/api/admin/cursos');
   },
 
-  // Cria um novo curso vinculado a uma escola.
-  async createCourse(data) {
-    await delay(300);
-    const newId = apiCoursesData.length > 0
-      ? Math.max(...apiCoursesData.map(c => c.cur_id)) + 1
-      : 1;
-    const newCourse = { ...data, cur_id: newId };
-    apiCoursesData.push(newCourse);
-    return newCourse;
+  // Endpoint: POST /api/dev/escolas/:id/cursos
+  // Body: { cur_nome, cur_semestre? }
+  // O esc_id é passado na URL (não no body).
+  async createCourse({ esc_id, cur_nome, cur_semestres, cur_descricao }) {
+    return http.post(`/api/dev/escolas/${esc_id}/cursos`, {
+      cur_nome,
+      ...(cur_semestres ? { cur_semestre: cur_semestres } : {}),
+      ...(cur_descricao ? { cur_descricao } : {})
+    });
   },
 
-  // Atualiza os dados de um curso existente.
-  async updateCourse(id, data) {
-    await delay(300);
-    const idx = apiCoursesData.findIndex(c => c.cur_id === id);
-    if (idx === -1) throw new Error('Curso não encontrado');
-    const updated = { ...apiCoursesData[idx], ...data };
-    apiCoursesData[idx] = updated;
-    return updated;
+  // Endpoint: PUT /api/dev/cursos/:id
+  // Body: { cur_nome?, cur_semestre? }
+  async updateCourse(id, { cur_nome, cur_semestres, cur_descricao }) {
+    return http.put(`/api/dev/cursos/${id}`, {
+      ...(cur_nome ? { cur_nome } : {}),
+      ...(cur_semestres ? { cur_semestre: cur_semestres } : {}),
+      ...(cur_descricao !== undefined ? { cur_descricao } : {})
+    });
   },
 
-  // Remove um curso pelo ID.
+  // Endpoint: DELETE /api/dev/cursos/:id  (204 No Content)
+  // Só funciona se não houver matrículas ativas no curso.
   async deleteCourse(id) {
-    await delay(300);
-    const idx = apiCoursesData.findIndex(c => c.cur_id === id);
-    if (idx === -1) throw new Error('Curso não encontrado');
-    apiCoursesData.splice(idx, 1);
-    return { success: true };
+    return http.del(`/api/dev/cursos/${id}`);
   },
 
   // ── Relatórios ─────────────────────────────────────────────
+  // Os endpoints de relatório retornam CSV bruto quando ?formato=csv é enviado.
+  // O http.js tenta JSON.parse e, ao falhar, retorna o texto bruto (string).
+  // O componente cria um Blob a partir dessa string e dispara o download.
 
-  // Retorna os relatórios gerados recentemente.
-  async getRecentReports() {
-    await delay(300);
-    return { relatorios: apiRecentReportsData };
+  // Endpoint: GET /api/admin/relatorios/caronas?formato=csv&inicio=&fim=
+  // Acesso: Admin + Dev. Admin restrito à própria escola (backend filtra via JWT).
+  // CSV: periodo_inicio, periodo_fim, total, abertas, em_espera, finalizadas, canceladas
+  async downloadRelatorioCaronas({ inicio, fim } = {}) {
+    return http.get('/api/admin/relatorios/caronas', {
+      query: { formato: 'csv', ...(inicio ? { inicio } : {}), ...(fim ? { fim } : {}) }
+    });
   },
 
-  // Simula a geração de um novo relatório.
-  // tipo: identificador do tipo (ex: 'users', 'car', 'barchart2')
-  // Adiciona o novo relatório no início da lista (unshift).
-  async generateReport(tipo) {
-    await delay(800); // delay maior para simular processamento
-    const titulos = {
-      users: 'Relatório de Usuários',
-      car: 'Relatório de Caronas',
-      alertcircle: 'Relatório de Denúncias',
-      barchart2: 'Relatório Geral'
-    };
-    const titulo = titulos[tipo?.toLowerCase()] ?? 'Relatório';
-    // toLocaleDateString → formata a data no padrão brasileiro
-    const mes = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-    const newReport = {
-      rel_id: Date.now(),
-      rel_titulo: `${titulo} - ${mes}`,
-      rel_tipo: tipo,
-      rel_gerado_em: new Date().toISOString(),
-      // toFixed(1) → arredonda para 1 casa decimal (ex: 1.7 MB)
-      rel_tamanho: `${(Math.random() * 2.5 + 0.5).toFixed(1)} MB`,
-      rel_gerado_por: 6 // ID do admin que gerou
-    };
-    apiRecentReportsData.unshift(newReport); // insere no início da lista
-    return newReport;
+  // Endpoint: GET /api/dev/relatorios/usuarios?formato=csv&esc_id=&status=&verificacao=
+  // Acesso: Dev only. CSV: usu_id, usu_nome, usu_email, usu_status, usu_verificacao, ...
+  async downloadRelatorioUsuarios({ esc_id, status, verificacao } = {}) {
+    return http.get('/api/dev/relatorios/usuarios', {
+      query: {
+        formato: 'csv',
+        ...(esc_id      ? { esc_id }      : {}),
+        ...(status      != null ? { status }      : {}),
+        ...(verificacao != null ? { verificacao }  : {})
+      }
+    });
+  },
+
+  // Endpoint: GET /api/dev/relatorios/penalidades?formato=csv&esc_id=&pen_tipo=&ativo=
+  // Acesso: Dev only. CSV: pen_id, usu_id, usu_nome, usu_email, pen_tipo, pen_motivo, ...
+  async downloadRelatorioPenalidades({ esc_id, pen_tipo, ativo } = {}) {
+    return http.get('/api/dev/relatorios/penalidades', {
+      query: {
+        formato: 'csv',
+        ...(esc_id   ? { esc_id }  : {}),
+        ...(pen_tipo ? { pen_tipo } : {}),
+        ...(ativo != null ? { ativo } : {})
+      }
+    });
+  },
+
+  // Endpoint: GET /api/admin/relatorios/atividade?dias=30
+  // Acesso: Admin + Dev. Retorna JSON (sem suporte a CSV).
+  // Shape: { caronas, usuarios, avaliacoes, periodo }
+  async getRelatorioAtividade({ dias } = {}) {
+    return http.get('/api/admin/relatorios/atividade', {
+      query: { ...(dias ? { dias } : {}) }
+    });
   }
 };
