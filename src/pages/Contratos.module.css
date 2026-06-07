@@ -347,6 +347,280 @@
   color: #dc2626;
 }
 
+/* ── Seção de Administradores no card de contrato ──
+   Segue o mesmo vocabulário visual do cardInfo:
+   - fundo --surface-page, raio --border-radius-md
+   - labels uppercase + letter-spacing (=infoLabel)
+   - botões no padrão actionBtn / renewBtn / renewConfirmBtn
+────────────────────────────────────────────────── */
+
+/* Botão de toggle: idêntico ao bloco cardInfo em aparência */
+.admToggleBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  margin-bottom: var(--spacing-3);
+  background-color: var(--surface-page);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.admToggleBtn:hover {
+  background-color: var(--surface-tertiary);
+  color: var(--text-primary);
+}
+
+.admToggleBtn span {
+  flex: 1;
+}
+
+/* Seção expandida: mesmo visual de cardInfo */
+.admSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  margin-bottom: var(--spacing-3);
+  background-color: var(--surface-page);
+  border-radius: var(--border-radius-md);
+}
+
+.admEmpty {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+/* Linha de admin: mesmo estilo do infoItem mas horizontal */
+.admItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--surface-primary);
+  border-radius: var(--border-radius-sm);
+}
+
+.admInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Nome: mesmo peso e cor de infoValue */
+.admName {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* E-mail: mesmo estilo de infoLabel sem uppercase */
+.admEmail {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+/* Badges: mesmo padrão dos status badges já usados no site */
+.admBadgeActive {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+.admBadgeInactive {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-neutral-100);
+  color: var(--text-secondary);
+}
+
+/* Botões de desativar/reativar: mesma altura dos actionBtn */
+.admDeactivateBtn,
+.admActivateBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-2);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admDeactivateBtn {
+  background-color: var(--status-error-bg);
+  color: var(--status-error-text);
+}
+
+.admDeactivateBtn:hover {
+  background-color: var(--color-semantic-error);
+  color: var(--color-neutral-0);
+}
+
+.admActivateBtn {
+  background-color: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+.admActivateBtn:hover {
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+/* Botão "+ Adicionar": estilo renewConfirmBtn invertido (ghost verde) */
+.admAddBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  background-color: transparent;
+  border: 1px solid var(--btn-primary-bg);
+  border-radius: var(--border-radius-sm);
+  color: var(--btn-primary-bg);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.admAddBtn:hover {
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+/* Formulário de novo admin: visual do renewForm mas neutro */
+.admForm {
+  padding: var(--spacing-3);
+  background-color: var(--surface-primary);
+  border-radius: var(--border-radius-sm);
+}
+
+.admFormGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+}
+
+/* Inputs: mesmo padrão de searchInput */
+.admInput {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  background-color: var(--surface-page);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.admInput::placeholder {
+  color: var(--text-secondary);
+}
+
+.admInput:hover {
+  border-color: var(--color-neutral-300);
+}
+
+.admInput:focus {
+  outline: none;
+  border-color: var(--btn-primary-bg);
+  background-color: var(--surface-primary);
+}
+
+.admError {
+  margin: 0 0 var(--spacing-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-semantic-error);
+}
+
+.admFormActions {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+/* Salvar: mesmo estilo de renewConfirmBtn */
+.admSaveBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.admSaveBtn:hover:not(:disabled) {
+  background-color: var(--btn-primary-bg-hover);
+}
+
+.admSaveBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Cancelar: mesmo estilo de renewCancelBtn */
+.admCancelBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  background-color: var(--surface-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admCancelBtn:hover {
+  background-color: var(--surface-page);
+  border-color: var(--color-neutral-300);
+  color: var(--text-primary);
+}
+
 @media (max-width: 768px) {
   .contractsList {
     grid-template-columns: 1fr;

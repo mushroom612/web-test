@@ -28,7 +28,8 @@ import { useAuth } from '../context/AuthContext';
 import { StatusBadge } from '../components/StatusBadge';
 import {
   Eye, Download, RotateCw, FileText,
-  Search, X, Loader2, Building2
+  Search, X, Loader2, Building2,
+  UserPlus, ChevronDown, ChevronUp, CheckCircle, Plus
 } from 'lucide-react';
 import styles from './Contratos.module.css';
 
@@ -88,6 +89,16 @@ export function Contratos() {
   const [renewState, setRenewState]     = useState(null);
   const [renewLoading, setRenewLoading] = useState(false);
 
+  // adminsByEsc: { [esc_id]: adminUser[] } — admins de cada escola
+  const [adminsByEsc, setAdminsByEsc]       = useState({});
+  // expandedAdminEsc: esc_id da escola com seção de admins aberta
+  const [expandedAdminEsc, setExpandedAdminEsc] = useState(null);
+  // adminFormEsc: esc_id com formulário de novo admin aberto
+  const [adminFormEsc, setAdminFormEsc]     = useState(null);
+  const [adminForm, setAdminForm]           = useState({ usu_nome: '', usu_email: '', usu_telefone: '', usu_senha: '', usu_confirmSenha: '' });
+  const [adminSaving, setAdminSaving]       = useState(false);
+  const [adminError, setAdminError]         = useState('');
+
   // loadContracts: busca os dados conforme o papel do usuário.
   // Admin → GET /api/admin/contrato (1 escola, a própria)
   // Dev   → GET /api/dev/escolas    (todas as escolas com dados de contrato)
@@ -106,6 +117,20 @@ export function Contratos() {
         lista = data?.escolas ?? (Array.isArray(data) ? data : []);
       }
       setSchools(lista);
+
+      if (lista.length > 0) {
+        try {
+          const results = await Promise.all(
+            lista.map(s => api.getUsers({ esc_id: s.esc_id, limit: 50 }).catch(() => null))
+          );
+          const map = {};
+          lista.forEach((s, i) => {
+            const users = results[i]?.usuarios ?? [];
+            map[s.esc_id] = users.filter(u => u.per_tipo === 1);
+          });
+          setAdminsByEsc(map);
+        } catch { /* admins são opcionais — não bloquear a página */ }
+      }
     } catch (err) {
       setError(err.message || 'Não foi possível carregar os contratos.');
       setSchools([]);
@@ -171,6 +196,64 @@ export function Contratos() {
       alert('Não foi possível baixar o arquivo: ' + err.message);
     } finally {
       setDownloadingId(null);
+    }
+  }
+
+  function handleToggleAdminSection(escId) {
+    if (expandedAdminEsc === escId) {
+      setExpandedAdminEsc(null);
+      setAdminFormEsc(null);
+      setAdminError('');
+      return;
+    }
+    setExpandedAdminEsc(escId);
+    setAdminFormEsc(null);
+    setAdminError('');
+  }
+
+  async function handleSaveAdmin(escId) {
+    if (!adminForm.usu_nome.trim() || !adminForm.usu_email.trim() || !adminForm.usu_senha.trim()) {
+      setAdminError('Preencha os campos obrigatórios.');
+      return;
+    }
+    if (adminForm.usu_senha !== adminForm.usu_confirmSenha) {
+      setAdminError('As senhas não coincidem.');
+      return;
+    }
+    setAdminSaving(true);
+    setAdminError('');
+    try {
+      const res = await api.createUser({
+        usu_nome:      adminForm.usu_nome.trim(),
+        usu_email:     adminForm.usu_email.trim(),
+        usu_senha:     adminForm.usu_senha,
+        usu_telefone:  adminForm.usu_telefone || undefined,
+        per_tipo:      1,
+        per_escola_id: escId,
+      });
+      const novo = res?.usuario ?? res;
+      setAdminsByEsc(prev => ({ ...prev, [escId]: [...(prev[escId] || []), { ...novo, per_habilitado: 1 }] }));
+      setAdminFormEsc(null);
+      setAdminForm({ usu_nome: '', usu_email: '', usu_telefone: '', usu_senha: '', usu_confirmSenha: '' });
+    } catch (err) {
+      setAdminError(err.message || 'Erro ao cadastrar administrador.');
+    } finally {
+      setAdminSaving(false);
+    }
+  }
+
+  async function handleToggleAdminHabilitado(escId, adm) {
+    const novoEstado = adm.per_habilitado ? 0 : 1;
+    try {
+      await api.updateUserProfile(adm.usu_id, { per_habilitado: novoEstado });
+      setAdminsByEsc(prev => ({
+        ...prev,
+        [escId]: prev[escId].map(a =>
+          a.usu_id === adm.usu_id ? { ...a, per_habilitado: novoEstado } : a
+        ),
+      }));
+    } catch (err) {
+      alert(err.message || 'Erro ao alterar status do administrador.');
     }
   }
 
@@ -332,6 +415,106 @@ export function Contratos() {
                     </div>
                   )}
                 </div>
+
+                {/* ── Seção de Administradores ── */}
+                {(() => {
+                  const escId          = school.esc_id;
+                  const admins         = adminsByEsc[escId] || [];
+                  const isAdmExpanded  = expandedAdminEsc === escId;
+                  const showAdminForm  = adminFormEsc === escId;
+                  const firstAdm       = admins[0];
+
+                  return (
+                    <>
+                      <button
+                        className={styles.admToggleBtn}
+                        onClick={() => handleToggleAdminSection(escId)}
+                      >
+                        <UserPlus size={13} />
+                        <span>
+                          {admins.length > 0
+                            ? `${admins.length} Administrador${admins.length > 1 ? 'es' : ''}`
+                            : 'Administradores'}
+                          {!isAdmExpanded && firstAdm && ` — ${firstAdm.usu_nome}`}
+                        </span>
+                        {isAdmExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                      </button>
+
+                      {isAdmExpanded && (
+                        <div className={styles.admSection}>
+                          {admins.length === 0 && !showAdminForm && (
+                            <p className={styles.admEmpty}>Nenhum administrador cadastrado.</p>
+                          )}
+
+                          {admins.map(adm => (
+                            <div key={adm.usu_id} className={styles.admItem}>
+                              <div className={styles.admInfo}>
+                                <span className={styles.admName}>{adm.usu_nome}</span>
+                                <span className={styles.admEmail}>{adm.usu_email}</span>
+                              </div>
+                              <div className={styles.admActions}>
+                                <span className={adm.per_habilitado ? styles.admBadgeActive : styles.admBadgeInactive}>
+                                  {adm.per_habilitado ? 'Ativo' : 'Inativo'}
+                                </span>
+                                {isDev && (
+                                  <button
+                                    className={adm.per_habilitado ? styles.admDeactivateBtn : styles.admActivateBtn}
+                                    onClick={() => handleToggleAdminHabilitado(escId, adm)}
+                                    title={adm.per_habilitado ? 'Desativar acesso' : 'Reativar acesso'}
+                                  >
+                                    {adm.per_habilitado ? 'Desativar' : 'Reativar'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+
+                          {isDev && showAdminForm && (
+                            <div className={styles.admForm}>
+                              <div className={styles.admFormGrid}>
+                                <input type="text" placeholder="Nome completo *" className={styles.admInput}
+                                  value={adminForm.usu_nome}
+                                  onChange={e => setAdminForm(p => ({ ...p, usu_nome: e.target.value }))} />
+                                <input type="email" placeholder="E-mail *" className={styles.admInput}
+                                  value={adminForm.usu_email}
+                                  onChange={e => setAdminForm(p => ({ ...p, usu_email: e.target.value }))} />
+                                <input type="text" placeholder="Telefone" className={styles.admInput}
+                                  value={adminForm.usu_telefone}
+                                  onChange={e => setAdminForm(p => ({ ...p, usu_telefone: e.target.value }))} />
+                                <div />
+                                <input type="password" placeholder="Senha *" className={styles.admInput}
+                                  value={adminForm.usu_senha}
+                                  onChange={e => setAdminForm(p => ({ ...p, usu_senha: e.target.value }))} />
+                                <input type="password" placeholder="Confirmar senha *" className={styles.admInput}
+                                  value={adminForm.usu_confirmSenha}
+                                  onChange={e => setAdminForm(p => ({ ...p, usu_confirmSenha: e.target.value }))} />
+                              </div>
+                              {adminError && <p className={styles.admError}>{adminError}</p>}
+                              <div className={styles.admFormActions}>
+                                <button className={styles.admSaveBtn} disabled={adminSaving}
+                                  onClick={() => handleSaveAdmin(escId)}>
+                                  {adminSaving ? <Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : <CheckCircle size={13} />}
+                                  Adicionar
+                                </button>
+                                <button className={styles.admCancelBtn}
+                                  onClick={() => { setAdminFormEsc(null); setAdminError(''); }}>
+                                  <X size={13} /> Cancelar
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {isDev && !showAdminForm && (
+                            <button className={styles.admAddBtn}
+                              onClick={() => { setAdminFormEsc(escId); setAdminForm({ usu_nome: '', usu_email: '', usu_telefone: '', usu_senha: '', usu_confirmSenha: '' }); setAdminError(''); }}>
+                              <Plus size={13} /> Adicionar Administrador
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {/* ── Formulário inline de renovação (Dev only, contratos Vencidos) ── */}
                 {isDev && status === 'Vencido' && isRenewing && (

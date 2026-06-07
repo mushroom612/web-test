@@ -63,13 +63,11 @@ import {
   Building2, MapPin, Mail, Users, Trash2,
   UserPlus, X, CheckCircle, AlertCircle, Loader2,
   ChevronRight, ChevronLeft, BookOpen, Pencil, Plus, ChevronDown, ChevronUp,
-  FileText, CalendarDays
+  FileText, CalendarDays, Eye
 } from 'lucide-react';
 import { api } from '../services/api';
 import styles from './Cadastrar.module.css';
 
-// EMPTY_COURSE: objeto padrão para um novo curso (campos vazios).
-// Usado para resetar o formulário de curso após adicionar ou cancelar.
 const EMPTY_COURSE = { cur_nome: '', cur_descricao: '', cur_semestres: '' };
 
 // calcExpiry: calcula a data de vencimento do contrato a partir da
@@ -122,9 +120,9 @@ export function Cadastrar() {
   const [newCourse, setNewCourse] = useState(EMPTY_COURSE); // form de novo curso
   const [editingCourseId, setEditingCourseId] = useState(null); // ID do curso em edição
 
-  // ── Contrato (etapa 2) ──────────────────────────────────────
-  // contractFile: arquivo PDF/DOC selecionado pelo usuário
+  // ── Contrato e OCR (etapa 2) ────────────────────────────────
   const [contractFile, setContractFile] = useState(null);
+  const [ocrFile, setOcrFile]           = useState(null);
 
   // ── Autocomplete de endereço (etapa 1) ──────────────────────
   // suggestions: sugestões retornadas pelo endpoint GET /api/pontos/geocode
@@ -376,11 +374,17 @@ export function Cadastrar() {
       }
 
       // Passo 2b: enviar o arquivo PDF do contrato se foi selecionado
-      // POST /api/dev/escolas/:id/contrato/arquivo  (multipart/form-data)
       if (contractFile) {
         try {
           await api.uploadContractFile(escId, contractFile);
-        } catch { /* arquivo pode ser enviado depois — não bloqueia o cadastro */ }
+        } catch { /* arquivo pode ser enviado depois */ }
+      }
+
+      // Passo 2c: enviar o PDF de template OCR se foi selecionado
+      if (ocrFile) {
+        try {
+          await api.uploadOcrTemplate(escId, ocrFile);
+        } catch { /* template pode ser enviado depois */ }
       }
 
       // Passo 3: criar o admin já vinculado à escola via POST /api/dev/cadastrar
@@ -441,6 +445,7 @@ export function Cadastrar() {
     setNewCourse(EMPTY_COURSE);
     setEditingCourseId(null);
     setContractFile(null);
+    setOcrFile(null);
     setSubmitError('');
     setSubmitSuccess('');
     // Limpa estados do autocomplete de endereço
@@ -570,7 +575,6 @@ export function Cadastrar() {
   }
 
   // showCourseBtn: controla se o botão "Adicionar Curso" aparece.
-  // Só exibe quando o usuário já digitou algo no formulário de curso.
   const showCourseBtn = editingCourseId !== null || newCourse.cur_nome.trim() || newCourse.cur_descricao.trim() || newCourse.cur_semestres.trim();
 
   return (
@@ -803,6 +807,57 @@ export function Cadastrar() {
                     type="button"
                     className={styles.fileRemoveBtn}
                     onClick={() => setContractFile(null)}
+                    title="Remover arquivo"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              )}
+
+              <hr className={styles.divider} />
+
+              <div className={styles.sectionHeader} style={{ marginBottom: 12 }}>
+                <FileText size={16} />
+                <span style={{ fontSize: 14 }}>Modelo de OCR para Matrícula</span>
+                <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-secondary)' }}>(opcional)</span>
+              </div>
+              <p className={styles.sectionDescription} style={{ marginTop: 0, marginBottom: 12 }}>
+                PDF de exemplo de comprovante de matrícula usado como referência para calibrar o reconhecimento automático de documentos desta instituição.
+              </p>
+
+              {!ocrFile ? (
+                <label className={styles.fileUploadZone} htmlFor="ocrFileInput">
+                  <input
+                    type="file"
+                    id="ocrFileInput"
+                    accept=".pdf"
+                    onChange={(e) => setOcrFile(e.target.files[0] || null)}
+                  />
+                  <div className={styles.fileUploadIcon}>
+                    <FileText size={32} />
+                  </div>
+                  <p className={styles.fileUploadText}>
+                    <strong>Clique para selecionar</strong> o modelo de comprovante
+                  </p>
+                  <p className={styles.fileHint}>Somente PDF — máximo 10 MB</p>
+                </label>
+              ) : (
+                <div className={styles.fileSelected}>
+                  <FileText size={18} style={{ color: 'var(--btn-primary-bg)', flexShrink: 0 }} />
+                  <span className={styles.fileSelectedName}>{ocrFile.name}</span>
+                  <span className={styles.fileSelectedSize}>{(ocrFile.size / 1024).toFixed(0)} KB</span>
+                  <button
+                    type="button"
+                    className={styles.fileRemoveBtn}
+                    onClick={() => window.open(URL.createObjectURL(ocrFile), '_blank', 'noopener,noreferrer')}
+                    title="Visualizar PDF"
+                  >
+                    <Eye size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.fileRemoveBtn}
+                    onClick={() => setOcrFile(null)}
                     title="Remover arquivo"
                   >
                     <X size={15} />
@@ -1077,7 +1132,6 @@ export function Cadastrar() {
                     {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                   </button>
 
-                  {/* Seção de cursos: só renderiza quando expandida */}
                   {isExpanded && (
                     <div className={styles.coursesSection}>
                       {isLoadingCourses && (

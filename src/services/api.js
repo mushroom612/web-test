@@ -138,6 +138,15 @@ export const api = {
     return http.get('/api/admin/contrato');
   },
 
+  // uploadOcrTemplate: envia o PDF de template OCR de matrícula para uma escola.
+  // Endpoint: POST /api/dev/escolas/:id/ocr-base  (multipart/form-data, campo 'ocr_base')
+  // O arquivo é salvo em /public/ocr-base/ e o caminho é gravado em esc_ocr_base.
+  async uploadOcrTemplate(escId, file) {
+    const form = new FormData();
+    form.append('ocr_base', file);
+    return http.post(`/api/dev/escolas/${escId}/ocr-base`, form);
+  },
+
   // uploadContractFile: envia o PDF do contrato.
   // Endpoint: POST /api/dev/escolas/:id/contrato/arquivo  (multipart/form-data)
   // O arquivo é salvo em /public/contratos/ e o caminho é gravado em esc_contrato_arquivo.
@@ -188,9 +197,9 @@ export const api = {
   // Shape: { message, totalGeral, total, page, limit,
   //          usuarios: [{ usu_id, usu_nome, usu_email, usu_status,
   //                       usu_verificacao, esc_nome, cur_nome, per_tipo }] }
-  async getUsers({ page = 1, limit = 50, q = '' } = {}) {
+  async getUsers({ page = 1, limit = 50, q = '', esc_id } = {}) {
     return http.get('/api/admin/usuarios', {
-      query: { page, limit, ...(q ? { q } : {}) }
+      query: { page, limit, ...(q ? { q } : {}), ...(esc_id ? { esc_id } : {}) }
     });
   },
 
