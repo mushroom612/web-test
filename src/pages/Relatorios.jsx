@@ -23,10 +23,10 @@
 // Estilo: Relatorios.module.css
 // ============================================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Download, Users, Car, AlertCircle, BarChart2,
-  Loader2, FileText, Filter, ChevronDown, ChevronUp, Lock
+  Loader2, FileText, Filter, Lock
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -71,9 +71,9 @@ const REPORT_CARDS = [
     id:          'atividade',
     icon:        'BarChart2',
     title:       'Relatório de Atividade',
-    description: 'Resumo de atividades da plataforma no período selecionado.',
+    description: 'Exporta resumo de atividades da plataforma nos últimos 30 dias.',
     devOnly:     false,
-    actionLabel: 'Ver Relatório',
+    actionLabel: 'Baixar CSV',
   }
 ];
 
@@ -93,12 +93,13 @@ const statConfig = {
   AlertCircle: {
     mainLabel:    'denúncias',
     getMain:      (s) => s?.sugestoes?.denuncias ?? '—',
-    getSecondary: (s) => s?.sugestoes?.pendentes != null ? `${s.sugestoes.pendentes} pendentes` : null
+    // sugestoes.abertas = itens abertos/pendentes (não existe campo "pendentes")
+    getSecondary: (s) => s?.sugestoes?.abertas != null ? `${s.sugestoes.abertas} abertas` : null
   },
   BarChart2: {
-    mainLabel:    'registros',
-    getMain:      (s) => (s?.usuarios?.total ?? 0) + (s?.caronas?.total ?? 0),
-    getSecondary: (s) => s?.sugestoes?.resolvidas != null ? `${s.sugestoes.resolvidas} resolvidos` : null
+    mainLabel:    'feedbacks',
+    getMain:      (s) => s?.sugestoes?.total ?? '—',
+    getSecondary: (s) => s?.sugestoes?.fechadas != null ? `${s.sugestoes.fechadas} resolvidos` : null
   }
 };
 
@@ -116,11 +117,6 @@ function downloadCSV(csvText, filename) {
   URL.revokeObjectURL(url);
 }
 
-// formatDate: converte ISO string para data pt-BR
-function formatDate(str) {
-  if (!str) return '—';
-  return new Date(str).toLocaleDateString('pt-BR');
-}
 
 export function Relatorios() {
   const { isAdmin, isDev } = useAuth();
@@ -132,6 +128,10 @@ export function Relatorios() {
   // generating: Set com IDs dos relatórios em processo de geração/download
   const [generating, setGenerating] = useState(new Set());
 
+  // statsLoading: true enquanto os stats estão sendo atualizados por filtro
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError]     = useState(null);
+
   // recentList: histórico de downloads feitos na sessão atual
   const [recentList, setRecentList] = useState([]);
 
@@ -139,7 +139,7 @@ export function Relatorios() {
   const [schools, setSchools]   = useState([]);
   const [courses, setCourses]   = useState([]);
 
-  // filters: estado dos campos de filtro do formulário
+  // filters: o que o usuário está digitando/selecionando nos campos
   const [filters, setFilters] = useState({
     institution: '',
     course:      '',
@@ -147,39 +147,65 @@ export function Relatorios() {
     dateTo:      ''
   });
 
-  // atividadeData: resultado do GET /api/admin/relatorios/atividade (JSON)
-  // null = não carregado, objeto = resultado atual
-  const [atividadeData, setAtividadeData]     = useState(null);
-  const [atividadeOpen, setAtividadeOpen]     = useState(false);
-  const [atividadeLoading, setAtividadeLoading] = useState(false);
+  // appliedFilters: filtros efetivamente em vigor nos downloads.
+  // Só atualizam ao clicar "Aplicar Filtros" — evita download com filtro parcial.
+  const [appliedFilters, setAppliedFilters] = useState({
+    institution: '',
+    course:      '',
+    dateFrom:    '',
+    dateTo:      ''
+  });
+
+
+  // loadStats: busca os stats passando os filtros como query params.
+  // Sem filtros (escId=undefined, datas='') → usa o cache de 5 min do api.js.
+  // Com filtros → bypass do cache, retorna contagens reais do período/escola.
+  const loadStats = useCallback(async (escId, dateFrom, dateTo) => {
+    setStatsLoading(true);
+    setStatsError(null);
+    try {
+      const escParams     = escId ? { esc_id: escId } : {};
+      const caronasParams = {
+        ...(dateFrom ? { inicio: dateFrom } : {}),
+        ...(dateTo   ? { fim:    dateTo }   : {}),
+        ...(isDev && escId ? { esc_id: escId } : {})
+      };
+      const [sUsuarios, sCaronas, sSugestoes] = await Promise.all([
+        api.getStats('usuarios', escParams),
+        api.getStats('caronas',  caronasParams),
+        api.getStats('sugestoes', escParams)
+      ]);
+      setStats({
+        usuarios:  sUsuarios.stats,
+        caronas:   sCaronas.stats,
+        sugestoes: sSugestoes.stats
+      });
+    } catch (e) {
+      console.error('[Relatorios] Erro ao carregar estatísticas com filtro:', e);
+      setStatsError(e?.message ?? 'Erro ao atualizar estatísticas. Verifique o console.');
+    } finally {
+      setStatsLoading(false);
+    }
+  }, [isDev]);
 
   useEffect(() => {
     async function load() {
-      // Fase 1: estatísticas para os cards (crítico)
-      try {
-        const [sUsuarios, sCaronas, sSugestoes] = await Promise.all([
-          api.getStats('usuarios'),
-          api.getStats('caronas'),
-          api.getStats('sugestoes')
-        ]);
-        setStats({
-          usuarios:  sUsuarios.stats,
-          caronas:   sCaronas.stats,
-          sugestoes: sSugestoes.stats
-        });
-      } catch {
-        // stats permanece null; cards mostram '—'
-      }
+      // Fase 1: estatísticas iniciais sem filtros
+      await loadStats(undefined, '', '');
 
-      // Fase 2: listas para filtros (tolerante a falha)
-      try {
-        const data = await api.getSchools();
-        setSchools(data?.escolas ?? (Array.isArray(data) ? data : []));
-      } catch { /* mantém lista vazia */ }
+      // Fase 2: lista de escolas para o filtro — apenas Dev.
+      // GET /api/dev/escolas retorna 403 para Admin, então evitamos a chamada.
+      if (isDev) {
+        try {
+          const data = await api.getSchools();
+          setSchools(data?.escolas ?? (Array.isArray(data) ? data : []));
+        } catch { /* mantém lista vazia */ }
+      }
 
       setLoading(false);
     }
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Carrega cursos quando uma instituição é selecionada no filtro
@@ -192,11 +218,15 @@ export function Relatorios() {
       .catch(() => setCourses([]));
   }, [filters.institution, schools]);
 
-  // selectedEscId: resolve o esc_id a partir do nome da escola selecionada no filtro.
-  // Usado por Usuários e Penalidades que aceitam esc_id como parâmetro.
-  const selectedEscId = filters.institution
-    ? schools.find(s => s.esc_nome === filters.institution)?.esc_id
+  // selectedEscId: esc_id dos FILTROS APLICADOS (não do que está digitado).
+  // Usado em todos os downloads que aceitam esc_id como parâmetro.
+  const selectedEscId = appliedFilters.institution
+    ? schools.find(s => s.esc_nome === appliedFilters.institution)?.esc_id
     : undefined;
+
+  // hasAppliedFilters: true quando algum filtro está em vigor nos downloads
+  const hasAppliedFilters =
+    !!appliedFilters.dateFrom || !!appliedFilters.dateTo || !!appliedFilters.institution;
 
   function handleFilterChange(field, value) {
     setFilters(prev => ({
@@ -206,27 +236,57 @@ export function Relatorios() {
     }));
   }
 
+  function handleApplyFilters() {
+    const newApplied = { ...filters };
+    setAppliedFilters(newApplied);
+    // Resolve esc_id a partir do nome da instituição escolhida
+    const escId = newApplied.institution
+      ? schools.find(s => s.esc_nome === newApplied.institution)?.esc_id
+      : undefined;
+    loadStats(escId, newApplied.dateFrom, newApplied.dateTo);
+  }
+
   function handleClearFilters() {
-    setFilters({ institution: '', course: '', dateFrom: '', dateTo: '' });
+    const empty = { institution: '', course: '', dateFrom: '', dateTo: '' };
+    setFilters(empty);
+    setAppliedFilters(empty);
+    loadStats(undefined, '', '');  // volta aos totais globais (usa cache)
   }
 
   // handleGenerate: despacha para o endpoint correto conforme o id do card.
   // CSV → blob download + adiciona ao histórico de sessão.
-  // Atividade → painel inline com dados JSON.
+  // Atividade → converte JSON da API para CSV e baixa como arquivo.
   async function handleGenerate(report) {
-    // Atividade: toggle do painel de resumo
+    // Atividade: fetch JSON → converte para CSV → download
     if (report.id === 'atividade') {
-      if (atividadeOpen) { setAtividadeOpen(false); return; }
-      setAtividadeLoading(true);
-      setAtividadeOpen(true);
+      setGenerating(prev => new Set(prev).add('atividade'));
       try {
         const data = await api.getRelatorioAtividade({ dias: 30 });
-        setAtividadeData(data);
+        // Monta linhas CSV a partir do JSON retornado
+        const linhas = [
+          'campo,valor',
+          `periodo_dias,${data.periodo?.dias ?? 30}`,
+          `periodo_inicio,${data.periodo?.inicio ?? ''}`,
+          `caronas_total,${data.caronas?.total ?? 0}`,
+          `caronas_finalizadas,${data.caronas?.finalizadas ?? 0}`,
+          `caronas_canceladas,${data.caronas?.canceladas ?? 0}`,
+          `usuarios_novos,${data.usuarios?.novos ?? 0}`,
+          `avaliacoes_total,${data.avaliacoes?.total ?? 0}`,
+          `avaliacoes_media,${data.avaliacoes?.media != null ? Number(data.avaliacoes.media).toFixed(2) : 0}`,
+        ];
+        const csvText = linhas.join('\n');
+        const hoje = new Date().toISOString().slice(0, 10);
+        downloadCSV(csvText, `atividade-${hoje}.csv`);
+        setRecentList(prev => [{
+          id:    Date.now(),
+          title: report.title,
+          date:  new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+          size:  `${(csvText.length / 1024).toFixed(1)} KB`
+        }, ...prev]);
       } catch (err) {
-        alert('Erro ao carregar relatório de atividade: ' + err.message);
-        setAtividadeOpen(false);
+        alert('Erro ao gerar relatório de atividade: ' + err.message);
       } finally {
-        setAtividadeLoading(false);
+        setGenerating(prev => { const n = new Set(prev); n.delete('atividade'); return n; });
       }
       return;
     }
@@ -238,9 +298,11 @@ export function Relatorios() {
 
       switch (report.id) {
         case 'caronas':
+          // Usa appliedFilters para datas e esc_id (Dev pode filtrar por escola)
           csvText  = await api.downloadRelatorioCaronas({
-            inicio: filters.dateFrom || undefined,
-            fim:    filters.dateTo   || undefined
+            inicio:  appliedFilters.dateFrom || undefined,
+            fim:     appliedFilters.dateTo   || undefined,
+            esc_id:  isDev ? selectedEscId : undefined
           });
           filename = `caronas-${hoje}.csv`;
           break;
@@ -259,7 +321,13 @@ export function Relatorios() {
           return;
       }
 
-      if (typeof csvText !== 'string' || !csvText.trim()) {
+      // Se a API retornou objeto JSON em vez de texto CSV, extrai a mensagem de erro
+      if (typeof csvText !== 'string') {
+        const msg = csvText?.error || csvText?.message || 'A API retornou um formato inesperado.';
+        alert(`Erro ao gerar relatório: ${msg}`);
+        return;
+      }
+      if (!csvText.trim()) {
         alert('Nenhum dado encontrado para os filtros selecionados.');
         return;
       }
@@ -370,17 +438,47 @@ export function Relatorios() {
 
         <div className={styles.filterActions}>
           <button className={styles.clearBtn} onClick={handleClearFilters}>Limpar</button>
+          <button className={styles.applyBtn} onClick={handleApplyFilters}>
+            Aplicar Filtros
+          </button>
         </div>
+
+        {/* Indicador dos filtros em vigor nos downloads */}
+        {hasAppliedFilters && (
+          <div className={styles.appliedFiltersInfo}>
+            <span className={styles.appliedFiltersLabel}>Filtros ativos:</span>
+            {appliedFilters.institution && (
+              <span className={styles.filterTag}>{appliedFilters.institution}</span>
+            )}
+            {appliedFilters.dateFrom && (
+              <span className={styles.filterTag}>
+                De {appliedFilters.dateFrom}
+              </span>
+            )}
+            {appliedFilters.dateTo && (
+              <span className={styles.filterTag}>
+                Até {appliedFilters.dateTo}
+              </span>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Erro ao aplicar filtro nos stats */}
+      {statsError && (
+        <div className={styles.statsErrorBanner}>
+          <AlertCircle size={14} />
+          {statsError}
+        </div>
+      )}
 
       {/* ── Grade de cards de relatório ── */}
       <div className={styles.reportsGrid}>
         {visibleCards.map((report) => {
-          const cfg          = statConfig[report.icon];
-          const mainValue    = cfg?.getMain(stats) ?? '—';
+          const cfg            = statConfig[report.icon];
+          const mainValue      = cfg?.getMain(stats) ?? '—';
           const secondaryValue = cfg?.getSecondary(stats);
-          const isGenerating = generating.has(report.id);
-          const isAtividade  = report.id === 'atividade';
+          const isGenerating   = generating.has(report.id);
 
           return (
             <div key={report.id} className={styles.reportCard}>
@@ -390,7 +488,11 @@ export function Relatorios() {
                   {iconMap[report.icon]}
                 </div>
                 <div className={styles.cardMainStat}>
-                  <span className={styles.mainStatValue}>{mainValue}</span>
+                  <span className={styles.mainStatValue}>
+                    {statsLoading
+                      ? <Loader2 size={16} className={styles.btnSpinner} />
+                      : mainValue}
+                  </span>
                   <span className={styles.mainStatLabel}>{cfg?.mainLabel}</span>
                 </div>
               </div>
@@ -402,60 +504,16 @@ export function Relatorios() {
                 <p className={styles.secondaryStat}>{secondaryValue}</p>
               )}
 
-              {/* Botão principal */}
+              {/* Botão de download — todos os cards usam o mesmo padrão */}
               <button
                 className={styles.generateBtn}
                 onClick={() => handleGenerate(report)}
-                disabled={isGenerating || (isAtividade && atividadeLoading)}
+                disabled={isGenerating}
               >
-                {isGenerating || (isAtividade && atividadeLoading)
-                  ? <><Loader2 size={14} className={styles.btnSpinner} /> Carregando...</>
-                  : isAtividade
-                    ? <>{atividadeOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />} {atividadeOpen ? 'Fechar' : report.actionLabel}</>
-                    : <><Download size={14} /> {report.actionLabel}</>}
+                {isGenerating
+                  ? <><Loader2 size={14} className={styles.btnSpinner} /> Gerando...</>
+                  : <><Download size={14} /> {report.actionLabel}</>}
               </button>
-
-              {/* Painel de atividade (só para o card Atividade) */}
-              {isAtividade && atividadeOpen && (
-                <div className={styles.atividadePanel}>
-                  {atividadeLoading || !atividadeData ? (
-                    <Loader2 size={16} className={styles.btnSpinner} />
-                  ) : (
-                    <div className={styles.atividadeGrid}>
-                      <div className={styles.atividadeItem}>
-                        <span className={styles.atividadeLabel}>Período</span>
-                        <span className={styles.atividadeValue}>
-                          {atividadeData.periodo?.dias ?? 30} dias
-                          {atividadeData.periodo?.inicio && ` (desde ${formatDate(atividadeData.periodo.inicio)})`}
-                        </span>
-                      </div>
-                      <div className={styles.atividadeItem}>
-                        <span className={styles.atividadeLabel}>Caronas no período</span>
-                        <span className={styles.atividadeValue}>{atividadeData.caronas?.total ?? '—'}</span>
-                      </div>
-                      <div className={styles.atividadeItem}>
-                        <span className={styles.atividadeLabel}>Finalizadas</span>
-                        <span className={styles.atividadeValue}>{atividadeData.caronas?.finalizadas ?? '—'}</span>
-                      </div>
-                      <div className={styles.atividadeItem}>
-                        <span className={styles.atividadeLabel}>Canceladas</span>
-                        <span className={styles.atividadeValue}>{atividadeData.caronas?.canceladas ?? '—'}</span>
-                      </div>
-                      <div className={styles.atividadeItem}>
-                        <span className={styles.atividadeLabel}>Novos usuários</span>
-                        <span className={styles.atividadeValue}>{atividadeData.usuarios?.novos ?? '—'}</span>
-                      </div>
-                      <div className={styles.atividadeItem}>
-                        <span className={styles.atividadeLabel}>Avaliações</span>
-                        <span className={styles.atividadeValue}>
-                          {atividadeData.avaliacoes?.total ?? '—'}
-                          {atividadeData.avaliacoes?.media != null && ` (média ${Number(atividadeData.avaliacoes.media).toFixed(1)})`}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           );
         })}

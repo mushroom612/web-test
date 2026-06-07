@@ -44,10 +44,12 @@ const DURATION_OPTIONS = [
   { value: '5anos', label: '5 Anos' }
 ];
 
-// parseLocalDate: converte 'AAAA-MM-DD' para Date local (evita deslocamento UTC).
+// parseLocalDate: converte 'AAAA-MM-DD' (ou ISO completo) para Date local.
+// Fatiamos os primeiros 10 caracteres para aceitar tanto 'YYYY-MM-DD'
+// quanto 'YYYY-MM-DDT...' sem deslocamento de fuso UTC.
 function parseLocalDate(dateStr) {
   if (!dateStr) return null;
-  const [y, m, d] = dateStr.split('-').map(Number);
+  const [y, m, d] = dateStr.slice(0, 10).split('-').map(Number);
   return new Date(y, m - 1, d);
 }
 
@@ -117,7 +119,7 @@ export function Contratos() {
   // handleRenewConfirm: renova o contrato via POST /api/dev/escolas/:id/contrato.
   // A data de início é definida como hoje automaticamente.
   async function handleRenewConfirm(escId) {
-    if (!renewState?.duracao) return;
+    if (!renewState?.duracao || renewLoading) return;  // guard contra duplo-clique
     setRenewLoading(true);
     try {
       await api.createContract(escId, {

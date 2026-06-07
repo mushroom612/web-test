@@ -111,14 +111,15 @@ function formatDate(str) {
 // Campos da API: sug_id, sug_texto, sug_data, sug_status,
 //               sug_resposta, autor
 //
-// Nota: o endpoint de lista não retorna usu_id — apenas o nome (autor).
-// Por isso userId pode ser null para sugestões; o detalhe omite a linha
-// "Usuário #N" quando userId for null.
+// id usa prefixo composto "sug-N" para evitar colisão com denúncias que
+// têm seu próprio sequence de den_id (ambos começam em 1).
+// _id guarda o numérico original para as chamadas de API.
 function sugestaoToItem(s) {
   const nome = s.autor || 'Usuário';
   return {
-    id:              s.sug_id,
-    _tipo:           'sugestao',   // identifica qual endpoint chamar nas ações
+    id:              `sug-${s.sug_id}`,  // chave interna única — sem colisão com den_id
+    _id:             s.sug_id,           // ID numérico original para chamadas de API
+    _tipo:           'sugestao',         // identifica qual endpoint chamar nas ações
     userId:          s.usu_id ?? null,
     userName:        nome,
     avatar:          nome.charAt(0).toUpperCase(),
@@ -151,7 +152,8 @@ function sugestaoToItem(s) {
 function denunciaToItem(d) {
   const nome = d.denunciante || 'Usuário';
   return {
-    id:              d.den_id,
+    id:              `den-${d.den_id}`,  // chave interna única — sem colisão com sug_id
+    _id:             d.den_id,           // ID numérico original para chamadas de API
     _tipo:           'denuncia',
     userId:          d.usu_id ?? null,
     userName:        nome,
@@ -321,9 +323,9 @@ export function Sugestoes() {
     setSending(true);
     try {
       if (selectedItem._tipo === 'denuncia') {
-        await api.responderDenuncia(selectedItem.id, responseText.trim());
+        await api.responderDenuncia(selectedItem._id, responseText.trim());
       } else {
-        await api.responderSugestao(selectedItem.id, responseText.trim());
+        await api.responderSugestao(selectedItem._id, responseText.trim());
       }
     } catch { /* atualiza localmente mesmo sem confirmação da API */ }
     // Atualiza o item na lista sem recarregar tudo
@@ -351,8 +353,8 @@ export function Sugestoes() {
     if (!item) return;
     try {
       if (newStatus === 'Em análise') {
-        if (item._tipo === 'denuncia') await api.analisarDenuncia(id);
-        else await api.analisarSugestao(id);
+        if (item._tipo === 'denuncia') await api.analisarDenuncia(item._id);
+        else await api.analisarSugestao(item._id);
       }
     } catch { /* estado local já atualizado */ }
   }
@@ -369,8 +371,8 @@ export function Sugestoes() {
     const item = items.find(i => i.id === id);
     if (!item) return;
     try {
-      if (item._tipo === 'denuncia') await api.arquivarDenuncia(id);
-      else await api.arquivarSugestao(id);
+      if (item._tipo === 'denuncia') await api.arquivarDenuncia(item._id);
+      else await api.arquivarSugestao(item._id);
     } catch { /* mantém update otimista */ }
     // new Set(prev) → cria uma cópia do Set antes de modificar
     setArchivedIds(prev => new Set(prev).add(id));
@@ -392,8 +394,8 @@ export function Sugestoes() {
     const item = items.find(i => i.id === id);
     if (!item) return;
     try {
-      if (item._tipo === 'denuncia') await api.deleteDenuncia(id);
-      else await api.deleteSugestao(id);
+      if (item._tipo === 'denuncia') await api.deleteDenuncia(item._id);
+      else await api.deleteSugestao(item._id);
     } catch { /* remove localmente mesmo se a API falhar */ }
     setItems(prev => prev.filter(i => i.id !== id));
     handleCloseDetail();

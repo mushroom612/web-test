@@ -30,6 +30,18 @@
   color: var(--text-primary);
 }
 
+.statsErrorBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--card-radius-desktop);
+  background-color: var(--status-error-bg, #fef2f2);
+  color: var(--status-error-text, #991b1b);
+  font-size: var(--font-size-sm);
+}
+
 /* ── Filtros ─────────────────────────────────────────────────────────────── */
 
 .filterCard {
@@ -142,6 +154,32 @@
 
 .applyBtn:hover {
   background-color: var(--btn-primary-bg-hover);
+}
+
+/* Indicador de filtros aplicados (exibido abaixo dos botões do filtro) */
+.appliedFiltersInfo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.appliedFiltersLabel {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.filterTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  background-color: var(--color-green-100, #dcfce7);
+  color: var(--btn-primary-bg);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 /* ── Grid de Relatórios ─────────────────────────────────────────────────── */

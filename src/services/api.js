@@ -1,34 +1,20 @@
 // ============================================================
 // services/api.js — Serviço de comunicação com a API
 //
-// Camada que expõe as operações de negócio para os componentes.
-// Mistura, hoje, dois mundos:
-//   1) Endpoints reais da API de Caronas (autenticação) — passam
-//      pelo http.js (Authorization, refresh automático, base URL).
-//   2) Operações ainda mockadas (usuários, caronas, sugestões,
-//      relatórios, etc.) — serão migradas progressivamente.
+// Camada única de acesso à API para todos os componentes.
+// Todos os métodos fazem chamadas HTTP reais via http.js,
+// que injeta o Authorization Bearer e lida com refresh de token.
 //
-// Os componentes não devem importar http.js diretamente; toda
-// chamada à API real deve ser feita via api.* para manter um
-// único ponto de troca quando for hora de migrar.
-//
-// Dados mockados consumidos: mockData.js (arrays apiXxxxData)
 // Endpoints reais: ver services/http.js + documentação da API.
 // ============================================================
 
 import { http, tokens } from './http';
-import {
-  apiSchoolsData,
-  apiCoursesData,
-  auditLogData
-} from '../data/mockData';
 
-// delay: função utilitária que cria uma pausa artificial.
-// Simula o tempo que uma requisição HTTP real levaria.
-// Promise + setTimeout = "espere X milissegundos e continue".
-function delay(ms = 300) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+// statsCache: cache em memória das estatísticas por tipo.
+// TTL de 5 min evita refetch desnecessário ao navegar entre
+// Dashboard e Relatórios, que fazem as mesmas 3 chamadas.
+const statsCache = {};
+const STATS_TTL_MS = 5 * 60 * 1000;
 
 // api: objeto exportado com todos os métodos da aplicação.
 // Os componentes importam este objeto e chamam seus métodos:
@@ -91,12 +77,29 @@ export const api = {
   //   sugestoes→ { total, abertas, em_analise, fechadas,
   //                denuncias, sugestoes }
   // Todas envelopadas em { message, stats }.
-  async getStats(type) {
+  async getStats(type, params = {}) {
     const validTypes = ['usuarios', 'caronas', 'sugestoes'];
     if (!validTypes.includes(type)) {
       throw new Error(`Tipo de estatística inválido: ${type}`);
     }
-    return http.get(`/api/admin/stats/${type}`);
+    // Remove keys vazios/nulos para não poluir a query string
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v != null && v !== '')
+    );
+    const hasFilters = Object.keys(cleanParams).length > 0;
+
+    if (!hasFilters) {
+      // Sem filtros: usa cache de 5 min
+      const now = Date.now();
+      if (statsCache[type] && now - statsCache[type].ts < STATS_TTL_MS) {
+        return statsCache[type].data;
+      }
+      const result = await http.get(`/api/admin/stats/${type}`);
+      statsCache[type] = { data: result, ts: now };
+      return result;
+    }
+    // Com filtros: bypass cache, envia params como query string
+    return http.get(`/api/admin/stats/${type}`, { query: cleanParams });
   },
 
   // ── Escolas ─────────────────────────────────────────────────
@@ -348,92 +351,70 @@ export const api = {
   },
 
   // ── Notificações ───────────────────────────────────────────
-
-  // Simula o envio de uma notificação para usuários.
-  // Desestruturação: { titulo, mensagem, tipo, usu_id } extrai
-  // as propriedades do objeto recebido como parâmetro.
-  async enviarNotificacao({ titulo, mensagem, tipo, usu_id } = {}) {
-    await delay(300);
-    return {
-      noti_id: Date.now(), // ID único baseado no timestamp
-      titulo,
-      mensagem,
-      tipo,
-      usu_id,
-      enviado_em: new Date().toISOString() // data/hora atual em formato ISO
-    };
+  // enviarNotificacao: despacha para o endpoint correto conforme o destinatário.
+  //
+  // usu_id preenchido → POST /api/notificacoes/enviar  (usuário específico)
+  //   Body: { usu_id, noti_titulo, noti_descricao }
+  //
+  // usu_id ausente → POST /api/admin/notificacoes/escola  (broadcast à escola do Admin)
+  //   Body: { noti_titulo, noti_descricao }
+  //   Acesso: Admin only (backend usa per_escola_id do JWT para escopo).
+  async enviarNotificacao({ titulo, mensagem, usu_id } = {}) {
+    if (usu_id) {
+      return http.post('/api/notificacoes/enviar', {
+        usu_id,
+        noti_titulo:    titulo,
+        noti_descricao: mensagem
+      });
+    }
+    return http.post('/api/admin/notificacoes/escola', {
+      noti_titulo:    titulo,
+      noti_descricao: mensagem
+    });
   },
 
   // ── Logs de Auditoria (apenas Desenvolvedor) ───────────────
-
-  // Busca logs de auditoria com filtros opcionais e paginação.
+  // Endpoint: GET /api/dev/logs?acao=&data_inicio=&data_fim=&page=&limit=
   // Somente usuários com per_tipo = 2 (Desenvolvedor) têm acesso.
+  // Shape: { logs: [{ audit_id, criado_em, usu_id, acao, tabela, registro_id, ip }],
+  //          totalGeral, page, limit }
+  //
+  // Nota: os parâmetros de data usam snake_case (data_inicio / data_fim),
+  // diferente do que estava na versão mockada (dataInicio / dataFim).
   async getLogs({ page = 1, limit = 20, acao, dataInicio, dataFim } = {}) {
-    await delay(300);
-    let filtered = [...auditLogData]; // cópia rasa do array (não modifica o original)
-
-    // Filtra por ação se fornecida (case-insensitive).
-    if (acao) {
-      const q = acao.toUpperCase();
-      filtered = filtered.filter((l) => l.acao.toUpperCase().includes(q));
-    }
-
-    // Filtra por data de início: converte para timestamp (número)
-    // e compara para manter apenas logs após a data informada.
-    if (dataInicio) {
-      const from = new Date(dataInicio).getTime();
-      filtered = filtered.filter((l) => new Date(l.criado_em).getTime() >= from);
-    }
-
-    // Filtra por data de fim: ajusta para o final do dia (23:59:59).
-    if (dataFim) {
-      const to = new Date(dataFim);
-      to.setHours(23, 59, 59, 999);
-      filtered = filtered.filter((l) => new Date(l.criado_em).getTime() <= to.getTime());
-    }
-
-    const totalGeral = filtered.length;
-    const start = (page - 1) * limit;
-    return {
-      logs: filtered.slice(start, start + limit),
-      totalGeral,
-      page,
-      limit,
-    };
+    return http.get('/api/dev/logs', {
+      query: {
+        page,
+        limit,
+        ...(acao       ? { acao }                    : {}),
+        ...(dataInicio ? { data_inicio: dataInicio }  : {}),
+        ...(dataFim    ? { data_fim:    dataFim }     : {})
+      }
+    });
   },
 
-  // Exporta todos os logs de auditoria como arquivo CSV.
-  // Cria um arquivo dinamicamente no navegador e dispara o download.
-  async exportLogs() {
-    await delay(400);
+  // Endpoint: GET /api/dev/logs/exportar?acao=&data_inicio=&data_fim=&usu_id=
+  // Retorna CSV bruto (até 10 000 registros). O http.js devolve o texto CSV
+  // como string (JSON.parse falha → fallback para texto puro).
+  // O componente cria um Blob e dispara o download.
+  async exportLogs({ acao, dataInicio, dataFim } = {}) {
+    const csvText = await http.get('/api/dev/logs/exportar', {
+      query: {
+        ...(acao       ? { acao }                    : {}),
+        ...(dataInicio ? { data_inicio: dataInicio }  : {}),
+        ...(dataFim    ? { data_fim:    dataFim }     : {})
+      }
+    });
 
-    // Define as colunas do CSV
-    const headers = ['audit_id', 'criado_em', 'usu_id', 'acao', 'tabela', 'registro_id', 'ip'];
-
-    // Converte cada log em uma linha CSV (com valores entre aspas)
-    const rows = auditLogData.map((l) =>
-      headers.map((h) => JSON.stringify(l[h] ?? '')).join(',')
-    );
-
-    // Junta cabeçalho e linhas com quebras de linha
-    const csv = [headers.join(','), ...rows].join('\n');
-
-    // Blob: objeto que representa dados brutos (aqui, o conteúdo do CSV)
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-
-    // URL.createObjectURL: cria uma URL temporária apontando para o Blob
-    const url = URL.createObjectURL(blob);
-
-    // Cria um link <a> invisível, aponta para o CSV e clica nele
-    // para disparar o download automático no navegador.
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `auditoria_${new Date().toISOString().slice(0, 10)}.csv`; // nome do arquivo
+    const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `auditoria_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url); // libera a memória da URL temporária
-
+    URL.revokeObjectURL(url);
     return { success: true };
   },
 
@@ -515,12 +496,19 @@ export const api = {
   // O http.js tenta JSON.parse e, ao falhar, retorna o texto bruto (string).
   // O componente cria um Blob a partir dessa string e dispara o download.
 
-  // Endpoint: GET /api/admin/relatorios/caronas?formato=csv&inicio=&fim=
-  // Acesso: Admin + Dev. Admin restrito à própria escola (backend filtra via JWT).
+  // Endpoint: GET /api/admin/relatorios/caronas?formato=csv&inicio=&fim=&esc_id=
+  // Acesso: Admin + Dev.
+  //   Admin: esc_id é ignorado (backend usa per_escola_id do JWT automaticamente).
+  //   Dev:   esc_id opcional — sem ele retorna todas as escolas; com ele filtra uma.
   // CSV: periodo_inicio, periodo_fim, total, abertas, em_espera, finalizadas, canceladas
-  async downloadRelatorioCaronas({ inicio, fim } = {}) {
+  async downloadRelatorioCaronas({ inicio, fim, esc_id } = {}) {
     return http.get('/api/admin/relatorios/caronas', {
-      query: { formato: 'csv', ...(inicio ? { inicio } : {}), ...(fim ? { fim } : {}) }
+      query: {
+        formato: 'csv',
+        ...(inicio  ? { inicio }  : {}),
+        ...(fim     ? { fim }     : {}),
+        ...(esc_id  ? { esc_id }  : {})
+      }
     });
   },
 

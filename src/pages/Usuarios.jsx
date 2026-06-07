@@ -37,6 +37,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { StatusBadge } from '../components/StatusBadge';
 import { PenaltyPanel } from '../components/PenaltyPanel';
 import { UserProfilePanel } from '../components/UserProfilePanel';
@@ -95,6 +96,10 @@ function perTipoLabel(per_tipo) {
 }
 
 export function Usuarios() {
+  // isDev: usado para controlar quais ações de status são visíveis.
+  // Admin (per_tipo=1) não pode desativar usuários comuns (per_tipo=0).
+  const { isDev } = useAuth();
+
   // Estados de controle da interface:
   const [searchTerm, setSearchTerm] = useState('');       // texto digitado na busca
   const [users, setUsers] = useState([]);                  // lista de usuários carregada da API
@@ -274,7 +279,9 @@ export function Usuarios() {
                       onEdit={handleEditUser}
                       onPenalize={handlePenaltyClick}
                       onView={handleViewUser}
-                      onToggleStatus={handleToggleStatus}
+                      // Admin só pode alterar status de outros admins (per_tipo=1),
+                      // não de usuários comuns. Dev pode alterar qualquer um.
+                      onToggleStatus={isDev || user.per_tipo === 1 ? handleToggleStatus : undefined}
                     />
                   </td>
                 </tr>

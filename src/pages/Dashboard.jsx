@@ -267,7 +267,8 @@ export function Dashboard() {
         },
         {
           id: 4,
-          label: 'Sugestões Pendentes',
+          // Admin só vê denúncias; Dev vê sugestões e denúncias
+          label: isAdmin ? 'Denúncias Pendentes' : 'Sugestões Pendentes',
           value: metrics.sugestoes.abertas ?? 0,
           trend: `${metrics.sugestoes.total ?? 0} no total`,
           // trendUp=true só quando NÃO há pendências — sinaliza "tudo em dia"
@@ -343,7 +344,7 @@ export function Dashboard() {
     <div className={styles.dashboard}>
       {/* Cabeçalho da página */}
       <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Dashboard</h1>
+        <h1 className={styles.pageTitle}>Painel</h1>
         <p className={styles.pageSubtitle}>Visão geral da plataforma Tuctuc</p>
       </div>
       <div className={styles.userFeedback}>

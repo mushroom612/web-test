@@ -135,6 +135,10 @@ export function Cadastrar() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   // geocodeTimer: ref para o ID do setTimeout de debounce (não causa re-render)
   const geocodeTimer = useRef(null);
+  // submitLockRef: guard síncrono contra duplo-submit.
+  // Diferente de submitLoading (estado React, stale na closure), o ref
+  // atualiza imediatamente e é lido com o valor real na chamada seguinte.
+  const submitLockRef = useRef(false);
 
   // ── Feedback de submit ──────────────────────────────────────
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -342,6 +346,8 @@ export function Cadastrar() {
   // 3. Cria os cursos vinculados à escola
   async function handleSubmit(e) {
     e.preventDefault();
+    if (submitLockRef.current) return;  // guard síncrono — imune a closure stale
+    submitLockRef.current = true;
     setSubmitError('');
     setSubmitSuccess('');
     setSubmitLoading(true);
@@ -412,12 +418,15 @@ export function Cadastrar() {
       } else if (coursesList.length > 0) {
         successMsg += ` ${coursesList.length} curso(s) cadastrado(s).`;
       }
-      setSubmitSuccess(successMsg);
+      // handleReset chama setSubmitSuccess(''), por isso setSubmitSuccess(msg)
+      // vem DEPOIS: o React processa ambas no mesmo batch e o último valor vence.
       handleReset();
-      loadInstitutions(); // recarrega a lista de instituições
+      setSubmitSuccess(successMsg);
+      loadInstitutions();
     } catch (err) {
       setSubmitError(err.message || 'Erro ao cadastrar instituição.');
     } finally {
+      submitLockRef.current = false;
       setSubmitLoading(false);
     }
   }

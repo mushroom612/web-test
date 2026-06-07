@@ -65,7 +65,7 @@ export function Aside() {
   //   user   → objeto com os dados do usuário logado (vindo de /me)
   //   isDev  → true se per_tipo === 2 (Desenvolvedor — vê tudo)
   //   logout → encerra a sessão (limpa tokens + invalida no backend)
-  const { user, isDev, logout } = useAuth();
+  const { user, isDev, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
 
   // handleLogout: encerra a sessão e navega para o login.
@@ -99,7 +99,7 @@ export function Aside() {
       items: [
         {
           icon: Home,
-          label: "Dashboard",
+          label: "Painel",
           path: "/dashboard",
           developerOnly: false,
         },
@@ -145,7 +145,8 @@ export function Aside() {
         },
         {
           icon: MessageSquare,
-          label: "Sugestões/Denúncias",
+          // Admin só vê Denúncias; Dev vê Sugestões + Denúncias
+          label: isAdmin ? "Denúncias" : "Sugestões/Denúncias",
           path: "/sugestoes",
           developerOnly: false,
         },

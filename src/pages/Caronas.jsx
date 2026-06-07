@@ -298,9 +298,10 @@ export function Caronas() {
   }
 
   // Stats agora vêm da API — refletem o escopo todo, não apenas a página
-  // atual. (Antes eram calculados via .filter() sobre rides carregadas.)
+  // atual. "Ativas" combina status=1 (Aberta) + status=2 (Em espera) para que
+  // a aritmética feche: Total = Ativas + Finalizadas + Canceladas.
   const totalGeral       = stats?.total ?? 0;
-  const totalAbertas     = stats?.abertas ?? 0;
+  const totalAtivas      = (stats?.abertas ?? 0) + (stats?.em_espera ?? 0);
   const totalFinalizadas = stats?.finalizadas ?? 0;
   const totalCanceladas  = stats?.canceladas ?? 0;
 
@@ -325,8 +326,8 @@ export function Caronas() {
         <div className={styles.statCard}>
           <CheckCircle size={16} className={styles.statIconGreen} />
           <div>
-            <p className={styles.statValue}>{totalAbertas}</p>
-            <p className={styles.statLabel}>Abertas</p>
+            <p className={styles.statValue}>{totalAtivas}</p>
+            <p className={styles.statLabel}>Ativas</p>
           </div>
         </div>
         <div className={styles.statCard}>
