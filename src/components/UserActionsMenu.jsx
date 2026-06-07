@@ -1,88 +1,82 @@
 // ============================================================
 // components/UserActionsMenu.jsx — Menu suspenso de ações por linha (⋮)
 //
-// Exibe um botão "⋮" (três pontos verticais) que ao ser clicado abre
-// um pequeno menu com ações disponíveis para um usuário da tabela:
-//   - Ver Detalhes → abre UserProfilePanel no modo visualização
-//   - Editar        → abre UserProfilePanel no modo edição
-//   - Penalizar     → abre PenaltyPanel
-//   - Deletar       → chama handleDeleteUser com confirmação
+// Exibe um botão "⋮" que ao ser clicado abre um menu com ações
+// disponíveis para o usuário da linha: Ver Detalhes, Editar,
+// Penalizar, Desativar/Reativar.
 //
-// Como funciona o fechamento automático ao clicar fora:
-//   Um <div className={styles.overlay}> invisível cobre toda a tela
-//   quando o menu está aberto. Ao clicar em qualquer lugar fora do menu,
-//   esse overlay captura o clique e chama setIsOpen(false).
-//   Isso é um padrão comum em menus dropdown no React.
+// O menu usa position: fixed com coordenadas calculadas via
+// getBoundingClientRect() para escapar de qualquer overflow:hidden
+// presente nos ancestrais (ex: tableWrapper). Fecha automaticamente
+// ao rolar a página ou redimensionar a janela.
 //
-// Interligação:
-//   - Importado por: Usuarios.jsx (na coluna de ações de cada linha da tabela)
-//   - Abre: UserProfilePanel (via onView/onEdit), PenaltyPanel (via onPenalize)
-//   - Lucide React: Edit2, ShieldAlert, Trash2, Eye
-//
-// Props (parâmetros recebidos pelo componente):
-//   user      → objeto do usuário desta linha (passado para os handlers)
-//   onEdit    → função chamada ao clicar "Editar" (recebe o user)
-//   onPenalize → função chamada ao clicar "Penalizar" (recebe o user)
-//   onDelete  → função chamada ao clicar "Deletar" (recebe o user)
-//   onView    → função chamada ao clicar "Ver Detalhes" (recebe o user)
+// Props:
+//   user           → objeto do usuário desta linha
+//   onEdit         → função chamada ao clicar "Editar"
+//   onPenalize     → função chamada ao clicar "Penalizar"
+//   onView         → função chamada ao clicar "Ver Detalhes"
+//   onToggleStatus → função chamada ao clicar Desativar/Reativar
+//                    (undefined = opção oculta)
 //
 // Estilo: UserActionsMenu.module.css
-//   Classes CSS utilizadas:
-//     .container  → div raiz com position: relative (para o menu se posicionar
-//                   corretamente em relação ao botão ⋮)
-//     .menuBtn    → botão "⋮" que abre/fecha o menu
-//     .overlay    → div invisível que cobre a tela toda para capturar cliques
-//                   fora do menu e fechá-lo automaticamente
-//     .menu       → caixa branca com sombra que aparece ao clicar em ⋮
-//     .menuItem   → botão de cada item do menu (ícone + texto)
-//     .danger     → cor vermelha para ações destrutivas (Penalizar, Deletar)
-//     .divider    → linha separadora horizontal entre itens do menu
 // ============================================================
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Edit2, ShieldAlert, Eye, UserX, UserCheck } from "lucide-react";
 import styles from "./UserActionsMenu.module.css";
 
 export function UserActionsMenu({ user, onEdit, onPenalize, onView, onToggleStatus }) {
-  // isOpen: controla se o menu está visível ou oculto
   const [isOpen, setIsOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
+  const btnRef = useRef(null);
+
+  // Fecha o menu ao rolar ou redimensionar — necessário porque o menu
+  // usa position: fixed e não acompanha o scroll da página automaticamente.
+  useEffect(() => {
+    if (!isOpen) return;
+    const close = () => setIsOpen(false);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [isOpen]);
+
+  function handleOpen() {
+    const rect = btnRef.current.getBoundingClientRect();
+    setMenuPos({
+      top:   rect.bottom + 4,
+      right: window.innerWidth - rect.right,
+    });
+    setIsOpen(v => !v);
+  }
 
   return (
-    // styles.container → position: relative necessário para que o menu
-    // (.menu) se posicione em relação a este elemento pai
     <div className={styles.container}>
-      {/* Botão de três pontos: alterna o estado de aberto/fechado */}
       <button
+        ref={btnRef}
         className={styles.menuBtn}
-        onClick={() => setIsOpen(!isOpen)} // ! inverte: se true vira false e vice-versa
+        onClick={handleOpen}
         title="Mais opções"
       >
         ⋮
       </button>
 
-      {/* Renderização condicional: só exibe o menu e o overlay quando isOpen é true */}
       {isOpen && (
-        // Fragment (<>) → renderiza dois elementos sem div extra
         <>
-          {/* Overlay invisível: cobre toda a tela abaixo do menu.
-              Ao clicar nele, fecha o menu. Isso simula o comportamento
-              de "clicar fora" sem precisar de event listeners globais. */}
-          <div
-            className={styles.overlay}
-            onClick={() => setIsOpen(false)}
-          ></div>
+          {/* Overlay invisível cobre a tela toda para capturar cliques fora */}
+          <div className={styles.overlay} onClick={() => setIsOpen(false)} />
 
-          {/* Menu suspenso com as opções */}
-          <div className={styles.menu}>
-            {/* Ver Detalhes: chama onView com o usuário e fecha o menu.
-                onView?.(user) → o ?. (optional chaining) evita erro se onView
-                não for fornecido (o componente funciona mesmo sem esta prop) */}
+          {/* Menu com position: fixed — posicionado via inline style calculado
+              a partir do getBoundingClientRect() do botão ⋮ */}
+          <div
+            className={styles.menu}
+            style={{ top: menuPos.top, right: menuPos.right }}
+          >
             <button
               className={styles.menuItem}
-              onClick={() => {
-                onView?.(user);
-                setIsOpen(false);
-              }}
+              onClick={() => { onView?.(user); setIsOpen(false); }}
             >
               <Eye size={16} />
               Ver Detalhes
@@ -90,36 +84,24 @@ export function UserActionsMenu({ user, onEdit, onPenalize, onView, onToggleStat
 
             <button
               className={styles.menuItem}
-              onClick={() => {
-                onEdit?.(user);
-                setIsOpen(false);
-              }}
+              onClick={() => { onEdit?.(user); setIsOpen(false); }}
             >
               <Edit2 size={16} />
               Editar
             </button>
 
-            {/* styles.danger → texto e ícone em vermelho para ação de penalizar */}
             <button
               className={`${styles.menuItem} ${styles.danger}`}
-              onClick={() => {
-                onPenalize?.(user);
-                setIsOpen(false);
-              }}
+              onClick={() => { onPenalize?.(user); setIsOpen(false); }}
             >
               <ShieldAlert size={16} />
               Penalizar
             </button>
 
-            {/* Toggle status: Desativar (ativo→inativo) ou Reativar (inativo→ativo).
-                Usa PATCH /api/admin/usuarios/:id/status via onToggleStatus. */}
             {onToggleStatus && (
               <button
                 className={`${styles.menuItem} ${user.usu_status === 1 ? styles.danger : ''}`}
-                onClick={() => {
-                  onToggleStatus(user);
-                  setIsOpen(false);
-                }}
+                onClick={() => { onToggleStatus(user); setIsOpen(false); }}
               >
                 {user.usu_status === 1
                   ? <><UserX size={16} /> Desativar</>

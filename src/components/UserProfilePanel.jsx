@@ -14,7 +14,7 @@
 // Como funciona enrichUser:
 //   Os dados da API (usu_*) são cruzados com os dados do mockData (usersData)
 //   usando o e-mail ou ID como chave de correspondência. Isso complementa
-//   campos que a API não retorna (instituição, curso, tipo, lastAccess, ipLogin).
+//   campos que a API não retorna (instituição, curso, tipo).
 //   Enquanto a API não expõe todos esses campos, o mock preenche o restante.
 //
 // Componente interno InfoCard:
@@ -24,7 +24,7 @@
 // Bibliotecas usadas:
 //   - react         → useState
 //   - lucide-react  → ArrowLeft, Edit2, Save, X, User, Mail, Phone,
-//                     Building2, BookOpen, ShieldCheck, Clock, Monitor,
+//                     Building2, BookOpen, ShieldCheck,
 //                     CheckCircle, AlertCircle, Loader2
 //
 // Dados consumidos:
@@ -99,8 +99,6 @@ import {
   Building2,
   BookOpen,
   ShieldCheck,
-  Clock,
-  Monitor,
   CheckCircle,
   AlertCircle,
   Loader2,
@@ -133,18 +131,6 @@ function getInitials(name) {
   );
 }
 
-// formatDate: formata data ISO para o padrão brasileiro com hora.
-function formatDate(dateStr) {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 // enrichUser: normaliza o objeto de usuário vindo da API para o formato
 // esperado pelo painel. Todos os campos são lidos diretamente da resposta
 // da API — não há mais dependência de dados mockados.
@@ -153,8 +139,6 @@ function formatDate(dateStr) {
 //   esc_nome / escola_nome → nome da instituição
 //   cur_nome / curso_nome  → nome do curso
 //   per_tipo               → papel (0=Usuário, 1=Admin, 2=Dev)
-//   usu_ultimo_acesso      → timestamp do último login
-//   usu_ip_login           → IP do último login
 //
 // Campos não retornados pela API aparecem como '—'.
 const PER_TIPO_LABELS = { 0: 'Usuário', 1: 'Admin de Escola', 2: 'Desenvolvedor' };
@@ -173,8 +157,6 @@ function enrichUser(apiUser) {
     type:          apiUser.per_tipo != null
                      ? (PER_TIPO_LABELS[apiUser.per_tipo] ?? 'Usuário')
                      : '—',
-    lastAccess:    apiUser.usu_ultimo_acesso ?? null,
-    ipLogin:       apiUser.usu_ip_login ?? null,
   };
 }
 
@@ -382,20 +364,9 @@ export function UserProfilePanel({
               <InfoCard icon={BookOpen} label="Curso" value={enriched.course} />
               <InfoCard
                 icon={ShieldCheck}
-                label="Verificação"
+                label="Nível de verificação"
                 value={verif.label}
-                valueColor={verif.color} // aplica cor ao valor (ex: verde para 'success')
-              />
-              <InfoCard
-                icon={Clock}
-                label="Último acesso"
-                value={formatDate(enriched.lastAccess)}
-              />
-              <InfoCard
-                icon={Monitor}
-                label="IP do último login"
-                value={enriched.ipLogin ?? "—"}
-                mono // fonte monospace para IPs (passado como prop booleana)
+                valueColor={verif.color}
               />
             </div>
           )}
