@@ -163,6 +163,14 @@ export function Caronas() {
       ]);
       setStats(statsResp?.stats || null);
       const lista = caronasResp?.caronas || [];
+      // Ordena do mais recente ao mais antigo antes de mapear.
+      // Compara data + hora como string ISO — funciona porque o formato
+      // YYYY-MM-DD garante ordenação lexicográfica correta.
+      lista.sort((a, b) => {
+        const aKey = `${a.car_data?.slice(0, 10) ?? ''}T${a.car_hor_saida ?? '00:00'}`;
+        const bKey = `${b.car_data?.slice(0, 10) ?? ''}T${b.car_hor_saida ?? '00:00'}`;
+        return bKey.localeCompare(aKey);
+      });
       setRides(lista.map(listItemToRide));
     } catch (err) {
       setError(err.message || 'Não foi possível carregar as caronas.');
