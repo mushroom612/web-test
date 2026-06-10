@@ -48,16 +48,16 @@ select {
 
 :root {
   /* ── Cores - Verde ─────────────────────────────────────────────────── */
-  --color-green-50: #f5f9f0;
-  --color-green-100: #e9f5df;
-  --color-green-200: #d4ecbf;
-  --color-green-300: #bde09f;
-  --color-green-400: #a6d380;
-  --color-green-500: #89bf58;
-  --color-green-600: #6aa33c;
-  --color-green-700: #4e8726;
-  --color-green-800: #3d6b1e;
-  --color-green-900: #2d5016;
+  --color-green-50:  #effceb;
+  --color-green-100: #dbf5ce;
+  --color-green-200: #beeaa8;
+  --color-green-300: #9ade78;
+  --color-green-400: #79d44a;
+  --color-green-500: #65cf31;
+  --color-green-600: #58b229;
+  --color-green-700: #4d9d24;
+  --color-green-800: #3f801e;
+  --color-green-900: #306b13;
 
   /* ── Cores - Azul ──────────────────────────────────────────────────── */
   --color-blue-50: #f3f8fe;
@@ -84,6 +84,9 @@ select {
   --color-neutral-800: #262626;
   --color-neutral-900: #171717;
   --color-neutral-950: #0a0a0a;
+
+  /* ── Tipografia ────────────────────────────────────────────────────── */
+  --font-family-heading: "Space Grotesk", sans-serif;
 
   /* ── Cores - Semânticas ────────────────────────────────────────────── */
   --color-semantic-error: #b91c1c;
