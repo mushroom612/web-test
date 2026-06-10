@@ -254,20 +254,24 @@ export function Sugestoes() {
   // useEffect: dispara o carregamento na montagem e quando o papel muda
   useEffect(() => { load(); }, [load]);
 
-  // Auto-seleciona o item quando a URL contém ?id=N (ex: vindo do Dashboard)
+  // Auto-seleciona o item quando a URL contém ?id=sug-N ou ?id=den-N
+  // (navegado a partir do Dashboard).
+  // Comparação direta de string — os IDs internos são compostos ("sug-1", "den-1").
   useEffect(() => {
     const itemId = searchParams.get('id');
-    if (itemId && items.length > 0) {
-      const id = parseInt(itemId, 10);
-      const found = items.find(i => i.id === id);
-      if (found) {
-        setSelectedId(id);
-        setResponseText(found.response || '');
-        // Usa o filtro padrão do papel para manter a aba coerente
+    if (!itemId || items.length === 0) return;
+    const found = items.find(i => i.id === itemId);
+    if (found) {
+      setSelectedId(found.id);
+      setResponseText(found.response || '');
+      // Se o item está arquivado, abre a aba de arquivados para que fique visível
+      if (found.archived || archivedIds.has(found.id)) {
+        setFilterType('Arquivados');
+      } else {
         setFilterType(isAdmin ? 'Denúncia' : 'Todos');
       }
     }
-  }, [searchParams, items, isAdmin]);
+  }, [searchParams, items, isAdmin, archivedIds]);
 
   // isArchiveView: true quando o filtro "Arquivados" está selecionado
   const isArchiveView = filterType === 'Arquivados';
