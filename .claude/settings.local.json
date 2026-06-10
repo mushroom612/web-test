@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:recharts.org)"
+      "WebFetch(domain:recharts.org)",
+      "Bash(find \"C:/Users/claga/Downloads/TCC/Projetos/API-test/api-caronas/src\" -type f -name \"*.js\" 2>/dev/null | head -40)",
+      "Read(//c/Users/claga/Downloads/TCC/Projetos/API-test/api-caronas/src/**)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
