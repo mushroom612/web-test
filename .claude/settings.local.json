@@ -5,7 +5,13 @@
       "Bash(find \"C:/Users/claga/Downloads/TCC/Projetos/API-test/api-caronas/src\" -type f -name \"*.js\" 2>/dev/null | head -40)",
       "Read(//c/Users/claga/Downloads/TCC/Projetos/API-test/api-caronas/src/**)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5199/)",
+      "Bash(npx playwright *)",
+      "Bash(cd \"c:\\\\Users\\\\claga\\\\Downloads\\\\TCC\\\\Projetos\\\\API-test\\\\api-caronas\" && pwd)",
+      "Read(//c/Users/claga/Downloads/TCC/Projetos/API-test/api-caronas/**)",
+      "Bash(grep -E \"\\\\.\\(js|sql\\)$\")"
     ]
   }
 }
