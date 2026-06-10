@@ -41,7 +41,6 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { api } from '../services/api';
-import { chartData } from '../data/mockData';
 import { FeedbackCard } from '../components/FeedbackCard';
 import styles from './Painel.module.css';
 
@@ -135,6 +134,27 @@ function ChartTooltip({ active, payload, label }) {
   );
 }
 
+// fmtDate: formata um objeto Date para 'YYYY-MM-DD' (formato aceito pela API).
+function fmtDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+// buildChartData: agrupa um array de caronas por dia nos últimos 7 dias.
+// Retorna array de { day, rides } para o AreaChart.
+function buildChartData(caronas) {
+  const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const hoje = new Date();
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(hoje);
+    d.setDate(hoje.getDate() - (6 - i));
+    const key = fmtDate(d);
+    return {
+      day: DIAS[d.getDay()],
+      rides: caronas.filter(c => c.car_data?.slice(0, 10) === key).length
+    };
+  });
+}
+
 export function Dashboard() {
   // isAdmin: lido do AuthContext para bifurcar o fetch de feedbacks.
   // Admin (per_tipo=1) não acessa /api/sugestoes — usa /api/denuncias.
@@ -150,6 +170,10 @@ export function Dashboard() {
   // feedbacks: top 4 sugestões/denúncias mais recentes (escopo
   // automático conforme o papel do usuário).
   const [feedbacks, setFeedbacks] = useState([]);
+
+  // chartData: caronas agrupadas por dia da semana (últimos 7 dias).
+  // Populado pela Fase 3 de load(); array vazio enquanto carrega.
+  const [chartData, setChartData] = useState([]);
 
   const [loading, setLoading] = useState(true);
   // error: mensagem se qualquer chamada falhou. Quando preenchido,
@@ -223,6 +247,24 @@ export function Dashboard() {
       } catch {
         // Feedbacks não carregaram — seção fica vazia sem banner de erro
         setFeedbacks([]);
+      }
+
+      // Fase 3: gráfico de caronas por dia (últimos 7 dias).
+      // Admin: escopo automático à própria escola via JWT no backend.
+      // Dev:   retorna caronas de todas as escolas.
+      // Falha aqui não derruba o dashboard — gráfico fica vazio.
+      try {
+        const hoje = new Date();
+        const seteDiasAtras = new Date();
+        seteDiasAtras.setDate(hoje.getDate() - 6);
+        const data = await api.getCaronas({
+          data_inicio: fmtDate(seteDiasAtras),
+          data_fim:    fmtDate(hoje),
+          limit:       200
+        });
+        setChartData(buildChartData(data?.caronas || []));
+      } catch {
+        setChartData([]);
       }
     } catch (err) {
       setError(err.message || 'Não foi possível carregar o Dashboard.');
@@ -393,7 +435,10 @@ export function Dashboard() {
               <FeedbackCard
                 key={feedback.id}
                 feedback={feedback}
-                onClick={() => navigate(`/sugestoes?id=${feedback.id}`)}
+                onClick={() => {
+                  const prefix = feedback.type === 'Denúncia' ? 'den' : 'sug';
+                  navigate(`/sugestoes?id=${prefix}-${feedback.id}`);
+                }}
               />
             ))}
           </div>
