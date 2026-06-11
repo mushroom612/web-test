@@ -79,6 +79,19 @@ import styles from './Auditoria.module.css';
 // Valor fixo definido como constante para facilitar a mudança futura.
 const PAGE_SIZE = 20;
 
+// TABELA_LABELS: converte o nome da tabela no banco para um label legível.
+// Usado na coluna "Registro" para exibir ex: "Usuário #5" em vez de "5".
+const TABELA_LABELS = {
+  USUARIOS:    'Usuário',
+  CARONAS:     'Carona',
+  PENALIDADES: 'Penalidade',
+  ESCOLAS:     'Escola',
+  CONTRATOS:   'Contrato',
+  CURSOS:      'Curso',
+  DENUNCIAS:   'Denúncia',
+  SUGESTOES:   'Sugestão',
+};
+
 // ACTION_LABELS: traduz os códigos de ação (ex: 'CRIAR_CARONA') para
 // textos legíveis em português (ex: 'Criação de Carona').
 const ACTION_LABELS = {
@@ -277,10 +290,10 @@ export function Auditoria() {
               <thead>
                 <tr>
                   <th>Data/Hora</th>
-                  <th>Admin (ID)</th>
+                  <th>Administrador</th>
+                  <th>Escola</th>
                   <th>Ação</th>
-                  <th>Registro ID</th>
-                  <th>IP</th>
+                  <th>Registro</th>
                 </tr>
               </thead>
               <tbody>
@@ -291,7 +304,12 @@ export function Auditoria() {
                     className={index % 2 === 0 ? styles.rowEven : ''}
                   >
                     <td className={styles.cellDateTime}>{formatDate(log.criado_em)}</td>
-                    <td className={styles.cellAdmin}>{log.usu_id ?? '—'}</td>
+                    <td className={styles.cellAdmin}>
+                      {log.admin_nome ?? (log.usu_id ? `Admin #${log.usu_id}` : '—')}
+                    </td>
+                    <td className={styles.cellEscola}>
+                      {log.admin_escola ?? '—'}
+                    </td>
                     <td>
                       {/* Badge de ação: cor dinâmica via styles[`badge_${variant}`]
                           Isso usa template literal para montar o nome da classe CSS,
@@ -300,10 +318,12 @@ export function Auditoria() {
                         {formatAction(log.acao)}
                       </span>
                     </td>
-                    <td className={styles.cellRegistro}>{log.registro_id ?? '—'}</td>
-                    <td className={styles.cellIP}>
-                      {/* <code> → elemento HTML para texto de código (fonte monospace) */}
-                      <code className={styles.ipCode}>{log.ip || '—'}</code>
+                    <td className={styles.cellRegistro}>
+                      {log.registro_id != null
+                        ? log.registro_nome
+                          ? `${TABELA_LABELS[log.tabela?.toUpperCase()] ?? log.tabela} · ${log.registro_nome}`
+                          : `${TABELA_LABELS[log.tabela?.toUpperCase()] ?? log.tabela ?? 'Registro'} #${log.registro_id}`
+                        : '—'}
                     </td>
                   </tr>
                 ))}
