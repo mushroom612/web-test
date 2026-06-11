@@ -39,6 +39,7 @@ import {
   MessageSquare,
   Bell,
   Shield,
+  LifeBuoy,
   LogOut,
 } from "lucide-react";
 
@@ -150,16 +151,22 @@ export function Aside() {
           path: "/sugestoes",
           developerOnly: false,
         },
-        {
-          icon: Bell,
-          label: "Emitir Notificação",
-          path: "/notificacoes",
-          developerOnly: true,
-        },
+        // {
+        //   icon: Bell,
+        //   label: "Emitir Notificação",
+        //   path: "/notificacoes",
+        //   developerOnly: true,
+        // },
         {
           icon: Shield,
           label: "Auditoria",
           path: "/auditoria",
+          developerOnly: true,
+        },
+        {
+          icon: LifeBuoy,
+          label: "Suporte",
+          path: "/suporte",
           developerOnly: true,
         },
       ],

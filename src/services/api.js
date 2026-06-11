@@ -9,6 +9,15 @@
 // ============================================================
 
 import { http, tokens } from './http';
+import {
+  mockGetMinhaThread,
+  mockEnviarMensagemAdmin,
+  mockGetConversas,
+  mockGetThreadDeAdmin,
+  mockResponderAdmin,
+  mockGetNaoLidas,
+  mockMarcarLidas
+} from '../data/supportMock';
 
 // statsCache: cache em memória das estatísticas por tipo.
 // TTL de 5 min evita refetch desnecessário ao navegar entre
@@ -91,6 +100,59 @@ export const api = {
       { usu_email: email, otp, nova_senha: novaSenha },
       { auth: false }
     );
+  },
+
+  // ── Suporte (chat Admin ↔ Desenvolvedor) ──────────────────
+  // ATENÇÃO: ainda mockado (data/supportMock.js). O backend de
+  // /api/suporte/* será implementado em branch separada da API.
+  // Quando existir, troque o corpo de cada método pela chamada http.*
+  // indicada no comentário — a assinatura e os componentes não mudam.
+  //
+  // No backend real, o remetente e o escopo vêm do JWT; por isso os
+  // parâmetros `admin`/`role` abaixo são apenas dicas para o mock e
+  // somem na versão HTTP.
+
+  // Admin: thread da própria conversa de suporte.
+  // Real: GET /api/suporte/mensagens  (backend infere o admin pelo JWT)
+  async getMinhaThreadSuporte(admin) {
+    return mockGetMinhaThread(admin);
+  },
+
+  // Admin: envia mensagem ao Dev.
+  // Real: POST /api/suporte/mensagens  { texto }
+  async enviarMensagemSuporte(texto, admin) {
+    return mockEnviarMensagemAdmin(texto, admin);
+  },
+
+  // Dev: lista de conversas (uma por admin) com prévia e não lidas.
+  // Real: GET /api/suporte/conversas
+  async getConversasSuporte() {
+    return mockGetConversas();
+  },
+
+  // Dev: thread de um admin específico.
+  // Real: GET /api/suporte/mensagens?usu_id=:id
+  async getThreadSuporte(usuId) {
+    return mockGetThreadDeAdmin(usuId);
+  },
+
+  // Dev: responde a um admin.
+  // Real: POST /api/suporte/mensagens  { usu_id, texto }
+  async responderSuporte(usuId, texto) {
+    return mockResponderAdmin(usuId, texto);
+  },
+
+  // Badge de não lidas. role: 'admin' | 'dev'.
+  // Real: GET /api/suporte/nao-lidas
+  async getNaoLidasSuporte({ role, usuId } = {}) {
+    return mockGetNaoLidas({ role, usuId });
+  },
+
+  // Marca como lidas as mensagens da contraparte numa thread.
+  // leitor: 'admin' | 'dev'.
+  // Real: POST /api/suporte/mensagens/lidas  { usu_id }
+  async marcarLidasSuporte({ usuId, leitor }) {
+    return mockMarcarLidas({ usuId, leitor });
   },
 
   // ── Estatísticas (Dashboard) ───────────────────────────────

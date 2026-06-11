@@ -22,9 +22,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bell, Settings, LogOut, ChevronDown, Info } from "lucide-react";
+import { Bell, LogOut, ChevronDown, LifeBuoy } from "lucide-react";
 import { notificationData } from "../data/mockData";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../services/api";
+import { SupportChatPanel } from "./SupportChatPanel";
 import styles from "./Topbar.module.css";
 
 // getInitials: igual ao do Aside — pega 2 letras maiúsculas
@@ -57,6 +59,7 @@ const pageNames = {
   "/contratos": "Contratos",
   "/notificacoes": "Emitir Notificação",
   "/auditoria": "Auditoria",
+  "/suporte": "Suporte",
 };
 
 export function Topbar() {
@@ -70,7 +73,7 @@ export function Topbar() {
 
   // useAuth: usuário real + logout. user pode ser null por instantes
   // (entre montagem e chegada do /me); defaults defensivos abaixo.
-  const { user, isDev, logout } = useAuth();
+  const { user, isDev, isAdmin, logout } = useAuth();
   const userName = user?.usu_nome || "Usuário";
   const userEmail = user?.usu_email || "";
 
@@ -78,8 +81,14 @@ export function Topbar() {
   // Se a rota não estiver mapeada, usa 'Dashboard' como padrão.
   const currentPageName = pageNames[location.pathname] || "Dashboard";
 
-  const [openMenu, setOpenMenu] = useState(null); // 'notifications' | 'settings' | 'user' | null
+  const [openMenu, setOpenMenu] = useState(null); // 'notifications' | 'suporte' | 'user' | null
   const [notifCount, setNotifCount] = useState(notificationData.count);
+
+  // suporteNaoLidas: contador para o badge do botão de suporte.
+  // Admin → respostas do Dev não lidas; Dev → mensagens de admins não lidas.
+  // Polling leve a cada 15s (a camada de dados ainda é mockada).
+  const [suporteNaoLidas, setSuporteNaoLidas] = useState(0);
+
   const rightRef = useRef(null);
 
   useEffect(() => {
@@ -92,6 +101,27 @@ export function Topbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Busca o contador de não lidas do suporte conforme o papel.
+  useEffect(() => {
+    if (!user?.usu_id) return;
+    const role = isDev ? "dev" : "admin";
+    let cancelled = false;
+    const fetchNaoLidas = async () => {
+      try {
+        const data = await api.getNaoLidasSuporte({ role, usuId: user.usu_id });
+        if (!cancelled) setSuporteNaoLidas(data?.nao_lidas || 0);
+      } catch {
+        // silencioso
+      }
+    };
+    fetchNaoLidas();
+    const id = setInterval(fetchNaoLidas, 15000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [user?.usu_id, isDev, openMenu]);
+
   const toggleMenu = (menu) =>
     setOpenMenu((prev) => (prev === menu ? null : menu));
 
@@ -101,6 +131,18 @@ export function Topbar() {
   const handleLogout = async () => {
     await logout();
     navigate("/", { replace: true });
+  };
+
+  // handleSupportClick: o suporte tem ergonomia diferente por papel.
+  //   Admin → abre o painel flutuante de chat aqui mesmo na topbar.
+  //   Dev   → vai para a página /suporte (caixa de entrada completa).
+  const handleSupportClick = () => {
+    if (isDev) {
+      setOpenMenu(null);
+      navigate("/suporte");
+    } else {
+      toggleMenu("suporte");
+    }
   };
 
   return (
@@ -204,26 +246,24 @@ export function Topbar() {
           )}
         </div>
 
-        {/* Botão de configurações com dropdown informativo */}
-        <div className={styles.settingsWrapper}>
+        {/* Botão de suporte: Admin abre o chat aqui; Dev vai para /suporte.
+            Substitui o antigo ícone de configurações. */}
+        <div className={styles.supportWrapper}>
           <button
             className={styles.iconBtn}
-            onClick={() => toggleMenu("settings")}
-            aria-label="Configurações"
+            onClick={handleSupportClick}
+            aria-label={isDev ? "Suporte" : "Falar com o desenvolvedor"}
+            title={isDev ? "Suporte" : "Falar com o desenvolvedor"}
           >
-            <Settings size={20} />
+            <LifeBuoy size={20} />
+            {suporteNaoLidas > 0 && (
+              <span className={styles.badge}>{suporteNaoLidas}</span>
+            )}
           </button>
 
-          {openMenu === "settings" && (
-            <div className={styles.dropdown}>
-              <div className={styles.dropdownInfoBlock}>
-                <Info size={14} />
-                <div>
-                  <p className={styles.appName}>CaronaCity Admin</p>
-                  <p className={styles.appVersion}>Versão 1.0.0 — TCC 2026</p>
-                </div>
-              </div>
-            </div>
+          {/* Painel de chat só para Admin (Dev usa a página dedicada) */}
+          {isAdmin && openMenu === "suporte" && (
+            <SupportChatPanel onClose={() => setOpenMenu(null)} />
           )}
         </div>
 

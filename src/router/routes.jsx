@@ -32,8 +32,9 @@ import { Sugestoes } from '../pages/Sugestoes';
 import { Relatorios } from '../pages/Relatorios';
 import { Cadastrar } from '../pages/Cadastrar';
 import { Contratos } from '../pages/Contratos';
-import { Notificacoes } from '../pages/Notificacoes';
+// import { Notificacoes } from '../pages/Notificacoes';
 import { Auditoria } from '../pages/Auditoria';
+import { Suporte } from '../pages/Suporte';
 
 // ── Guardas de rota ──────────────────────────────────────────
 // O sistema tem dois níveis de proteção:
@@ -179,13 +180,17 @@ export const routes = [
                 path: '/cadastrar',
                 element: <Cadastrar />
               },
-              {
-                path: '/notificacoes',
-                element: <Notificacoes />
-              },
+              // {
+              //   path: '/notificacoes',
+              //   element: <Notificacoes />
+              // },
               {
                 path: '/auditoria',
                 element: <Auditoria />
+              },
+              {
+                path: '/suporte',
+                element: <Suporte />
               }
             ]
           }
