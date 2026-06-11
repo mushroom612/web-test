@@ -63,6 +63,36 @@ export const api = {
     tokens.clear();
   },
 
+  // ── Recuperação de senha ──────────────────────────────
+  // Envia OTP de 6 dígitos para o email. Sempre retorna 200
+  // para não revelar se o email existe na base.
+  async forgotPassword(email) {
+    return http.post(
+      '/api/usuarios/forgot-password',
+      { usu_email: email },
+      { auth: false }
+    );
+  },
+
+  // Valida o OTP antes de liberar a tela de nova senha.
+  // 200 → válido | 401 → inválido | 410 → expirado
+  async verificarOtpReset(email, otp) {
+    return http.post(
+      '/api/usuarios/reset-password/verificar-otp',
+      { usu_email: email, otp },
+      { auth: false }
+    );
+  },
+
+  // Redefine a senha com OTP válido (mín. 8 caracteres).
+  async resetPassword(email, otp, novaSenha) {
+    return http.post(
+      '/api/usuarios/reset-password',
+      { usu_email: email, otp, nova_senha: novaSenha },
+      { auth: false }
+    );
+  },
+
   // ── Estatísticas (Dashboard) ───────────────────────────────
   // Endpoints reais: GET /api/admin/stats/{usuarios,caronas,sugestoes}
   // O backend já filtra por escola quando per_tipo=1 (Admin) e devolve
