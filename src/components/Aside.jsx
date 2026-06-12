@@ -167,7 +167,7 @@ export function Aside() {
           icon: LifeBuoy,
           label: "Suporte",
           path: "/suporte",
-          developerOnly: true,
+          developerOnly: false,
         },
       ],
     },

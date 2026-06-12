@@ -314,18 +314,18 @@ Definem como as páginas são **estruturadas**.
 
 Cada arquivo aqui é uma tela que o usuário vê.
 
-| Página               | URL             | Descrição                 |
-| -------------------- | --------------- | ------------------------- |
-| **Login.jsx**        | `/`             | Tela de login             |
-| **Painel.jsx**       | `/painel`       | Tela inicial com métricas |
-| **Usuarios.jsx**     | `/usuarios`     | Lista de usuários         |
-| **Cadastrar.jsx**    | `/cadastrar`    | Cadastro de usuário       |
-| **Caronas.jsx**      | `/caronas`      | Registros de carona       |
-| **Sugestoes.jsx**    | `/sugestoes`    | Sugestões e denúncias     |
-| **Relatorios.jsx**   | `/relatorios`   | Página de relatórios      |
-| **Contratos.jsx**    | `/contratos`    | Contratos/termos          |
-| **Notificacoes.jsx** | `/notificacoes` | Envio de notificações     |
-| **Auditoria.jsx**    | `/auditoria`    | Log de ações              |
+| Página               | URL             | Descrição                           |
+| -------------------- | --------------- | ----------------------------------- |
+| **Login.jsx**        | `/`             | Tela de login                       |
+| **Dashboard.jsx**    | `/dashboard`    | Tela inicial com métricas           |
+| **Usuarios.jsx**     | `/usuarios`     | Lista de usuários                   |
+| **Cadastrar.jsx**    | `/cadastrar`    | Cadastro de usuário (Dev only)      |
+| **Caronas.jsx**      | `/caronas`      | Registros de carona                 |
+| **Sugestoes.jsx**    | `/sugestoes`    | Sugestões (Dev) e denúncias (Admin) |
+| **Relatorios.jsx**   | `/relatorios`   | Página de relatórios                |
+| **Contratos.jsx**    | `/contratos`    | Contratos/termos                    |
+| **Suporte.jsx**      | `/suporte`      | Chat de suporte Admin ↔ Dev (v30)   |
+| **Auditoria.jsx**    | `/auditoria`    | Log de ações (Dev only)             |
 
 ---
 
@@ -671,6 +671,7 @@ Este projeto usa:
 - **Vite** - Build tool e dev server
 - **Lucide React** - Ícones SVG
 - **CSS Modules** - Estilos isolados
+- **Socket.io-client** - WebSocket para chat de suporte em tempo real
 
 ---
 
@@ -686,19 +687,20 @@ Este projeto usa:
 
 ## ✨ Estado do Projeto
 
-- ✅ Sistema de login mockado
+- ✅ Sistema de login (integrado com API real — JWT + refresh token)
 - ✅ Dashboard com métricas
 - ✅ CRUD de usuários
 - ✅ Sistema de penalidades
 - ✅ Gestão de caronas
-- ✅ Sugestões/denúncias
-- ✅ Notificações
+- ✅ Sugestões (Dev) e Denúncias (Admin)
+- ✅ Notificações em tempo real (Socket.io `/notificacoes`)
 - ✅ Auditoria
+- ✅ Chat de suporte Admin ↔ Dev em tempo real (Socket.io `/suporte`) — v30
 - ✅ Responsividade (mobile/tablet/desktop)
-- ⏳ Integração com API real (em planejamento)
+- ✅ Integração com API real (concluída)
 
 ---
 
-**Desenvolvido com React + Vite + React Router DOM + Lucide React**
+**Desenvolvido com React + Vite + React Router DOM + Lucide React + Socket.io-client**
 
-Versão: 1.0 | Último update: Maio 2026
+Versão: 1.1 | Último update: Junho 2026

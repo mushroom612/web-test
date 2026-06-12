@@ -188,6 +188,18 @@
   overflow: hidden;
 }
 
+/* Admin vê apenas a thread (sem lista lateral) — ocupa a largura total */
+.threadPaneFull {
+  flex: 1;
+}
+
+.onlineIndicator {
+  margin-left: auto;
+  font-size: 11px;
+  color: #4caf50;
+  font-weight: 600;
+}
+
 .threadHeader {
   display: flex;
   align-items: center;

@@ -169,6 +169,12 @@ export const routes = [
             element: <Contratos />
           },
 
+          // ─── Suporte: acessível por Admin + Dev  [v30] ──────
+          {
+            path: '/suporte',
+            element: <Suporte />
+          },
+
           // ─── Páginas exclusivas do Desenvolvedor ────────────
           // Cadastrar (novas escolas/admins), Notificações em
           // massa e Auditoria envolvem operações globais que
@@ -187,10 +193,6 @@ export const routes = [
               {
                 path: '/auditoria',
                 element: <Auditoria />
-              },
-              {
-                path: '/suporte',
-                element: <Suporte />
               }
             ]
           }

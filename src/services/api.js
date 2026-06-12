@@ -9,15 +9,6 @@
 // ============================================================
 
 import { http, tokens } from './http';
-import {
-  mockGetMinhaThread,
-  mockEnviarMensagemAdmin,
-  mockGetConversas,
-  mockGetThreadDeAdmin,
-  mockResponderAdmin,
-  mockGetNaoLidas,
-  mockMarcarLidas
-} from '../data/supportMock';
 
 // statsCache: cache em memória das estatísticas por tipo.
 // TTL de 5 min evita refetch desnecessário ao navegar entre
@@ -102,57 +93,44 @@ export const api = {
     );
   },
 
-  // ── Suporte (chat Admin ↔ Desenvolvedor) ──────────────────
-  // ATENÇÃO: ainda mockado (data/supportMock.js). O backend de
-  // /api/suporte/* será implementado em branch separada da API.
-  // Quando existir, troque o corpo de cada método pela chamada http.*
-  // indicada no comentário — a assinatura e os componentes não mudam.
-  //
+  // ── Suporte (chat Admin ↔ Desenvolvedor)  [v30] ───────────
   // No backend real, o remetente e o escopo vêm do JWT; por isso os
   // parâmetros `admin`/`role` abaixo são apenas dicas para o mock e
   // somem na versão HTTP.
 
   // Admin: thread da própria conversa de suporte.
-  // Real: GET /api/suporte/mensagens  (backend infere o admin pelo JWT)
-  async getMinhaThreadSuporte(admin) {
-    return mockGetMinhaThread(admin);
+  async getMinhaThreadSuporte() {
+    return http.get('/api/admin/suporte/mensagens');
   },
 
   // Admin: envia mensagem ao Dev.
-  // Real: POST /api/suporte/mensagens  { texto }
-  async enviarMensagemSuporte(texto, admin) {
-    return mockEnviarMensagemAdmin(texto, admin);
+  async enviarMensagemSuporte(texto) {
+    return http.post('/api/admin/suporte/mensagens', { spm_texto: texto });
   },
 
   // Dev: lista de conversas (uma por admin) com prévia e não lidas.
-  // Real: GET /api/suporte/conversas
   async getConversasSuporte() {
-    return mockGetConversas();
+    return http.get('/api/dev/suporte/conversas');
   },
 
   // Dev: thread de um admin específico.
-  // Real: GET /api/suporte/mensagens?usu_id=:id
   async getThreadSuporte(usuId) {
-    return mockGetThreadDeAdmin(usuId);
+    return http.get('/api/admin/suporte/mensagens', { query: { usu_id: usuId } });
   },
 
   // Dev: responde a um admin.
-  // Real: POST /api/suporte/mensagens  { usu_id, texto }
   async responderSuporte(usuId, texto) {
-    return mockResponderAdmin(usuId, texto);
+    return http.post('/api/admin/suporte/mensagens', { usu_id: usuId, spm_texto: texto });
   },
 
-  // Badge de não lidas. role: 'admin' | 'dev'.
-  // Real: GET /api/suporte/nao-lidas
-  async getNaoLidasSuporte({ role, usuId } = {}) {
-    return mockGetNaoLidas({ role, usuId });
+  // Badge de não lidas (Admin ou Dev).
+  async getNaoLidasSuporte() {
+    return http.get('/api/admin/suporte/nao-lidas');
   },
 
-  // Marca como lidas as mensagens da contraparte numa thread.
-  // leitor: 'admin' | 'dev'.
-  // Real: POST /api/suporte/mensagens/lidas  { usu_id }
-  async marcarLidasSuporte({ usuId, leitor }) {
-    return mockMarcarLidas({ usuId, leitor });
+  // Marca como lidas — Dev: { usuId }; Admin: ignorado (backend infere pelo JWT).
+  async marcarLidasSuporte({ usuId } = {}) {
+    return http.post('/api/admin/suporte/mensagens/lidas', usuId ? { usu_id: usuId } : {});
   },
 
   // ── Estatísticas (Dashboard) ───────────────────────────────
