@@ -106,6 +106,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .iconBtn:hover {
@@ -312,30 +313,9 @@
   margin: 4px 0;
 }
 
-/* Settings wrapper */
-.settingsWrapper {
+/* Support wrapper — âncora do painel de chat flutuante (Admin) */
+.supportWrapper {
   position: relative;
-}
-
-.dropdownInfoBlock {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 14px 16px;
-  color: var(--text-secondary);
-}
-
-.appName {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.appVersion {
-  margin: 2px 0 0;
-  font-size: 11px;
-  color: var(--text-secondary);
 }
 
 /* Bloco de perfil no topo do dropdown de usuário */

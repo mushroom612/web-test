@@ -93,6 +93,46 @@ export const api = {
     );
   },
 
+  // ── Suporte (chat Admin ↔ Desenvolvedor)  [v30] ───────────
+  // No backend real, o remetente e o escopo vêm do JWT; por isso os
+  // parâmetros `admin`/`role` abaixo são apenas dicas para o mock e
+  // somem na versão HTTP.
+
+  // Admin: thread da própria conversa de suporte.
+  async getMinhaThreadSuporte() {
+    return http.get('/api/admin/suporte/mensagens');
+  },
+
+  // Admin: envia mensagem ao Dev.
+  async enviarMensagemSuporte(texto) {
+    return http.post('/api/admin/suporte/mensagens', { spm_texto: texto });
+  },
+
+  // Dev: lista de conversas (uma por admin) com prévia e não lidas.
+  async getConversasSuporte() {
+    return http.get('/api/dev/suporte/conversas');
+  },
+
+  // Dev: thread de um admin específico.
+  async getThreadSuporte(usuId) {
+    return http.get('/api/admin/suporte/mensagens', { query: { usu_id: usuId } });
+  },
+
+  // Dev: responde a um admin.
+  async responderSuporte(usuId, texto) {
+    return http.post('/api/admin/suporte/mensagens', { usu_id: usuId, spm_texto: texto });
+  },
+
+  // Badge de não lidas (Admin ou Dev).
+  async getNaoLidasSuporte() {
+    return http.get('/api/admin/suporte/nao-lidas');
+  },
+
+  // Marca como lidas — Dev: { usuId }; Admin: ignorado (backend infere pelo JWT).
+  async marcarLidasSuporte({ usuId } = {}) {
+    return http.post('/api/admin/suporte/mensagens/lidas', usuId ? { usu_id: usuId } : {});
+  },
+
   // ── Estatísticas (Dashboard) ───────────────────────────────
   // Endpoints reais: GET /api/admin/stats/{usuarios,caronas,sugestoes}
   // O backend já filtra por escola quando per_tipo=1 (Admin) e devolve
