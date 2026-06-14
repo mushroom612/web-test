@@ -31,7 +31,7 @@
 // ============================================================
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   IconCar, IconUsers, IconMapPin, IconCircleCheck, IconCircleX,
   IconLoader2, IconChevronRight, IconX, IconUser
@@ -138,9 +138,13 @@ function mergeResumo(baseRide, resumo) {
 
 // Opções de filtro disponíveis na barra de abas (rótulos da API)
 const FILTER_OPTIONS = ['Todos', 'Aberta', 'Em espera', 'Finalizada', 'Cancelada'];
+// STATUS_TO_CODE: converte o rótulo do filtro para o código numérico da API
+const STATUS_TO_CODE = { 'Aberta': 1, 'Em espera': 2, 'Finalizada': 3, 'Cancelada': 0 };
 const PAGE_SIZE = 15;
 
 export function Caronas() {
+  const navigate = useNavigate();
+
   const [rides, setRides] = useState([]);
   const [stats, setStats] = useState(null);     // { total, abertas, em_espera, finalizadas, canceladas }
   const [total, setTotal] = useState(0);        // total de caronas
@@ -165,9 +169,10 @@ export function Caronas() {
     setLoading(true);
     setError(null);
     try {
+      const statusCode = filterStatus !== 'Todos' ? STATUS_TO_CODE[filterStatus] : undefined;
       const [statsResp, caronasResp] = await Promise.all([
         api.getStats('caronas'),
-        api.getCaronas({ limit: PAGE_SIZE, page })
+        api.getCaronas({ limit: PAGE_SIZE, page, status: statusCode })
       ]);
       setStats(statsResp?.stats || null);
       const lista = caronasResp?.caronas || [];
@@ -186,7 +191,7 @@ export function Caronas() {
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, filterStatus]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -419,7 +424,11 @@ export function Caronas() {
             </div>
 
             {/* Informações do motorista (já disponíveis na lista) */}
-            <div className={styles.detailSender}>
+            <div
+              className={`${styles.detailSender} ${selectedRide.driverId ? styles.clickableUser : ''}`}
+              onClick={() => selectedRide.driverId && navigate(`/usuarios?id=${selectedRide.driverId}`)}
+              title={selectedRide.driverId ? 'Ver perfil do motorista' : undefined}
+            >
               <span className={styles.avatarLg}>{selectedRide.driverInitial}</span>
               <div>
                 <p className={styles.detailSenderName}>{selectedRide.driverName}</p>
@@ -525,7 +534,12 @@ export function Caronas() {
                 {selectedRide.passengers.length > 0 ? (
                   <div className={styles.passengerList}>
                     {selectedRide.passengers.map(p => (
-                      <div key={p.usu_id} className={styles.passengerRow}>
+                      <div
+                        key={p.usu_id}
+                        className={`${styles.passengerRow} ${p.usu_id ? styles.clickableUser : ''}`}
+                        onClick={() => p.usu_id && navigate(`/usuarios?id=${p.usu_id}`)}
+                        title={p.usu_id ? 'Ver perfil do passageiro' : undefined}
+                      >
                         <span className={styles.passengerAvatar}>
                           {(p.usu_nome || 'U').charAt(0).toUpperCase()}
                         </span>

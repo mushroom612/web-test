@@ -163,7 +163,7 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
 }
 
 .appliedFiltersLabel {
@@ -178,7 +178,7 @@
   background-color: var(--color-green-100, #dcfce7);
   color: var(--btn-primary-bg);
   border-radius: var(--border-radius-full);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
 }
 
@@ -437,7 +437,7 @@
   background-color: var(--surface-page, #f9fafb);
   border: 1px solid var(--color-neutral-100, #e5e7eb);
   border-radius: var(--border-radius-md, 8px);
-  font-size: 13px;
+  font-size: var(--font-size-sm);
 }
 
 .atividadeGrid {
@@ -453,7 +453,7 @@
 }
 
 .atividadeLabel {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -461,7 +461,7 @@
 }
 
 .atividadeValue {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-primary);
 }

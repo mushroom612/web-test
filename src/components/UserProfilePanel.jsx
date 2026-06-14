@@ -346,24 +346,24 @@ export function UserProfilePanel({
               {/* InfoCard: componente interno definido abaixo neste mesmo arquivo.
                   Recebe ícone, rótulo e valor para exibir de forma consistente. */}
               <InfoCard
-                icon={User}
+                icon={IconUser}
                 label="Nome completo"
                 value={enriched.usu_nome}
               />
-              <InfoCard icon={Mail} label="E-mail" value={enriched.usu_email} />
+              <InfoCard icon={IconMail} label="E-mail" value={enriched.usu_email} />
               <InfoCard
-                icon={Phone}
+                icon={IconPhone}
                 label="Telefone"
                 value={enriched.usu_telefone ? enriched.usu_telefone : "—"}
               />
               <InfoCard
-                icon={Building2}
+                icon={IconBuilding}
                 label="Instituição"
                 value={enriched.school}
               />
-              <InfoCard icon={BookOpen} label="Curso" value={enriched.course} />
+              <InfoCard icon={IconBook} label="Curso" value={enriched.course} />
               <InfoCard
-                icon={ShieldCheck}
+                icon={IconShieldCheck}
                 label="Nível de verificação"
                 value={verif.label}
                 valueColor={verif.color}

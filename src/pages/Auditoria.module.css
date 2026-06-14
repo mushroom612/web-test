@@ -54,6 +54,38 @@
   cursor: not-allowed;
 }
 
+.exportBtnGroup {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.exportBtnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-5);
+  background-color: transparent;
+  color: var(--btn-primary-bg);
+  border: 1.5px solid var(--btn-primary-bg);
+  border-radius: var(--btn-primary-radius);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.exportBtnSecondary:hover:not(:disabled) {
+  background-color: var(--color-green-50, #f0fdf4);
+}
+
+.exportBtnSecondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ── Filters ────────────────────────────────────────────────────────────── */
 
 .filters {
@@ -241,7 +273,7 @@
 .cellRegistro {
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
-  text-align: center;
+  text-align: left;
 }
 
 .cellEscola {

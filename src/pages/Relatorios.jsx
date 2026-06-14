@@ -190,8 +190,8 @@ const statConfig = {
 
 // downloadCSV: cria um Blob a partir do texto CSV e dispara o download no browser.
 function downloadCSV(csvText, filename) {
-  // '﻿' = BOM UTF-8: garante que Excel abre o CSV com acentos corretamente
-  const blob = new Blob(['﻿' + csvText], { type: 'text/csv;charset=utf-8;' });
+  // '\uFEFF' = BOM UTF-8: garante que Excel abre o CSV com acentos corretamente
+  const blob = new Blob(['\uFEFF' + csvText], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
@@ -596,7 +596,7 @@ export function Relatorios() {
           return;
         }
 
-        const lines = csvText.replace(/^﻿/, '').trim().split('\n');
+        const lines = csvText.replace(/^\uFEFF/, '').trim().split('\n');
         const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
 
         // Índices das colunas visíveis (sem IDs internos do banco)

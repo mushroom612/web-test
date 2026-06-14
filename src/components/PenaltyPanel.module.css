@@ -47,14 +47,14 @@
 
 .panelTitle h1 {
   margin: 0 0 2px;
-  font-size: 22px;
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .panelTitle p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
@@ -67,7 +67,7 @@
   color: var(--text-secondary);
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
@@ -122,7 +122,7 @@
   border-radius: 50%;
   background-color: var(--btn-primary-bg, #4e8726);
   color: #fff;
-  font-size: 15px;
+  font-size: var(--font-size-base);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -132,14 +132,14 @@
 
 .userName {
   margin: 0 0 2px;
-  font-size: 15px;
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .userEmail {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
@@ -150,7 +150,7 @@
   border-radius: 999px;
   background-color: #fee2e2;
   color: #b91c1c;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
@@ -176,7 +176,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -206,7 +206,7 @@
 }
 
 .label {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-primary);
 }
@@ -219,7 +219,7 @@
   padding: 9px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   background-color: var(--color-neutral-0, #fff);
   font-family: inherit;
@@ -241,7 +241,7 @@
   padding: 9px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   background-color: var(--color-neutral-0, #fff);
   font-family: inherit;
@@ -255,7 +255,7 @@
 }
 
 .charCount {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
   text-align: right;
 }
@@ -268,7 +268,7 @@
   background-color: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: #b91c1c;
   margin-bottom: 16px;
   line-height: 1.5;
@@ -297,7 +297,7 @@
   color: var(--btn-primary-text, #fff);
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -324,7 +324,7 @@
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -350,7 +350,7 @@
   color: var(--text-secondary);
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -371,7 +371,7 @@
   color: #9ca3af;
   border: 1px solid var(--color-neutral-100);
   border-radius: 6px;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
@@ -400,7 +400,7 @@
   gap: 8px;
   padding: 11px 14px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
 }
 
 .alertSuccess {
@@ -432,7 +432,7 @@
 
 .listTitle {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -450,7 +450,7 @@
   background: transparent;
   border: none;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
@@ -532,7 +532,7 @@
 }
 
 .penaltyTipo {
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -542,7 +542,7 @@
   align-items: center;
   padding: 2px 10px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -563,7 +563,7 @@
 
 .penaltyMotivo {
   margin: 0 0 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   line-height: 1.5;
 }
@@ -578,7 +578,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
 }
 
@@ -589,7 +589,7 @@
   align-items: center;
   gap: 10px;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   padding: 24px 0;
 }
 
@@ -600,7 +600,7 @@
   gap: 10px;
   padding: 40px 0;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: var(--font-size-sm);
 }
 
 .emptyState svg {

@@ -71,7 +71,7 @@
 // ============================================================
 
 import { useState, useEffect } from 'react';
-import { IconLoader2, IconDownload } from '@tabler/icons-react';
+import { IconLoader2, IconDownload, IconFileTypePdf } from '@tabler/icons-react';
 import { api } from '../services/api';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { Pagination } from '../components/Pagination';
@@ -123,7 +123,8 @@ export function Auditoria() {
   const [page, setPage] = useState(1);      // página atual (começa em 1)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [exporting, setExporting] = useState(false);  // spinner no botão de exportar
+  const [exporting, setExporting] = useState(false);    // spinner no botão de exportar CSV
+  const [exportingPdf, setExportingPdf] = useState(false); // spinner no botão de exportar PDF
 
   // Estados dos inputs de filtro (o que o usuário está digitando)
   const [filterAcao, setFilterAcao] = useState('');
@@ -195,6 +196,43 @@ export function Auditoria() {
     }
   }
 
+  // handleExportPdf: gera um PDF dos logs visíveis na página atual.
+  async function handleExportPdf() {
+    if (logs.length === 0) return;
+    setExportingPdf(true);
+    try {
+      const { jsPDF } = await import('jspdf');
+      await import('jspdf-autotable');
+      const doc = new jsPDF({ orientation: 'landscape' });
+      doc.setFontSize(14);
+      doc.text('Auditoria — Logs', 14, 14);
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+      doc.text(`Página ${page} · ${logs.length} registros exibidos`, 14, 20);
+      doc.autoTable({
+        head: [['Data/Hora', 'Administrador', 'Escola', 'Ação', 'Registro']],
+        body: logs.map(log => [
+          formatDate(log.criado_em),
+          log.admin_nome ?? (log.usu_id ? `Admin #${log.usu_id}` : '—'),
+          log.admin_escola ?? '—',
+          log.acao,
+          log.registro_id != null
+            ? log.registro_nome
+              ? `${TABELA_LABELS[log.tabela?.toUpperCase()] ?? log.tabela} · ${log.registro_nome}`
+              : `${TABELA_LABELS[log.tabela?.toUpperCase()] ?? log.tabela ?? 'Registro'} #${log.registro_id}`
+            : '—'
+        ]),
+        startY: 25,
+        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: [45, 80, 22], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 250, 248] },
+      });
+      doc.save(`auditoria-p${page}.pdf`);
+    } finally {
+      setExportingPdf(false);
+    }
+  }
+
   // totalPages: número total de páginas.
   // Math.ceil arredonda para cima: 21 registros com PAGE_SIZE=20 → 2 páginas.
   // Math.max(1, ...) garante que sempre haverá pelo menos 1 página.
@@ -210,13 +248,20 @@ export function Auditoria() {
             Registro de ações realizadas por administradores — visível somente para desenvolvedores
           </p>
         </div>
-        <button className={styles.exportBtn} onClick={handleExport} disabled={exporting}>
-          {/* Mostra spinner durante a exportação, ícone Download quando idle */}
-          {exporting
-            ? <IconLoader2 size={16} className={styles.spinIcon} />
-            : <IconDownload size={16} />}
-          Exportar CSV
-        </button>
+        <div className={styles.exportBtnGroup}>
+          <button className={styles.exportBtnSecondary} onClick={handleExportPdf} disabled={exportingPdf || logs.length === 0}>
+            {exportingPdf
+              ? <IconLoader2 size={16} className={styles.spinIcon} />
+              : <IconFileTypePdf size={16} />}
+            Exportar PDF
+          </button>
+          <button className={styles.exportBtn} onClick={handleExport} disabled={exporting}>
+            {exporting
+              ? <IconLoader2 size={16} className={styles.spinIcon} />
+              : <IconDownload size={16} />}
+            Exportar CSV
+          </button>
+        </div>
       </div>
 
       {/* Formulário de filtros (não recarrega a cada tecla — só ao submeter) */}

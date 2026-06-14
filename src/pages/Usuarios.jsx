@@ -35,6 +35,7 @@
 // ============================================================
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { IconSearch } from '@tabler/icons-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -98,6 +99,12 @@ function perTipoLabel(per_tipo) {
   return 'Usuário';
 }
 
+function perTipoClass(per_tipo, styles) {
+  if (per_tipo === 1) return `${styles.typeLabel} ${styles.typeAdmin}`;
+  if (per_tipo === 2) return `${styles.typeLabel} ${styles.typeDev}`;
+  return `${styles.typeLabel} ${styles.typeUser}`;
+}
+
 const PAGE_SIZE = 10;
 
 export function Usuarios() {
@@ -120,6 +127,8 @@ export function Usuarios() {
   // profilePanel: objeto { user, mode } que controla o UserProfilePanel.
   // mode: 'view' = só visualizar | 'edit' = modo de edição
   const [profilePanel, setProfilePanel] = useState(null);
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const loadUsers = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -146,6 +155,19 @@ export function Usuarios() {
 
   // totalPages: número total de páginas para paginação
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Auto-abre o UserProfilePanel quando navegado de outra página com ?id=N
+  useEffect(() => {
+    const userId = searchParams.get('id');
+    if (!userId) return;
+    api.getUser(parseInt(userId, 10))
+      .then(data => {
+        const user = data?.usuario ?? data;
+        if (user) setProfilePanel({ user, mode: 'view' });
+      })
+      .catch(() => {})
+      .finally(() => setSearchParams({}, { replace: true }));
+  }, [searchParams, setSearchParams]);
 
   // Handlers: funções que respondem a ações do usuário.
 
@@ -261,7 +283,7 @@ export function Usuarios() {
                     </td>
                     {/* per_tipo vem do endpoint /api/admin/usuarios */}
                     <td className={styles.cellType}>
-                      <span className={styles.typeLabel}>{perTipoLabel(user.per_tipo)}</span>
+                      <span className={perTipoClass(user.per_tipo, styles)}>{perTipoLabel(user.per_tipo)}</span>
                     </td>
                     {/* esc_nome / cur_nome: campos retornados pelo endpoint de lista admin */}
                     <td className={styles.cellSchool}>

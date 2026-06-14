@@ -9,14 +9,14 @@
 
 .title {
   margin: 0 0 8px;
-  font-size: 24px;
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .subtitle {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
@@ -44,7 +44,7 @@
 
 .label {
   margin-bottom: 8px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-primary);
   display: block;
@@ -56,7 +56,7 @@
   padding: 10px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   background-color: var(--color-neutral-0);
   transition: all 0.2s ease;
@@ -86,7 +86,7 @@
   color: var(--btn-primary-text);
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -111,7 +111,7 @@
 
 .previewTitle {
   margin: 0 0 16px;
-  font-size: 16px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -134,7 +134,7 @@
 
 .time {
   color: #fff;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
 }
 
@@ -156,14 +156,14 @@
 
 .notifTitle {
   margin: 0 0 8px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   color: var(--color-green-900);
 }
 
 .notifMessage {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--color-green-900);
   line-height: 1.4;
 }

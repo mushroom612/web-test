@@ -14,7 +14,7 @@
   background: var(--color-neutral-50);
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 18px;
+  font-size: var(--font-size-lg);
   display: flex;
   align-items: center;
   justify-content: center;
