@@ -1,78 +1,33 @@
 // ============================================================
-// pages/Cadastrar.jsx — Página de cadastro de instituições
+// pages/Cadastrar.jsx — Cadastro de nova instituição
 //
-// Formulário em múltiplas etapas (wizard) para cadastrar
-// uma nova instituição parceira na plataforma, junto com
-// seu administrador e cursos.
+// Formulário multi-etapa para cadastrar uma nova instituição
+// parceira na plataforma, incluindo:
+//   1. Dados da escola (nome, endereço, domínio, limite de usuários)
+//   2. Contrato institucional (duração, data, documentos)
+//   3. Administrador responsável (nome, email, senha, telefone)
+//   4. Cursos oferecidos (opcional, pode adicionar múltiplos)
 //
-// Fluxo em 4 etapas:
-//   Etapa 1 → Dados da Escola (nome, endereço, domínio, limite)
-//   Etapa 2 → Contrato (duração, data de início, upload de arquivo)
-//   Etapa 3 → Administrador (nome, e-mail, telefone, senha)
-//   Etapa 4 → Cursos (adicionar/editar/remover antes de finalizar)
+// Persiste o ID da escola criada em sessionStorage para
+// permitir retomar em caso de falha nas etapas posteriores.
 //
-// Além do formulário, a página exibe a lista de instituições
-// já cadastradas com gerenciamento de cursos por instituição.
-//
-// Bibliotecas usadas:
-//   - react         → useState, useEffect
-//   - lucide-react  → ícones variados por seção
-//
-// Estilo: Cadastrar.module.css
-//   Classes principais:
-//     .container           → área da página
-//     .header              → cabeçalho
-//     .formCard            → card branco do formulário
-//     .stepIndicator       → linha de progresso das etapas
-//     .stepItem / .stepActive  → cada etapa e seu estado ativo
-//     .stepLine / .stepLineDone → linha entre etapas e estado completo
-//     .stepCircle / .stepLabel  → número e texto de cada etapa
-//     .sectionHeader       → cabeçalho de seção dentro do form
-//     .formGrid            → grid de campos do formulário
-//     .formGroup           → wrapper de label + input
-//     .label               → rótulo do campo
-//     .input               → campo de entrada (input, select, textarea)
-//     .required            → asterisco de campo obrigatório
-//     .fieldHint           → texto de ajuda abaixo do campo
-//     .inlineError         → mensagem de erro dentro da etapa
-//     .formActions         → botões de navegação entre etapas
-//     .submitBtn           → botão principal (Próximo / Cadastrar)
-//     .cancelBtn           → botão secundário (Voltar / Limpar)
-//     .fileUploadZone      → área de drag-and-drop para upload de arquivo
-//     .fileSelected        → exibição do arquivo selecionado
-//     .alertSuccess / .alertError → banners de feedback de resultado
-//     .adminList / .adminTag → lista e tag de cursos na etapa 4
-//     .courseTagActions / .editCourseBtn / .removeAdminBtn → ações do curso
-//     .courseFormActions / .addAdminBtn → botão de adicionar curso
-//     .cancelEditBtn       → cancelar edição de curso
-//     .institutionsSection → seção de lista de instituições
-//     .institutionsList / .institutionCard → lista e cada card
-//     .cardHeader / .institutionInfo → cabeçalho do card de instituição
-//     .cardContent / .institutionDetails / .detailItem → detalhes do card
-//     .iconBtn             → botão ícone (deletar)
-//     .coursesToggleBtn    → botão de expandir cursos da instituição
-//     .coursesSection      → seção de cursos expandida
-//     .courseItem / .courseItemInfo / .courseItemActions → item de curso
-//     .courseEditForm / .courseEditGrid / .courseEditActions → form inline
-//     .loadingState / .emptyState → estados de carregamento e vazio
-//     .spin                → animação de rotação do Loader2
+// Estilo: CadastroInstituicoes.module.css
 // ============================================================
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Building2, MapPin, Mail, Users, Trash2,
-  UserPlus, X, CheckCircle, AlertCircle, Loader2,
-  ChevronRight, ChevronLeft, BookOpen, Pencil, Plus, ChevronDown, ChevronUp,
-  FileText, CalendarDays, Eye
-} from 'lucide-react';
+  IconBuilding, IconMapPin, IconMail, IconUsers,
+  IconUserPlus, IconX, IconCircleCheck, IconAlertCircle, IconLoader2,
+  IconChevronRight, IconChevronLeft, IconBook, IconPencil, IconPlus,
+  IconFileText, IconCalendar, IconEye, IconArrowLeft
+} from '@tabler/icons-react';
 import { api } from '../services/api';
-import styles from './Cadastrar.module.css';
+import styles from './CadastroInstituicoes.module.css';
 
 const EMPTY_COURSE = { cur_nome: '', cur_descricao: '', cur_semestres: '' };
+const PENDING_ESC_KEY = 'cadastrar_pendingEscId';
 
-// calcExpiry: calcula a data de vencimento do contrato a partir da
-// data de início e da duração escolhida (1, 2 ou 5 anos).
-// Retorna uma string no formato ISO "YYYY-MM-DD".
 function calcExpiry(inicio, duracao) {
   if (!inicio || !duracao) return null;
   const [y, m, d] = inicio.split('-').map(Number);
@@ -83,7 +38,6 @@ function calcExpiry(inicio, duracao) {
   return date.toISOString().split('T')[0];
 }
 
-// formatDateStr: converte "YYYY-MM-DD" para o formato brasileiro "DD/MM/AAAA"
 function formatDateStr(dateStr) {
   if (!dateStr) return '';
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -91,133 +45,56 @@ function formatDateStr(dateStr) {
 }
 
 export function Cadastrar() {
-  // step: etapa atual do formulário (1 a 4)
-  const [step, setStep] = useState(1);
-  // stepError: mensagem de erro dentro da etapa atual
+  const navigate = useNavigate();
+
+  // Se há um esc_id pendente em sessionStorage (escola criada mas admin falhou),
+  // retoma o cadastro a partir do passo de administrador (etapa 3).
+  const pendingEscId = sessionStorage.getItem(PENDING_ESC_KEY);
+  const [step, setStep] = useState(pendingEscId ? 3 : 1);
   const [stepError, setStepError] = useState('');
 
-  // formData: dados da escola (etapas 1 e 2)
   const [formData, setFormData] = useState({
-    esc_nome: '',
-    esc_endereco: '',
-    esc_dominio: '',
-    esc_max_usuarios: '',
-    esc_contrato_duracao: '',
-    esc_contrato_inicio: ''
+    esc_nome: '', esc_endereco: '', esc_dominio: '',
+    esc_max_usuarios: '', esc_contrato_duracao: '', esc_contrato_inicio: ''
   });
-
-  // adminData: dados do administrador da instituição (etapa 3)
   const [adminData, setAdminData] = useState({
-    usu_nome: '',
-    usu_email: '',
-    usu_telefone: '',
-    usu_senha: '',
-    usu_confirmSenha: ''
+    usu_nome: '', usu_email: '', usu_telefone: '', usu_senha: '', usu_confirmSenha: ''
   });
-
-  // ── Cursos (etapa 4 - pré-cadastro) ────────────────────────
-  const [coursesList, setCoursesList] = useState([]);    // cursos a cadastrar
-  const [newCourse, setNewCourse] = useState(EMPTY_COURSE); // form de novo curso
-  const [editingCourseId, setEditingCourseId] = useState(null); // ID do curso em edição
-
-  // ── Contrato e OCR (etapa 2) ────────────────────────────────
+  const [coursesList, setCoursesList] = useState([]);
+  const [newCourse, setNewCourse] = useState(EMPTY_COURSE);
+  const [editingCourseId, setEditingCourseId] = useState(null);
   const [contractFile, setContractFile] = useState(null);
-  const [ocrFile, setOcrFile]           = useState(null);
+  const [ocrFile, setOcrFile] = useState(null);
 
-  // ── Autocomplete de endereço (etapa 1) ──────────────────────
-  // suggestions: sugestões retornadas pelo endpoint GET /api/pontos/geocode
   const [suggestions, setSuggestions] = useState([]);
-  // geocodeLoading: true enquanto aguarda a resposta do geocode
   const [geocodeLoading, setGeocodeLoading] = useState(false);
-  // showSuggestions: controla visibilidade do dropdown
   const [showSuggestions, setShowSuggestions] = useState(false);
-  // geocodeTimer: ref para o ID do setTimeout de debounce (não causa re-render)
   const geocodeTimer = useRef(null);
-  // submitLockRef: guard síncrono contra duplo-submit.
-  // Diferente de submitLoading (estado React, stale na closure), o ref
-  // atualiza imediatamente e é lido com o valor real na chamada seguinte.
   const submitLockRef = useRef(false);
 
-  // ── Feedback de submit ──────────────────────────────────────
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [submitSuccess, setSubmitSuccess] = useState('');
 
-  // ── Lista de instituições já cadastradas ────────────────────
-  const [institutions, setInstitutions] = useState([]);
-  const [listLoading, setListLoading] = useState(true);
-  const [listError, setListError] = useState('');
+  // Persiste o ID da escola criada em sessionStorage para sobreviver a refreshes de página.
+  // Isso evita criar uma escola duplicada quando o passo de admin falha e o usuário recarrega.
+  const [createdEscId, setCreatedEscId] = useState(pendingEscId || null);
 
-  // ── Gerenciamento de cursos por instituição (lista inferior) ──
-  // expandedInstitution: ID da instituição com cursos expandidos
-  const [expandedInstitution, setExpandedInstitution] = useState(null);
-  // institutionCourses: objeto { escId: [cursos] } para cache local
-  const [institutionCourses, setInstitutionCourses] = useState({});
-  // instCourseLoading: { escId: true/false } — spinner por instituição
-  const [instCourseLoading, setInstCourseLoading] = useState({});
-  // instCourseAction: { type: 'add'|'edit', escId, course? } — ação ativa
-  const [instCourseAction, setInstCourseAction] = useState(null);
-  const [instCourseForm, setInstCourseForm] = useState(EMPTY_COURSE);
-  const [instCourseError, setInstCourseError] = useState('');
-
-  // Carrega as instituições ao montar o componente
-  useEffect(() => { loadInstitutions(); }, []);
-
-  async function loadInstitutions() {
-    setListLoading(true);
-    setListError('');
-    try {
-      const data = await api.getSchools();
-      // GET /api/dev/escolas retorna { escolas: [...] }
-      setInstitutions(data?.escolas ?? (Array.isArray(data) ? data : []));
-    } catch (err) {
-      setListError(err.message || 'Não foi possível carregar as instituições.');
-    } finally {
-      setListLoading(false);
-    }
+  function persistEscId(id) {
+    setCreatedEscId(id);
+    if (id) sessionStorage.setItem(PENDING_ESC_KEY, String(id));
+    else sessionStorage.removeItem(PENDING_ESC_KEY);
   }
 
-  // Carrega os cursos de uma instituição específica (lazy loading)
-  // GET /api/infra/escolas/:id/cursos retorna { cursos: [...] }, não um array direto.
-  async function loadInstCourses(escId) {
-    setInstCourseLoading(prev => ({ ...prev, [escId]: true }));
-    try {
-      const data = await api.getCourses(escId);
-      const lista = data?.cursos ?? (Array.isArray(data) ? data : []);
-      setInstitutionCourses(prev => ({ ...prev, [escId]: lista }));
-    } catch {
-      setInstitutionCourses(prev => ({ ...prev, [escId]: [] }));
-    } finally {
-      setInstCourseLoading(prev => ({ ...prev, [escId]: false }));
-    }
-  }
-
-  // ── Handlers de campos do formulário ───────────────────────
-
-  // Atualiza o formData quando qualquer campo da escola é alterado.
-  // e.target.name → atributo "name" do input (ex: "esc_nome")
-  // e.target.value → valor digitado
-  // O spread ...prev mantém os outros campos intactos.
   function handleChange(e) {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   }
 
-  // handleAddressChange: atualiza o campo de endereço E dispara o geocode
-  // com debounce de 400ms para não estourar o rate limit (20 req/min).
-  // Só busca se o usuário digitou pelo menos 3 caracteres.
   function handleAddressChange(e) {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, esc_endereco: value }));
-
     if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
-
-    if (value.length < 3) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
+    if (value.length < 3) { setSuggestions([]); setShowSuggestions(false); return; }
     geocodeTimer.current = setTimeout(async () => {
       setGeocodeLoading(true);
       try {
@@ -226,19 +103,14 @@ export function Cadastrar() {
         setSuggestions(lista);
         setShowSuggestions(lista.length > 0);
       } catch {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      } finally {
-        setGeocodeLoading(false);
-      }
+        setSuggestions([]); setShowSuggestions(false);
+      } finally { setGeocodeLoading(false); }
     }, 400);
   }
 
-  // handleSelectSuggestion: preenche o campo com o endereço escolhido e fecha o dropdown.
   function handleSelectSuggestion(displayName) {
     setFormData(prev => ({ ...prev, esc_endereco: displayName }));
-    setSuggestions([]);
-    setShowSuggestions(false);
+    setSuggestions([]); setShowSuggestions(false);
     if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
   }
 
@@ -252,80 +124,59 @@ export function Cadastrar() {
     setNewCourse(prev => ({ ...prev, [name]: value }));
   }
 
-  // ── Gerenciamento de cursos na etapa 4 ─────────────────────
-
-  // Adiciona ou salva a edição de um curso na lista local
   function handleAddCourse() {
-    if (!newCourse.cur_nome.trim()) {
-      setStepError('Preencha o nome do curso.');
+    if (!newCourse.cur_nome.trim()) { setStepError('Preencha o nome do curso.'); return; }
+    const semVal = parseInt(newCourse.cur_semestres);
+    if (!newCourse.cur_semestres || isNaN(semVal) || semVal < 1) {
+      setStepError('Informe a quantidade de semestres/módulos (mínimo 1).');
       return;
     }
     if (editingCourseId !== null) {
-      // Modo edição: substitui o curso pelo atualizado
-      setCoursesList(prev =>
-        prev.map(c => c.cur_id === editingCourseId ? { ...newCourse, cur_id: editingCourseId } : c)
-      );
+      setCoursesList(prev => prev.map(c => c.cur_id === editingCourseId ? { ...newCourse, cur_id: editingCourseId } : c));
       setEditingCourseId(null);
     } else {
-      // Modo adição: insere o novo curso com ID único baseado no timestamp
       setCoursesList(prev => [...prev, { ...newCourse, cur_id: Date.now() }]);
     }
-    setNewCourse(EMPTY_COURSE);
-    setStepError('');
+    setNewCourse(EMPTY_COURSE); setStepError('');
   }
 
-  // Preenche o formulário com os dados do curso para editar
   function handleEditCourse(course) {
     setEditingCourseId(course.cur_id);
     setNewCourse({
       cur_nome: course.cur_nome,
       cur_descricao: course.cur_descricao || '',
-      // != null cobre tanto null quanto undefined (diferente de !== null)
-      cur_semestres: course.cur_semestres != null ? String(course.cur_semestres) : ''
+      cur_semestres: course.cur_semestre != null ? String(course.cur_semestre) : ''
     });
     setStepError('');
   }
 
   function handleCancelCourseEdit() {
-    setEditingCourseId(null);
-    setNewCourse(EMPTY_COURSE);
-    setStepError('');
+    setEditingCourseId(null); setNewCourse(EMPTY_COURSE); setStepError('');
   }
 
-  // Remove um curso da lista local pelo ID
   function handleRemoveCourse(courseId) {
     setCoursesList(prev => prev.filter(c => c.cur_id !== courseId));
-    if (editingCourseId === courseId) {
-      setEditingCourseId(null);
-      setNewCourse(EMPTY_COURSE);
-    }
+    if (editingCourseId === courseId) { setEditingCourseId(null); setNewCourse(EMPTY_COURSE); }
   }
 
-  // ── Navegação entre etapas ──────────────────────────────────
-
-  // Valida os campos obrigatórios antes de avançar para a próxima etapa
   function handleNextStep() {
     setStepError('');
     if (step === 1) {
       if (!formData.esc_nome.trim() || !formData.esc_endereco.trim()) {
-        setStepError('Preencha os campos obrigatórios antes de continuar.');
-        return;
+        setStepError('Preencha os campos obrigatórios antes de continuar.'); return;
       }
       setStep(2);
     } else if (step === 2) {
       if (formData.esc_contrato_duracao && !formData.esc_contrato_inicio) {
-        setStepError('Informe a data de início do contrato.');
-        return;
+        setStepError('Informe a data de início do contrato.'); return;
       }
       setStep(3);
     } else if (step === 3) {
       if (!adminData.usu_nome.trim() || !adminData.usu_email.trim() || !adminData.usu_senha.trim()) {
-        setStepError('Preencha os campos obrigatórios do administrador.');
-        return;
+        setStepError('Preencha os campos obrigatórios do administrador.'); return;
       }
       if (adminData.usu_senha !== adminData.usu_confirmSenha) {
-        setStepError('As senhas não coincidem.');
-        return;
+        setStepError('As senhas não coincidem.'); return;
       }
       setStep(4);
     }
@@ -333,63 +184,57 @@ export function Cadastrar() {
 
   function handlePrevStep() {
     setStepError('');
-    setStep(step > 1 ? step - 1 : 1);
+    // Se há uma escola pendente, não voltar antes do passo 3
+    const minStep = pendingEscId ? 3 : 1;
+    setStep(s => (s > minStep ? s - 1 : minStep));
   }
 
-  // ── Submit final (etapa 4) ──────────────────────────────────
+  function handleCancel() {
+    if (pendingEscId) {
+      if (!window.confirm('Há um cadastro incompleto. Ao cancelar, a instituição já criada permanecerá na lista sem administrador. Deseja continuar?')) return;
+      persistEscId(null);
+    }
+    navigate('/cadastrar');
+  }
 
-  // Executa sequencialmente:
-  // 1. Cria o usuário admin
-  // 2. Cria a escola vinculada ao admin
-  // 3. Cria os cursos vinculados à escola
   async function handleSubmit(e) {
     e.preventDefault();
-    if (submitLockRef.current) return;  // guard síncrono — imune a closure stale
+    if (submitLockRef.current) return;
     submitLockRef.current = true;
-    setSubmitError('');
-    setSubmitSuccess('');
-    setSubmitLoading(true);
+    setSubmitError(''); setSubmitLoading(true);
 
     try {
-      // Passo 1: criar a escola via POST /api/dev/escolas
-      // O contrato é criado separadamente para manter as responsabilidades separadas.
-      const schoolPayload = {
-        esc_nome: formData.esc_nome,
-        esc_endereco: formData.esc_endereco,
-        ...(formData.esc_dominio ? { esc_dominio: formData.esc_dominio } : {}),
-        ...(formData.esc_max_usuarios ? { esc_max_usuarios: parseInt(formData.esc_max_usuarios) } : {})
-      };
-      const createdSchool = await api.createSchool(schoolPayload);
-      const escId = createdSchool.escola?.esc_id ?? createdSchool.esc_id;
+      let escId = createdEscId;
+      if (!escId) {
+        const schoolPayload = {
+          esc_nome: formData.esc_nome,
+          esc_endereco: formData.esc_endereco,
+          ...(formData.esc_dominio ? { esc_dominio: formData.esc_dominio } : {}),
+          ...(formData.esc_max_usuarios ? { esc_max_usuarios: parseInt(formData.esc_max_usuarios) } : {})
+        };
+        const createdSchool = await api.createSchool(schoolPayload);
+        escId = createdSchool.escola?.esc_id ?? createdSchool.esc_id;
+        persistEscId(escId);
+      }
 
-      // Passo 2a: criar o contrato se duração e data de início foram fornecidos
-      // POST /api/dev/escolas/:id/contrato  { duracao, data_inicio }
       if (formData.esc_contrato_duracao && formData.esc_contrato_inicio) {
         try {
           await api.createContract(escId, {
             duracao: formData.esc_contrato_duracao,
             data_inicio: formData.esc_contrato_inicio
           });
-        } catch { /* contrato pode ser adicionado depois — não bloqueia o cadastro */ }
+        } catch { /* contrato pode ser adicionado depois */ }
       }
-
-      // Passo 2b: enviar o arquivo PDF do contrato se foi selecionado
       if (contractFile) {
-        try {
-          await api.uploadContractFile(escId, contractFile);
-        } catch { /* arquivo pode ser enviado depois */ }
+        try { await api.uploadContractFile(escId, contractFile); } catch { /* pode enviar depois */ }
       }
-
-      // Passo 2c: enviar o PDF de template OCR se foi selecionado
       if (ocrFile) {
-        try {
-          await api.uploadOcrTemplate(escId, ocrFile);
-        } catch { /* template pode ser enviado depois */ }
+        try { await api.uploadOcrTemplate(escId, ocrFile); } catch { /* pode enviar depois */ }
       }
 
-      // Passo 3: criar o admin já vinculado à escola via POST /api/dev/cadastrar
-      // per_escola_id é passado diretamente, eliminando a chamada de updateUserProfile
-      const createdAdmin = await api.createUser({
+      // Passo crítico: criar o admin — se falhar, o pendingEscId em sessionStorage
+      // permite que o usuário retome a partir desta etapa mesmo após recarregar a página.
+      await api.createUser({
         usu_nome: adminData.usu_nome,
         usu_email: adminData.usu_email,
         usu_senha: adminData.usu_senha,
@@ -397,11 +242,7 @@ export function Cadastrar() {
         per_tipo: 1,
         per_escola_id: escId
       });
-      const newAdminId = createdAdmin.usuario?.usu_id ?? createdAdmin.usu_id;
-      // Suprime warning de variável não usada — o ID pode ser útil futuramente
-      void newAdminId;
 
-      // Passo 4: criar os cursos em sequência (for...of aguarda cada um)
       const courseErrors = [];
       for (const course of coursesList) {
         try {
@@ -411,22 +252,15 @@ export function Cadastrar() {
             cur_semestres: course.cur_semestres ? parseInt(course.cur_semestres) : undefined,
             esc_id: escId
           });
-        } catch {
-          courseErrors.push(course.cur_nome);
-        }
+        } catch { courseErrors.push(course.cur_nome); }
       }
 
-      let successMsg = `Instituição "${formData.esc_nome}" cadastrada com sucesso!`;
-      if (courseErrors.length > 0) {
-        successMsg += ` Erro ao criar: ${courseErrors.join(', ')}.`;
-      } else if (coursesList.length > 0) {
-        successMsg += ` ${coursesList.length} curso(s) cadastrado(s).`;
-      }
-      // handleReset chama setSubmitSuccess(''), por isso setSubmitSuccess(msg)
-      // vem DEPOIS: o React processa ambas no mesmo batch e o último valor vence.
-      handleReset();
-      setSubmitSuccess(successMsg);
-      loadInstitutions();
+      let successMsg = `Instituição "${formData.esc_nome || 'nova'}" cadastrada com sucesso!`;
+      if (courseErrors.length > 0) successMsg += ` Erro ao criar: ${courseErrors.join(', ')}.`;
+      else if (coursesList.length > 0) successMsg += ` ${coursesList.length} curso(s) cadastrado(s).`;
+
+      persistEscId(null);
+      navigate('/cadastrar', { state: { success: successMsg } });
     } catch (err) {
       setSubmitError(err.message || 'Erro ao cadastrar instituição.');
     } finally {
@@ -435,197 +269,61 @@ export function Cadastrar() {
     }
   }
 
-  // Reseta todos os estados do formulário para os valores iniciais
-  function handleReset() {
-    setStep(1);
-    setStepError('');
-    setFormData({ esc_nome: '', esc_endereco: '', esc_dominio: '', esc_max_usuarios: '', esc_contrato_duracao: '', esc_contrato_inicio: '' });
-    setAdminData({ usu_nome: '', usu_email: '', usu_telefone: '', usu_senha: '', usu_confirmSenha: '' });
-    setCoursesList([]);
-    setNewCourse(EMPTY_COURSE);
-    setEditingCourseId(null);
-    setContractFile(null);
-    setOcrFile(null);
-    setSubmitError('');
-    setSubmitSuccess('');
-    // Limpa estados do autocomplete de endereço
-    setSuggestions([]);
-    setShowSuggestions(false);
-    if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
-  }
-
-  // Remove uma instituição da lista após confirmação
-  async function handleDeleteInstitution(id) {
-    if (!window.confirm('Tem certeza que deseja remover esta instituição?')) return;
-    try {
-      await api.deleteSchool(id);
-      if (expandedInstitution === id) setExpandedInstitution(null);
-      loadInstitutions();
-    } catch (err) {
-      alert(err.message || 'Erro ao remover instituição.');
-    }
-  }
-
-  // ── Gerenciamento de cursos por instituição (lista inferior) ─
-
-  // Toggle: expande ou colapsa os cursos de uma instituição.
-  // Lazy loading: só busca os cursos quando expandido pela primeira vez.
-  function handleToggleInstitution(escId) {
-    if (expandedInstitution === escId) {
-      setExpandedInstitution(null);
-      setInstCourseAction(null);
-      setInstCourseForm(EMPTY_COURSE);
-      setInstCourseError('');
-      return;
-    }
-    setExpandedInstitution(escId);
-    setInstCourseAction(null);
-    setInstCourseForm(EMPTY_COURSE);
-    setInstCourseError('');
-    // Só carrega se ainda não tem os dados em cache
-    if (!institutionCourses[escId]) {
-      loadInstCourses(escId);
-    }
-  }
-
-  function handleStartAddInstCourse(escId) {
-    setInstCourseAction({ type: 'add', escId });
-    setInstCourseForm(EMPTY_COURSE);
-    setInstCourseError('');
-  }
-
-  function handleStartEditInstCourse(escId, course) {
-    setInstCourseAction({ type: 'edit', escId, course });
-    setInstCourseForm({
-      cur_nome: course.cur_nome,
-      cur_descricao: course.cur_descricao || '',
-      cur_semestres: course.cur_semestres != null ? String(course.cur_semestres) : ''
-    });
-    setInstCourseError('');
-  }
-
-  function handleCancelInstCourseAction() {
-    setInstCourseAction(null);
-    setInstCourseForm(EMPTY_COURSE);
-    setInstCourseError('');
-  }
-
-  function handleInstCourseFormChange(e) {
-    const { name, value } = e.target;
-    setInstCourseForm(prev => ({ ...prev, [name]: value }));
-  }
-
-  // Salva adição ou edição de curso em uma instituição existente
-  async function handleSaveInstCourse() {
-    if (!instCourseForm.cur_nome.trim()) {
-      setInstCourseError('Preencha o nome do curso.');
-      return;
-    }
-    const { type, escId, course } = instCourseAction;
-    const payload = {
-      cur_nome: instCourseForm.cur_nome,
-      cur_descricao: instCourseForm.cur_descricao || null,
-      cur_semestres: instCourseForm.cur_semestres ? parseInt(instCourseForm.cur_semestres) : null
-    };
-    try {
-      if (type === 'add') {
-        const res = await api.createCourse({ ...payload, esc_id: escId });
-        // POST /api/dev/escolas/:id/cursos retorna { curso: {...} } — extraímos o objeto interno
-        const novoCurso = res?.curso ?? res;
-        setInstitutionCourses(prev => ({ ...prev, [escId]: [...(prev[escId] || []), novoCurso] }));
-      } else {
-        // PUT /api/dev/cursos/:id retorna apenas { message: '...' } sem o curso atualizado.
-        // Por isso usamos os dados do formulário para atualizar o cache localmente.
-        await api.updateCourse(course.cur_id, payload);
-        const cursoAtualizado = {
-          ...course,
-          cur_nome: payload.cur_nome,
-          cur_descricao: payload.cur_descricao,
-          cur_semestre: payload.cur_semestres ?? course.cur_semestre
-        };
-        setInstitutionCourses(prev => ({
-          ...prev,
-          [escId]: prev[escId].map(c => c.cur_id === course.cur_id ? cursoAtualizado : c)
-        }));
-      }
-      setInstCourseAction(null);
-      setInstCourseForm(EMPTY_COURSE);
-      setInstCourseError('');
-    } catch (err) {
-      setInstCourseError(err.message || 'Erro ao salvar curso.');
-    }
-  }
-
-  // Remove um curso de uma instituição e atualiza o cache local
-  async function handleDeleteInstCourse(escId, courseId) {
-    if (!window.confirm('Remover este curso?')) return;
-    try {
-      await api.deleteCourse(courseId);
-      setInstitutionCourses(prev => ({
-        ...prev,
-        [escId]: prev[escId].filter(c => c.cur_id !== courseId)
-      }));
-      if (instCourseAction?.course?.cur_id === courseId) {
-        setInstCourseAction(null);
-        setInstCourseForm(EMPTY_COURSE);
-      }
-    } catch (err) {
-      alert(err.message || 'Erro ao remover curso.');
-    }
-  }
-
-  // showCourseBtn: controla se o botão "Adicionar Curso" aparece.
   const showCourseBtn = editingCourseId !== null || newCourse.cur_nome.trim() || newCourse.cur_descricao.trim() || newCourse.cur_semestres.trim();
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Cadastrar Instituição</h1>
-        <p className={styles.subtitle}>Adicione uma nova instituição e defina seus administradores</p>
+    <div className={styles.container} style={{ maxWidth: 720 }}>
+      <div className={styles.header} style={{ marginBottom: 20 }}>
+        <div>
+          <button
+            type="button"
+            className={styles.cancelBtn}
+            onClick={handleCancel}
+            style={{ marginBottom: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <IconArrowLeft size={14} /> Voltar
+          </button>
+          <h1 className={styles.title}>Nova Instituição</h1>
+          <p className={styles.subtitle}>Cadastre uma nova instituição parceira na plataforma</p>
+        </div>
       </div>
 
-      {/* Card principal com o formulário em etapas */}
+      {pendingEscId && (
+        <div className={styles.alertError} style={{ marginBottom: 16, borderColor: '#fcd34d', backgroundColor: '#fffbeb', color: '#92400e' }}>
+          <IconAlertCircle size={16} />
+          Cadastro retomado: a instituição já foi registrada, mas o administrador ainda não foi criado. Preencha os dados do administrador para finalizar.
+        </div>
+      )}
+
       <div className={styles.formCard}>
-        {/* Indicador visual de progresso (barra de etapas) */}
         <div className={styles.stepIndicator}>
-          <div className={`${styles.stepItem} ${step >= 1 ? styles.stepActive : ''}`}>
-            <div className={styles.stepCircle}>1</div>
-            <span className={styles.stepLabel}>Dados da Escola</span>
-          </div>
-          {/* stepLineDone: a linha fica colorida quando a etapa seguinte foi atingida */}
-          <div className={`${styles.stepLine} ${step >= 2 ? styles.stepLineDone : ''}`} />
-          <div className={`${styles.stepItem} ${step >= 2 ? styles.stepActive : ''}`}>
-            <div className={styles.stepCircle}>2</div>
-            <span className={styles.stepLabel}>Contrato</span>
-          </div>
-          <div className={`${styles.stepLine} ${step >= 3 ? styles.stepLineDone : ''}`} />
-          <div className={`${styles.stepItem} ${step >= 3 ? styles.stepActive : ''}`}>
-            <div className={styles.stepCircle}>3</div>
-            <span className={styles.stepLabel}>Administrador</span>
-          </div>
-          <div className={`${styles.stepLine} ${step >= 4 ? styles.stepLineDone : ''}`} />
-          <div className={`${styles.stepItem} ${step >= 4 ? styles.stepActive : ''}`}>
-            <div className={styles.stepCircle}>4</div>
-            <span className={styles.stepLabel}>Cursos</span>
-          </div>
+          {[
+            { n: 1, label: 'Dados da Escola', disabled: !!pendingEscId },
+            { n: 2, label: 'Contrato', disabled: !!pendingEscId },
+            { n: 3, label: 'Administrador', disabled: false },
+            { n: 4, label: 'Cursos', disabled: false },
+          ].map(({ n, label }, i, arr) => (
+            <div key={n} style={{ display: 'contents' }}>
+              <div className={`${styles.stepItem} ${step >= n ? styles.stepActive : ''}`}>
+                <div className={styles.stepCircle}>{n}</div>
+                <span className={styles.stepLabel}>{label}</span>
+              </div>
+              {i < arr.length - 1 && (
+                <div className={`${styles.stepLine} ${step > n ? styles.stepLineDone : ''}`} />
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* O form envolve todas as etapas.
-            onSubmit só é chamado na etapa 4 (type="submit" botão). */}
         <form onSubmit={handleSubmit}>
-
-          {/* ── Etapa 1: Dados da Escola ─────────────────────────── */}
-          {/* step === 1 é a condição de renderização condicional:
-              só exibe este bloco quando estamos na etapa 1. */}
           {step === 1 && (
             <>
               <div className={styles.sectionHeader}>
-                <Building2 size={18} />
+                <IconBuilding size={18} />
                 <span>Dados da Escola</span>
               </div>
 
               <div className={styles.formGrid}>
-                {/* gridColumn: '1 / -1' faz o campo ocupar toda a largura do grid */}
                 <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
                   <label htmlFor="esc_nome" className={styles.label}>
                     Nome da Instituição <span className={styles.required}>*</span>
@@ -635,16 +333,12 @@ export function Cadastrar() {
                     value={formData.esc_nome} onChange={handleChange} />
                 </div>
 
-                {/* Campo de endereço com autocomplete via GET /api/pontos/geocode */}
                 <div className={styles.formGroup} style={{ gridColumn: '1 / -1', position: 'relative' }}>
                   <label htmlFor="esc_endereco" className={styles.label}>
-                    <MapPin size={14} /> Endereço <span className={styles.required}>*</span>
+                    <IconMapPin size={14} /> Endereço <span className={styles.required}>*</span>
                   </label>
                   <input
-                    type="text"
-                    id="esc_endereco"
-                    name="esc_endereco"
-                    className={styles.input}
+                    type="text" id="esc_endereco" name="esc_endereco" className={styles.input}
                     placeholder="Digite o endereço para buscar sugestões..."
                     value={formData.esc_endereco}
                     onChange={handleAddressChange}
@@ -652,23 +346,17 @@ export function Cadastrar() {
                     onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                     autoComplete="off"
                   />
-                  {/* Indicador de carregamento abaixo do input */}
                   {geocodeLoading && (
                     <span className={styles.geocodeLoading}>
-                      <Loader2 size={12} className={styles.spin} /> Buscando endereços...
+                      <IconLoader2 size={12} className={styles.spin} /> Buscando endereços...
                     </span>
                   )}
-                  {/* Dropdown de sugestões */}
                   {showSuggestions && suggestions.length > 0 && (
                     <div className={styles.suggestionsDropdown}>
                       {suggestions.map((s, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          className={styles.suggestionItem}
-                          onMouseDown={() => handleSelectSuggestion(s.display_name ?? s)}
-                        >
-                          <MapPin size={12} />
+                        <button key={i} type="button" className={styles.suggestionItem}
+                          onMouseDown={() => handleSelectSuggestion(s.display_name ?? s)}>
+                          <IconMapPin size={12} />
                           {s.display_name ?? s}
                         </button>
                       ))}
@@ -678,7 +366,7 @@ export function Cadastrar() {
 
                 <div className={styles.formGroup}>
                   <label htmlFor="esc_dominio" className={styles.label}>
-                    <Mail size={14} /> Domínio de E-mail
+                    <IconMail size={14} /> Domínio de E-mail
                   </label>
                   <input type="text" id="esc_dominio" name="esc_dominio" className={styles.input}
                     placeholder="Ex: inova.edu.br"
@@ -688,7 +376,7 @@ export function Cadastrar() {
 
                 <div className={styles.formGroup}>
                   <label htmlFor="esc_max_usuarios" className={styles.label}>
-                    <Users size={14} /> Limite de Usuários
+                    <IconUsers size={14} /> Limite de Usuários
                   </label>
                   <input type="number" id="esc_max_usuarios" name="esc_max_usuarios" className={styles.input}
                     placeholder="Ex: 200"
@@ -698,22 +386,19 @@ export function Cadastrar() {
               </div>
 
               {stepError && <p className={styles.inlineError} style={{ marginTop: 16 }}>{stepError}</p>}
-
               <div className={styles.formActions}>
-                {/* type="button" evita que este botão submeta o form */}
                 <button type="button" className={styles.submitBtn} onClick={handleNextStep}>
-                  Próximo <ChevronRight size={16} />
+                  Próximo <IconChevronRight size={16} />
                 </button>
-                <button type="button" className={styles.cancelBtn} onClick={handleReset}>Limpar</button>
+                <button type="button" className={styles.cancelBtn} onClick={handleCancel}>Cancelar</button>
               </div>
             </>
           )}
 
-          {/* ── Etapa 2: Contrato ─────────────────────────────────── */}
           {step === 2 && (
             <>
               <div className={styles.sectionHeader}>
-                <FileText size={18} />
+                <IconFileText size={18} />
                 <span>Contrato Institucional</span>
               </div>
               <p className={styles.sectionDescription}>
@@ -723,16 +408,10 @@ export function Cadastrar() {
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
                   <label htmlFor="esc_contrato_duracao" className={styles.label}>
-                    <FileText size={14} /> Duração do Contrato
+                    <IconFileText size={14} /> Duração do Contrato
                   </label>
-                  {/* select: campo de seleção com opções fixas */}
-                  <select
-                    id="esc_contrato_duracao"
-                    name="esc_contrato_duracao"
-                    className={styles.input}
-                    value={formData.esc_contrato_duracao}
-                    onChange={handleChange}
-                  >
+                  <select id="esc_contrato_duracao" name="esc_contrato_duracao"
+                    className={styles.input} value={formData.esc_contrato_duracao} onChange={handleChange}>
                     <option value="">Sem contrato</option>
                     <option value="1ano">1 Ano</option>
                     <option value="2anos">2 Anos</option>
@@ -743,19 +422,11 @@ export function Cadastrar() {
 
                 <div className={styles.formGroup}>
                   <label htmlFor="esc_contrato_inicio" className={styles.label}>
-                    <CalendarDays size={14} /> Data de Início
+                    <IconCalendar size={14} /> Data de Início
                   </label>
-                  <input
-                    type="date"
-                    id="esc_contrato_inicio"
-                    name="esc_contrato_inicio"
-                    className={styles.input}
-                    value={formData.esc_contrato_inicio}
-                    onChange={handleChange}
-                    // Campo desabilitado até que uma duração seja escolhida
-                    disabled={!formData.esc_contrato_duracao}
-                  />
-                  {/* Exibe a data de vencimento calculada se os dois campos estiverem preenchidos */}
+                  <input type="date" id="esc_contrato_inicio" name="esc_contrato_inicio"
+                    className={styles.input} value={formData.esc_contrato_inicio}
+                    onChange={handleChange} disabled={!formData.esc_contrato_duracao} />
                   {formData.esc_contrato_duracao && formData.esc_contrato_inicio && (
                     <span className={styles.fieldHint}>
                       Vencimento: {formatDateStr(calcExpiry(formData.esc_contrato_inicio, formData.esc_contrato_duracao))}
@@ -768,121 +439,77 @@ export function Cadastrar() {
               </div>
 
               <hr className={styles.divider} />
-
               <div className={styles.sectionHeader} style={{ marginBottom: 12 }}>
-                <FileText size={16} />
+                <IconFileText size={16} />
                 <span style={{ fontSize: 14 }}>Documento do Contrato</span>
                 <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-secondary)' }}>(opcional)</span>
               </div>
 
-              {/* Área de upload: alterna entre zona de drop e arquivo selecionado */}
               {!contractFile ? (
-                // fileUploadZone: <label> que age como botão de upload
-                // O <input type="file"> dentro do label é ativado pelo clique na label
                 <label className={styles.fileUploadZone} htmlFor="contractFileInput">
-                  <input
-                    type="file"
-                    id="contractFileInput"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => setContractFile(e.target.files[0] || null)}
-                  />
-                  <div className={styles.fileUploadIcon}>
-                    <FileText size={32} />
-                  </div>
-                  <p className={styles.fileUploadText}>
-                    <strong>Clique para selecionar</strong> o arquivo do contrato
-                  </p>
-                  <p className={styles.fileHint}>PDF, DOC ou DOCX — será enviado ao servidor ao integrar a API</p>
+                  <input type="file" id="contractFileInput" accept=".pdf,.doc,.docx"
+                    onChange={(e) => setContractFile(e.target.files[0] || null)} />
+                  <div className={styles.fileUploadIcon}><IconFileText size={32} /></div>
+                  <p className={styles.fileUploadText}><strong>Clique para selecionar</strong> o arquivo do contrato</p>
+                  <p className={styles.fileHint}>PDF, DOC ou DOCX</p>
                 </label>
               ) : (
-                // Exibe o nome e tamanho do arquivo após selecionado
                 <div className={styles.fileSelected}>
-                  <FileText size={18} style={{ color: 'var(--btn-primary-bg)', flexShrink: 0 }} />
+                  <IconFileText size={18} style={{ color: 'var(--btn-primary-bg)', flexShrink: 0 }} />
                   <span className={styles.fileSelectedName}>{contractFile.name}</span>
-                  <span className={styles.fileSelectedSize}>
-                    {/* Converte bytes para KB com 0 casas decimais */}
-                    {(contractFile.size / 1024).toFixed(0)} KB
-                  </span>
-                  <button
-                    type="button"
-                    className={styles.fileRemoveBtn}
-                    onClick={() => setContractFile(null)}
-                    title="Remover arquivo"
-                  >
-                    <X size={15} />
+                  <span className={styles.fileSelectedSize}>{(contractFile.size / 1024).toFixed(0)} KB</span>
+                  <button type="button" className={styles.fileRemoveBtn} onClick={() => setContractFile(null)} title="Remover">
+                    <IconX size={15} />
                   </button>
                 </div>
               )}
 
               <hr className={styles.divider} />
-
               <div className={styles.sectionHeader} style={{ marginBottom: 12 }}>
-                <FileText size={16} />
+                <IconFileText size={16} />
                 <span style={{ fontSize: 14 }}>Modelo de OCR para Matrícula</span>
                 <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-secondary)' }}>(opcional)</span>
               </div>
-              <p className={styles.sectionDescription} style={{ marginTop: 0, marginBottom: 12 }}>
-                PDF de exemplo de comprovante de matrícula usado como referência para calibrar o reconhecimento automático de documentos desta instituição.
-              </p>
 
               {!ocrFile ? (
                 <label className={styles.fileUploadZone} htmlFor="ocrFileInput">
-                  <input
-                    type="file"
-                    id="ocrFileInput"
-                    accept=".pdf"
-                    onChange={(e) => setOcrFile(e.target.files[0] || null)}
-                  />
-                  <div className={styles.fileUploadIcon}>
-                    <FileText size={32} />
-                  </div>
-                  <p className={styles.fileUploadText}>
-                    <strong>Clique para selecionar</strong> o modelo de comprovante
-                  </p>
+                  <input type="file" id="ocrFileInput" accept=".pdf"
+                    onChange={(e) => setOcrFile(e.target.files[0] || null)} />
+                  <div className={styles.fileUploadIcon}><IconFileText size={32} /></div>
+                  <p className={styles.fileUploadText}><strong>Clique para selecionar</strong> o modelo de comprovante</p>
                   <p className={styles.fileHint}>Somente PDF — máximo 10 MB</p>
                 </label>
               ) : (
                 <div className={styles.fileSelected}>
-                  <FileText size={18} style={{ color: 'var(--btn-primary-bg)', flexShrink: 0 }} />
+                  <IconFileText size={18} style={{ color: 'var(--btn-primary-bg)', flexShrink: 0 }} />
                   <span className={styles.fileSelectedName}>{ocrFile.name}</span>
                   <span className={styles.fileSelectedSize}>{(ocrFile.size / 1024).toFixed(0)} KB</span>
-                  <button
-                    type="button"
-                    className={styles.fileRemoveBtn}
-                    onClick={() => window.open(URL.createObjectURL(ocrFile), '_blank', 'noopener,noreferrer')}
-                    title="Visualizar PDF"
-                  >
-                    <Eye size={15} />
+                  <button type="button" className={styles.fileRemoveBtn}
+                    onClick={() => window.open(URL.createObjectURL(ocrFile), '_blank', 'noopener,noreferrer')} title="Visualizar">
+                    <IconEye size={15} />
                   </button>
-                  <button
-                    type="button"
-                    className={styles.fileRemoveBtn}
-                    onClick={() => setOcrFile(null)}
-                    title="Remover arquivo"
-                  >
-                    <X size={15} />
+                  <button type="button" className={styles.fileRemoveBtn} onClick={() => setOcrFile(null)} title="Remover">
+                    <IconX size={15} />
                   </button>
                 </div>
               )}
 
               {stepError && <p className={styles.inlineError} style={{ marginTop: 16 }}>{stepError}</p>}
-
               <div className={styles.formActions}>
                 <button type="button" className={styles.submitBtn} onClick={handleNextStep}>
-                  Próximo <ChevronRight size={16} />
+                  Próximo <IconChevronRight size={16} />
                 </button>
                 <button type="button" className={styles.cancelBtn} onClick={handlePrevStep}>
-                  <ChevronLeft size={16} /> Voltar
+                  <IconChevronLeft size={16} /> Voltar
                 </button>
               </div>
             </>
           )}
 
-          {/* ── Etapa 3: Administrador ─────────────────────────────── */}
           {step === 3 && (
             <>
               <div className={styles.sectionHeader}>
-                <UserPlus size={18} />
+                <IconUserPlus size={18} />
                 <span>Cadastrar Administrador</span>
               </div>
               <p className={styles.sectionDescription}>Preencha os dados do administrador responsável pela instituição.</p>
@@ -896,23 +523,20 @@ export function Cadastrar() {
                     placeholder="Ex: João Silva Santos"
                     value={adminData.usu_nome} onChange={handleAdminChange} />
                 </div>
-
                 <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
                   <label htmlFor="usu_email" className={styles.label}>
-                    <Mail size={14} /> E-mail <span className={styles.required}>*</span>
+                    <IconMail size={14} /> E-mail <span className={styles.required}>*</span>
                   </label>
                   <input type="email" id="usu_email" name="usu_email" className={styles.input}
                     placeholder="Ex: admin@faculdade.edu.br"
                     value={adminData.usu_email} onChange={handleAdminChange} />
                 </div>
-
                 <div className={styles.formGroup}>
                   <label htmlFor="usu_telefone" className={styles.label}>Telefone</label>
                   <input type="tel" id="usu_telefone" name="usu_telefone" className={styles.input}
                     placeholder="Ex: 11999990000"
                     value={adminData.usu_telefone} onChange={handleAdminChange} />
                 </div>
-
                 <div className={styles.formGroup}>
                   <label htmlFor="usu_senha" className={styles.label}>
                     Senha <span className={styles.required}>*</span>
@@ -921,7 +545,6 @@ export function Cadastrar() {
                     placeholder="Digite uma senha segura"
                     value={adminData.usu_senha} onChange={handleAdminChange} />
                 </div>
-
                 <div className={styles.formGroup}>
                   <label htmlFor="usu_confirmSenha" className={styles.label}>
                     Confirmar Senha <span className={styles.required}>*</span>
@@ -933,23 +556,21 @@ export function Cadastrar() {
               </div>
 
               {stepError && <p className={styles.inlineError} style={{ marginTop: 16 }}>{stepError}</p>}
-
               <div className={styles.formActions}>
                 <button type="button" className={styles.submitBtn} onClick={handleNextStep}>
-                  Próximo <ChevronRight size={16} />
+                  Próximo <IconChevronRight size={16} />
                 </button>
                 <button type="button" className={styles.cancelBtn} onClick={handlePrevStep}>
-                  <ChevronLeft size={16} /> Voltar
+                  <IconChevronLeft size={16} /> Voltar
                 </button>
               </div>
             </>
           )}
 
-          {/* ── Etapa 4: Cursos ────────────────────────────────────── */}
           {step === 4 && (
             <>
               <div className={styles.sectionHeader}>
-                <BookOpen size={18} />
+                <IconBook size={18} />
                 <span>{editingCourseId ? 'Editar Curso' : 'Cadastrar Cursos'}</span>
               </div>
               <p className={styles.sectionDescription}>
@@ -963,15 +584,12 @@ export function Cadastrar() {
                     placeholder="Ex: Análise e Desenvolvimento de Sistemas"
                     value={newCourse.cur_nome} onChange={handleCourseChange} />
                 </div>
-
                 <div className={styles.formGroup}>
                   <label htmlFor="cur_semestres" className={styles.label}>Módulos / Semestres</label>
                   <input type="number" id="cur_semestres" name="cur_semestres" className={styles.input}
-                    placeholder="Ex: 5"
-                    value={newCourse.cur_semestres} onChange={handleCourseChange} min="1" />
+                    placeholder="Ex: 5" value={newCourse.cur_semestres} onChange={handleCourseChange} min="1" />
                   <span className={styles.fieldHint}>Quantidade de períodos do curso</span>
                 </div>
-
                 <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
                   <label htmlFor="cur_descricao" className={styles.label}>Descrição</label>
                   <input type="text" id="cur_descricao" name="cur_descricao" className={styles.input}
@@ -980,23 +598,21 @@ export function Cadastrar() {
                 </div>
               </div>
 
-              {/* showCourseBtn: botão só aparece quando o form tem conteúdo */}
               <div className={styles.courseFormActions}>
                 {showCourseBtn && (
                   <button type="button" className={styles.addAdminBtn} onClick={handleAddCourse}>
-                    {editingCourseId ? <><Pencil size={14} /> Salvar Alterações</> : <><Plus size={14} /> Adicionar Curso</>}
+                    {editingCourseId ? <><IconPencil size={14} /> Salvar Alterações</> : <><IconPlus size={14} /> Adicionar Curso</>}
                   </button>
                 )}
                 {editingCourseId && (
                   <button type="button" className={styles.cancelEditBtn} onClick={handleCancelCourseEdit}>
-                    <X size={14} /> Cancelar Edição
+                    <IconX size={14} /> Cancelar Edição
                   </button>
                 )}
               </div>
 
               {stepError && <p className={styles.inlineError}>{stepError}</p>}
 
-              {/* Lista de cursos já adicionados (ainda não salvos) */}
               {coursesList.length > 0 && (
                 <div className={styles.adminList}>
                   <p className={styles.adminListLabel}>Cursos a cadastrar ({coursesList.length})</p>
@@ -1012,11 +628,11 @@ export function Cadastrar() {
                       <div className={styles.courseTagActions}>
                         <button type="button" className={styles.editCourseBtn}
                           onClick={() => handleEditCourse(course)} title="Editar curso">
-                          <Pencil size={13} />
+                          <IconPencil size={13} />
                         </button>
                         <button type="button" className={styles.removeAdminBtn}
                           onClick={() => handleRemoveCourse(course.cur_id)} title="Remover">
-                          <X size={14} />
+                          <IconX size={14} />
                         </button>
                       </div>
                     </div>
@@ -1024,207 +640,25 @@ export function Cadastrar() {
                 </div>
               )}
 
-              {/* Banners de feedback do submit final */}
-              {submitSuccess && (
-                <div className={styles.alertSuccess}>
-                  <CheckCircle size={16} /> {submitSuccess}
-                </div>
-              )}
               {submitError && (
                 <div className={styles.alertError}>
-                  <AlertCircle size={16} /> {submitError}
+                  <IconAlertCircle size={16} /> {submitError}
                 </div>
               )}
 
               <div className={styles.formActions}>
-                {/* type="submit" → este botão aciona o handleSubmit do form */}
                 <button type="submit" className={styles.submitBtn} disabled={submitLoading}>
                   {submitLoading
-                    ? <><Loader2 size={16} className={styles.spin} /> Cadastrando...</>
-                    : 'Cadastrar Instituição'}
+                    ? <><IconLoader2 size={16} className={styles.spin} /> Cadastrando...</>
+                    : <><IconCircleCheck size={16} /> Cadastrar Instituição</>}
                 </button>
                 <button type="button" className={styles.cancelBtn} onClick={handlePrevStep}>
-                  <ChevronLeft size={16} /> Voltar
+                  <IconChevronLeft size={16} /> Voltar
                 </button>
               </div>
             </>
           )}
-
         </form>
-      </div>
-
-      {/* ── Lista de Instituições Cadastradas ──────────────────────── */}
-      <div className={styles.institutionsSection}>
-        <h2 className={styles.sectionTitle}>Instituições Cadastradas</h2>
-
-        {listLoading && (
-          <div className={styles.loadingState}>
-            <Loader2 size={20} className={styles.spin} />
-            <span>Carregando instituições...</span>
-          </div>
-        )}
-
-        {listError && !listLoading && (
-          <div className={styles.alertError} style={{ marginBottom: 16 }}>
-            <AlertCircle size={16} /> {listError}
-          </div>
-        )}
-
-        {!listLoading && !listError && institutions.length === 0 && (
-          <div className={styles.emptyState}>
-            <Building2 size={32} />
-            <p>Nenhuma instituição cadastrada ainda.</p>
-          </div>
-        )}
-
-        {!listLoading && institutions.length > 0 && (
-          <div className={styles.institutionsList}>
-            {institutions.map(inst => {
-              const escId = inst.esc_id ?? inst.id;
-              const isExpanded = expandedInstitution === escId;
-              const courses = institutionCourses[escId] || [];
-              const isLoadingCourses = instCourseLoading[escId];
-              // action: ação ativa para ESTA instituição (ou null se for outra)
-              const action = instCourseAction?.escId === escId ? instCourseAction : null;
-
-              return (
-                <div key={escId} className={styles.institutionCard}>
-                  <div className={styles.cardHeader}>
-                    <div className={styles.institutionInfo}>
-                      <h3 className={styles.institutionName}>{inst.esc_nome}</h3>
-                      <p className={styles.institutionAddress}>
-                        <MapPin size={12} /> {inst.esc_endereco}
-                      </p>
-                    </div>
-                    <button className={styles.iconBtn}
-                      onClick={() => handleDeleteInstitution(escId)} title="Remover instituição">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-
-                  <div className={styles.cardContent}>
-                    <div className={styles.institutionDetails}>
-                      {inst.esc_dominio && (
-                        <div className={styles.detailItem}>
-                          <Mail size={13} />
-                          <span className={styles.detailLabel}>Domínio:</span>
-                          <span className={styles.detailValue}>{inst.esc_dominio}</span>
-                        </div>
-                      )}
-                      {inst.esc_max_usuarios && (
-                        <div className={styles.detailItem}>
-                          <Users size={13} />
-                          <span className={styles.detailLabel}>Limite:</span>
-                          <span className={styles.detailValue}>{inst.esc_max_usuarios} usuários</span>
-                        </div>
-                      )}
-                      {!inst.esc_dominio && !inst.esc_max_usuarios && (
-                        <span className={styles.noRestrictions}>Sem restrições configuradas</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Botão de expandir/colapsar cursos da instituição */}
-                  <button className={styles.coursesToggleBtn} onClick={() => handleToggleInstitution(escId)}>
-                    <BookOpen size={13} />
-                    <span>Cursos{isExpanded && courses.length > 0 ? ` (${courses.length})` : ''}</span>
-                    {/* Ícone muda conforme o estado de expansão */}
-                    {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                  </button>
-
-                  {isExpanded && (
-                    <div className={styles.coursesSection}>
-                      {isLoadingCourses && (
-                        <div className={styles.coursesLoading}>
-                          <Loader2 size={14} className={styles.spin} /> Carregando cursos...
-                        </div>
-                      )}
-
-                      {!isLoadingCourses && courses.length === 0 && !action && (
-                        <p className={styles.noCoursesMsg}>Nenhum curso cadastrado para esta instituição.</p>
-                      )}
-
-                      {!isLoadingCourses && courses.map(course => (
-                        <div key={course.cur_id} className={styles.courseItem}>
-                          <div className={styles.courseItemInfo}>
-                            <span className={styles.courseItemName}>{course.cur_nome}</span>
-                            <div className={styles.courseItemMeta}>
-                              {course.cur_semestres != null && (
-                                <span className={styles.courseItemSemesters}>{course.cur_semestres} semestres</span>
-                              )}
-                            </div>
-                            {course.cur_descricao && (
-                              <span className={styles.courseItemDesc}>{course.cur_descricao}</span>
-                            )}
-                          </div>
-                          <div className={styles.courseItemActions}>
-                            <button className={styles.iconBtnSmall}
-                              onClick={() => handleStartEditInstCourse(escId, course)} title="Editar curso">
-                              <Pencil size={12} />
-                            </button>
-                            <button className={`${styles.iconBtnSmall} ${styles.iconBtnDanger}`}
-                              onClick={() => handleDeleteInstCourse(escId, course.cur_id)} title="Remover curso">
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-
-                      {/* Formulário inline de adição/edição de curso */}
-                      {action && (
-                        <div className={styles.courseEditForm}>
-                          <p className={styles.courseEditFormTitle}>
-                            {action.type === 'add' ? 'Novo curso' : 'Editar curso'}
-                          </p>
-                          <div className={styles.courseEditGrid}>
-                            <div style={{ gridColumn: '1 / -1' }}>
-                              <label className={styles.label}>Nome do Curso <span className={styles.required}>*</span></label>
-                              <input type="text" name="cur_nome" className={styles.input}
-                                placeholder="Ex: Análise e Desenvolvimento de Sistemas"
-                                value={instCourseForm.cur_nome} onChange={handleInstCourseFormChange} />
-                            </div>
-                            <div>
-                              <label className={styles.label}>Semestres / Módulos</label>
-                              <input type="number" name="cur_semestres" className={styles.input}
-                                placeholder="Ex: 5"
-                                value={instCourseForm.cur_semestres} onChange={handleInstCourseFormChange} min="1" />
-                            </div>
-                            <div style={{ gridColumn: '1 / -1' }}>
-                              <label className={styles.label}>Descrição</label>
-                              <input type="text" name="cur_descricao" className={styles.input}
-                                placeholder="Ex: Formação em desenvolvimento de sistemas"
-                                value={instCourseForm.cur_descricao} onChange={handleInstCourseFormChange} />
-                            </div>
-                          </div>
-                          {instCourseError && <p className={styles.inlineError}>{instCourseError}</p>}
-                          <div className={styles.courseEditActions}>
-                            <button type="button" className={styles.saveInstCourseBtn}
-                              onClick={handleSaveInstCourse}>
-                              <CheckCircle size={13} />
-                              {action.type === 'add' ? 'Adicionar' : 'Salvar'}
-                            </button>
-                            <button type="button" className={styles.cancelEditBtn}
-                              onClick={handleCancelInstCourseAction}>
-                              <X size={13} /> Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Botão de adicionar curso: só aparece quando não há ação ativa */}
-                      {!action && (
-                        <button className={styles.addCourseBtn}
-                          onClick={() => handleStartAddInstCourse(escId)}>
-                          <Plus size={13} /> Adicionar Curso
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
     </div>
   );

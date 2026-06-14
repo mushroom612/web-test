@@ -1,10 +1,14 @@
 .container {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
 .header {
   margin-bottom: 28px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .title {
@@ -482,29 +486,29 @@
 .institutionCard {
   background-color: var(--surface-primary);
   border-radius: var(--card-radius-desktop);
-  max-height: fit-content;
-  padding: 18px;
-  border: 1px solid #e5e7eb;
+  padding: var(--spacing-4, 16px);
+  display: flex;
+  flex-direction: column;
 }
-
 
 .cardHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
-.institutionInfo {
+.cardTitle {
   flex: 1;
 }
 
 .institutionName {
-  margin: 0 0 6px;
-  font-size: 15px;
-  font-weight: 700;
+  margin: 0 0 4px;
+  font-size: var(--font-size-base, 15px);
+  font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
 .institutionAddress {
@@ -514,6 +518,40 @@
   gap: 4px;
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+/* Info grid — mesmo padrão de Contratos */
+.cardInfo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3, 12px);
+  margin-bottom: var(--spacing-3, 12px);
+  padding: var(--spacing-3, 12px);
+  background-color: var(--surface-page);
+  border-radius: var(--border-radius-md, 6px);
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.infoLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.infoValue {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .iconBtn {
@@ -533,30 +571,6 @@
 .iconBtn:hover {
   background-color: #fef2f2;
   color: #dc2626;
-}
-
-.cardContent {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 14px;
-}
-
-.institutionDetails {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.detailItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.detailItem svg {
-  color: var(--btn-primary-bg);
-  flex-shrink: 0;
 }
 
 .detailLabel {

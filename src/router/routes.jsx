@@ -30,6 +30,7 @@ import { Usuarios } from '../pages/Usuarios';
 import { Caronas } from '../pages/Caronas';
 import { Sugestoes } from '../pages/Sugestoes';
 import { Relatorios } from '../pages/Relatorios';
+import { Instituicoes } from '../pages/Instituicoes';
 import { Cadastrar } from '../pages/Cadastrar';
 import { Contratos } from '../pages/Contratos';
 // import { Notificacoes } from '../pages/Notificacoes';
@@ -43,7 +44,7 @@ import { Suporte } from '../pages/Suporte';
 //
 // Páginas Admin+Dev:  /dashboard, /usuarios, /caronas,
 //                     /sugestoes, /relatorios, /contratos
-// Páginas só Dev:     /cadastrar, /notificacoes, /auditoria
+// Páginas só Dev:     /cadastrar (Instituições), /cadastrar/novo (Nova Instituição), /auditoria
 //
 // O backend já restringe Admin (per_tipo=1) aos dados da própria
 // escola via JWT; aqui só controlamos o acesso à navegação.
@@ -107,7 +108,8 @@ function DevRoute() {
 //      └── AdminLayout       ← moldura com menu + topbar
 //          ├── "/dashboard"  → <Dashboard />
 //          ├── "/usuarios"   → <Usuarios />
-//          ├── "/cadastrar"  → <Cadastrar />
+//          ├── "/cadastrar"  → <Instituicoes /> (lista de instituições)
+//          ├── "/cadastrar/novo" → <Cadastrar /> (nova instituição)
 //          ├── "/caronas"    → <Caronas />
 //          ├── "/sugestoes"  → <Sugestoes />
 //          ├── "/relatorios" → <Relatorios />
@@ -169,21 +171,19 @@ export const routes = [
             element: <Contratos />
           },
 
-          // ─── Suporte: acessível por Admin + Dev  [v30] ──────
-          {
-            path: '/suporte',
-            element: <Suporte />
-          },
-
           // ─── Páginas exclusivas do Desenvolvedor ────────────
-          // Cadastrar (novas escolas/admins), Notificações em
-          // massa e Auditoria envolvem operações globais que
-          // ultrapassam o escopo de uma única instituição.
+          // Instituições e Nova Instituição (cadastro de escolas/admins),
+          // Auditoria e Suporte envolvem operações globais que ultrapassam
+          // o escopo de uma única instituição.
           {
             element: <DevRoute />,
             children: [
               {
                 path: '/cadastrar',
+                element: <Instituicoes />
+              },
+              {
+                path: '/cadastrar/novo',
                 element: <Cadastrar />
               },
               // {
@@ -193,6 +193,10 @@ export const routes = [
               {
                 path: '/auditoria',
                 element: <Auditoria />
+              },
+              {
+                path: '/suporte',
+                element: <Suporte />
               }
             ]
           }
