@@ -54,6 +54,29 @@ export const tokens = {
   },
 };
 
+// Padrões que indicam vazamento de schema do banco na mensagem de erro.
+// Inclui: prefixos de coluna do projeto, códigos MySQL, keywords SQL e
+// identificadores entre backticks. A UI nunca deve exibir esses detalhes.
+const SCHEMA_LEAK_RE =
+  /`[a-z_]+`|ER_[A-Z_]+|\berrno:\s*\d+|SQLSTATE|\b(SELECT|INSERT|UPDATE|DELETE|WHERE|FROM|JOIN|TABLE|COLUMN|CONSTRAINT|FOREIGN|PRIMARY|REFERENCES)\b|\b(usu|car|esc|per|pen|vei|cur|den|sug|pon|spm|noti|tok|aud)_\w+/i;
+
+// sanitizeErrorMessage: suprime detalhes técnicos antes de eles chegarem à UI.
+// Erros 5xx sempre recebem mensagem genérica independente do conteúdo.
+// Para 4xx, verifica se a mensagem contém indícios de schema antes de exibir.
+// O detalhe original é sempre registrado no console para diagnóstico.
+function sanitizeErrorMessage(raw, status) {
+  if (typeof raw !== "string") return `Erro ${status}`;
+  if (status >= 500) {
+    console.error("[http] Erro de servidor suprimido:", raw);
+    return "Erro interno do servidor. Tente novamente mais tarde.";
+  }
+  if (SCHEMA_LEAK_RE.test(raw)) {
+    console.error("[http] Detalhe técnico suprimido:", raw);
+    return "Ocorreu um erro inesperado. Tente novamente ou contate o suporte.";
+  }
+  return raw;
+}
+
 // Guard para evitar várias chamadas paralelas de refresh quando
 // múltiplas requisições recebem 401 ao mesmo tempo.
 let refreshInflight = null;
@@ -167,13 +190,13 @@ async function request(method, path, options = {}) {
   }
 
   if (!res.ok) {
-    const message =
+    const raw =
       (payload &&
         typeof payload === "object" &&
         (payload.error || payload.message)) ||
       (typeof payload === "string" && payload) ||
       `Erro ${res.status}`;
-    throw new ApiError(res.status, message, payload);
+    throw new ApiError(res.status, sanitizeErrorMessage(raw, res.status), payload);
   }
 
   return payload;
