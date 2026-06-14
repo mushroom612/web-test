@@ -90,8 +90,8 @@
 .formCard {
   background-color: var(--surface-primary);
   border-radius: var(--card-radius-desktop);
-  padding: 28px;
-  margin-bottom: 40px;
+  padding: var(--spacing-6);
+  margin-bottom: var(--spacing-10);
 }
 
 /* Section headers */
@@ -117,7 +117,7 @@
 
 .divider {
   border: none;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-neutral-100);
   margin: 28px 0;
 }
 
@@ -149,13 +149,13 @@
 }
 
 .required {
-  color: #dc2626;
+  color: var(--color-semantic-error);
 }
 
 .input {
   padding: 9px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-lg);
   font-size: 14px;
   color: var(--text-primary);
   background-color: var(--color-neutral-0);
@@ -194,7 +194,7 @@
   background-color: var(--btn-primary-bg);
   color: var(--btn-primary-text);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--btn-primary-radius);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -218,7 +218,7 @@
   gap: 12px;
   padding: 12px;
   background-color: var(--surface-page);
-  border: 1px solid #d1fae5;
+  border: 1px solid var(--status-success-bg);
   border-radius: 8px;
   margin-bottom: 12px;
 }
@@ -298,8 +298,8 @@
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background-color: var(--status-success-bg);
+  border: 1px solid var(--status-success-bg);
   border-radius: 8px;
   margin-bottom: 6px;
 }
@@ -338,7 +338,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #9ca3af;
+  color: var(--text-tertiary);
   padding: 2px;
   display: flex;
   align-items: center;
@@ -348,14 +348,14 @@
 }
 
 .removeAdminBtn:hover {
-  color: #dc2626;
+  color: var(--color-semantic-error);
 }
 
 /* Feedback messages */
 .inlineError {
   margin: 0 0 12px;
   font-size: 13px;
-  color: #dc2626;
+  color: var(--color-semantic-error);
 }
 
 .alertSuccess,
@@ -370,22 +370,22 @@
 }
 
 .alertSuccess {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
+  background-color: var(--status-success-bg);
+  border: 1px solid var(--status-success-bg);
+  color: var(--status-success-text);
 }
 
 .alertError {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
+  background-color: var(--status-error-bg);
+  border: 1px solid var(--status-error-bg);
+  color: var(--color-semantic-error);
 }
 
 /* Form actions */
 .formActions {
   display: flex;
   gap: 12px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-neutral-100);
   padding-top: 24px;
   margin-top: 4px;
 }
@@ -420,7 +420,7 @@
   padding: 11px 24px;
   background-color: transparent;
   color: var(--text-primary);
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
@@ -569,8 +569,8 @@
 }
 
 .iconBtn:hover {
-  background-color: #fef2f2;
-  color: #dc2626;
+  background-color: var(--status-error-bg);
+  color: var(--color-semantic-error);
 }
 
 .detailLabel {
@@ -603,7 +603,7 @@
   padding: 6px 12px;
   background-color: transparent;
   color: var(--text-secondary);
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
@@ -612,9 +612,9 @@
 }
 
 .cancelEditBtn:hover {
-  background-color: #fef2f2;
-  border-color: #fca5a5;
-  color: #dc2626;
+  background-color: var(--status-error-bg);
+  border-color: var(--color-semantic-error);
+  color: var(--color-semantic-error);
 }
 
 /* Course tag in list (etapa 3) */
@@ -635,7 +635,7 @@
 
 .adminTagEditing {
   border-color: var(--btn-primary-bg);
-  background-color: #f0fdf4;
+  background-color: var(--status-success-bg);
 }
 
 .semestresBadge {
@@ -673,7 +673,7 @@
   padding: 10px 0 0;
   margin-top: 12px;
   border: none;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-neutral-100);
   background: none;
   cursor: pointer;
   font-size: 12px;
@@ -723,7 +723,7 @@
   align-items: flex-start;
   gap: 8px;
   padding: 8px 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-100);
   border-radius: 7px;
   margin-bottom: 6px;
   background-color: var(--surface-page);
@@ -754,7 +754,7 @@
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 4px;
-  background-color: #e5e7eb;
+  background-color: var(--color-neutral-100);
   color: var(--text-secondary);
   font-family: 'Courier New', monospace;
 }
@@ -800,8 +800,8 @@
 }
 
 .iconBtnDanger:hover {
-  background-color: #fef2f2;
-  color: #dc2626;
+  background-color: var(--status-error-bg);
+  color: var(--color-semantic-error);
 }
 
 /* Course edit/add form inside institution card */
@@ -809,7 +809,7 @@
   padding: 12px;
   border: 1px dashed var(--btn-primary-bg);
   border-radius: 8px;
-  background-color: #f0fdf4;
+  background-color: var(--status-success-bg);
   margin-bottom: 10px;
 }
 
@@ -895,9 +895,8 @@
   left: 0;
   right: 0;
   background-color: var(--surface-primary);
-  border: 1px solid var(--color-neutral-100, #e5e7eb);
+  border: 1px solid var(--color-neutral-200, #d4d4d4);
   border-radius: var(--border-radius-md, 8px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
   z-index: 100;
   max-height: 220px;
   overflow-y: auto;
@@ -1028,7 +1027,7 @@
 }
 
 .fileRemoveBtn:hover {
-  color: #dc2626;
+  color: var(--color-semantic-error);
 }
 
 /* Responsive */

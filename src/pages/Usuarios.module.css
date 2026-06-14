@@ -33,9 +33,9 @@
   display: flex;
   align-items: center;
   background-color: var(--surface-primary);
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 0 12px;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-full);
+  padding: 0 16px;
   color: var(--text-secondary);
 }
 
@@ -62,7 +62,7 @@
   background-color: var(--btn-primary-bg);
   color: var(--btn-primary-text);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--btn-primary-radius);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -74,50 +74,67 @@
   background-color: var(--color-green-800);
 }
 
+/* Wrapper apenas para scroll horizontal — cada linha agora é um card próprio */
 .tableWrapper {
-  background-color: var(--surface-primary);
-  border-radius: var(--card-radius-desktop);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
+/* border-spacing vertical cria o respiro entre as linhas-card */
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 10px;
 }
 
-.table thead {
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.table th {
-  padding: 16px;
+/* Cabeçalho: rótulos flutuantes acima dos cards (sem fundo) */
+.table thead th {
+  padding: 0 18px 6px;
   text-align: left;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
+  background: transparent;
 }
 
+/* Cada linha = um card branco com borda própria */
 .table tbody tr {
-  border-bottom: 1px solid #e0e0e0;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.15s ease;
 }
 
-.table tbody tr:hover {
-  background-color: #f9f9f9;
-}
-
-.rowEven {
-  background-color: #ffffff;
-}
-
-.table td {
-  padding: 16px;
+.table tbody td {
+  padding: 16px 18px;
   font-size: 14px;
   color: var(--text-primary);
   vertical-align: middle;
+  background-color: var(--surface-primary);
+  border-top: 1px solid var(--color-neutral-100);
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+/* Arredonda as pontas do card-linha na primeira e última célula */
+.table tbody td:first-child {
+  border-left: 1px solid var(--color-neutral-100);
+  border-top-left-radius: var(--border-radius-lg);
+  border-bottom-left-radius: var(--border-radius-lg);
+}
+
+.table tbody td:last-child {
+  border-right: 1px solid var(--color-neutral-100);
+  border-top-right-radius: var(--border-radius-lg);
+  border-bottom-right-radius: var(--border-radius-lg);
+}
+
+/* Hover: realça o card inteiro com leve tom verde + borda da marca */
+.table tbody tr:hover td {
+  background-color: var(--surface-secondary);
+  border-color: var(--color-green-200);
+}
+
+/* Mantida como no-op (a estrutura de cards dispensa zebra) */
+.rowEven {
+  background-color: transparent;
 }
 
 .colName {
@@ -191,24 +208,24 @@
 
 .typeLabel {
   padding: 4px 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
+  background-color: var(--color-neutral-100);
+  border-radius: var(--border-radius-sm);
   font-size: 12px;
   color: var(--text-secondary);
 }
 
 .schoolLabel {
   padding: 4px 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
+  background-color: var(--color-neutral-100);
+  border-radius: var(--border-radius-sm);
   font-size: 12px;
   color: var(--text-secondary);
 }
 
 .courseLabel {
   padding: 4px 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
+  background-color: var(--color-neutral-100);
+  border-radius: var(--border-radius-sm);
   font-size: 12px;
   color: var(--text-secondary);
 }
@@ -223,11 +240,11 @@
 
 .ipCode {
   padding: 2px 6px;
-  background-color: #f5f5f5;
-  border-radius: 3px;
+  background-color: var(--color-neutral-50);
+  border-radius: var(--border-radius-sm);
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  color: #555;
+  color: var(--text-secondary);
 }
 
 .iconBtn {

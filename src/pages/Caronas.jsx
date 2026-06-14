@@ -90,6 +90,9 @@ function listItemToRide(r) {
     status: statusLabel(r.car_status),
     statusCode: r.car_status,
     date: formatDateTime(r.car_data, r.car_hor_saida),
+    // Data e hora separadas para os chips DATA/HORA do detalhe (estilo app)
+    dataLabel: r.car_data ? String(r.car_data).slice(0, 10).split('-').reverse().join('/') : '—',
+    horaLabel: r.car_hor_saida ? String(r.car_hor_saida).slice(0, 5) : '—',
     description: r.car_desc,
     // Lista não traz origem/destino; ficam null até o /resumo chegar.
     origin: null,
@@ -409,7 +412,6 @@ export function Caronas() {
             <div className={styles.detailHeader}>
               <div className={styles.detailHeaderLeft}>
                 <StatusBadge status={selectedRide.status} />
-                <span className={styles.detailDate}>{selectedRide.date}</span>
               </div>
               <button className={styles.closeDetailBtn} onClick={handleCloseDetail} title="Fechar">
                 <IconX size={16} />
@@ -427,6 +429,20 @@ export function Caronas() {
               </div>
             </div>
 
+            {/* Chips DATA / HORA — mesmo padrão do card do app */}
+            <div className={styles.detailSection}>
+              <div className={styles.metaRow}>
+                <div className={styles.metaChip}>
+                  <span className={styles.metaChipLabel}>Data</span>
+                  <span className={styles.metaChipValue}>{selectedRide.dataLabel}</span>
+                </div>
+                <div className={styles.metaChip}>
+                  <span className={styles.metaChipLabel}>Hora</span>
+                  <span className={styles.metaChipValue}>{selectedRide.horaLabel}</span>
+                </div>
+              </div>
+            </div>
+
             {/* Banner de erro do detalhe (não impede ver os campos da lista) */}
             {detailError && (
               <div className={styles.detailSection} style={{ background: 'var(--status-error-bg)' }}>
@@ -437,9 +453,8 @@ export function Caronas() {
             )}
 
             {/* Rota: origem/destino vêm do /resumo. Mostra spinner
-                enquanto aguarda. */}
+                enquanto aguarda. Rótulos Origem/Destino no estilo do card do app. */}
             <div className={styles.detailSection}>
-              <p className={styles.detailSectionLabel}>Rota</p>
               {detailLoading && !selectedRide.origin ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
                   <IconLoader2 size={14} className={styles.spin} />
@@ -449,12 +464,18 @@ export function Caronas() {
                 <div className={styles.routeDetail}>
                   <div className={styles.routeDetailRow}>
                     <IconMapPin size={14} className={styles.routeIconOrigin} />
-                    <span>{selectedRide.origin || '—'}</span>
+                    <div>
+                      <span className={styles.routeLabel}>Origem</span>
+                      <span>{selectedRide.origin || '—'}</span>
+                    </div>
                   </div>
                   <div className={styles.routeDetailConnector} />
                   <div className={styles.routeDetailRow}>
                     <IconMapPin size={14} className={styles.routeIconDest} />
-                    <span>{selectedRide.destination || '—'}</span>
+                    <div>
+                      <span className={styles.routeLabel}>Destino</span>
+                      <span>{selectedRide.destination || '—'}</span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -494,21 +515,29 @@ export function Caronas() {
                   <span style={{ fontSize: 13 }}>Carregando passageiros...</span>
                 </div>
               </div>
-            ) : selectedRide.passengers.length > 0 && (
+            ) : (
               <div className={styles.detailSection}>
                 <p className={styles.detailSectionLabel}>
-                  Passageiros ({selectedRide.passengers.length})
+                  {selectedRide.passengers.length > 0
+                    ? `Passageiros (${selectedRide.passengers.length})`
+                    : 'Passageiros'}
                 </p>
-                <div className={styles.passengerList}>
-                  {selectedRide.passengers.map(p => (
-                    <div key={p.usu_id} className={styles.passengerRow}>
-                      <span className={styles.passengerAvatar}>
-                        {(p.usu_nome || 'U').charAt(0).toUpperCase()}
-                      </span>
-                      <span className={styles.passengerName}>{p.usu_nome}</span>
-                    </div>
-                  ))}
-                </div>
+                {selectedRide.passengers.length > 0 ? (
+                  <div className={styles.passengerList}>
+                    {selectedRide.passengers.map(p => (
+                      <div key={p.usu_id} className={styles.passengerRow}>
+                        <span className={styles.passengerAvatar}>
+                          {(p.usu_nome || 'U').charAt(0).toUpperCase()}
+                        </span>
+                        <span className={styles.passengerName}>{p.usu_nome}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={styles.helperBox}>
+                    <p className={styles.helperText}>Nenhum passageiro confirmado ainda.</p>
+                  </div>
+                )}
               </div>
             )}
 

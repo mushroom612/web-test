@@ -17,7 +17,7 @@
 // este componente.
 // ============================================================
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { Fragment, useEffect, useRef, useState, useCallback } from 'react';
 import { IconSend, IconX, IconLifebuoy } from '@tabler/icons-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -39,6 +39,36 @@ function formatHora(iso) {
   if (mesmoDia) return hhmm;
   const dm = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   return `${dm} ${hhmm}`;
+}
+
+// mesmoDiaCal: true se duas datas ISO caem no mesmo dia do calendário.
+function mesmoDiaCal(a, b) {
+  if (!a || !b) return false;
+  const da = new Date(a);
+  const db = new Date(b);
+  return (
+    da.getFullYear() === db.getFullYear() &&
+    da.getMonth() === db.getMonth() &&
+    da.getDate() === db.getDate()
+  );
+}
+
+// formatDataSeparador: rótulo do separador de data (Hoje / Ontem / data),
+// igual ao chat do app.
+function formatDataSeparador(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const hoje = new Date();
+  const ontem = new Date(hoje);
+  ontem.setDate(ontem.getDate() - 1);
+  if (mesmoDiaCal(d, hoje)) return 'Hoje';
+  if (mesmoDiaCal(d, ontem)) return 'Ontem';
+  const mesmoAno = d.getFullYear() === hoje.getFullYear();
+  return d.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: mesmoAno ? 'long' : '2-digit',
+    ...(mesmoAno ? {} : { year: 'numeric' })
+  });
 }
 
 export function SupportChatPanel({ onClose }) {
@@ -162,19 +192,32 @@ export function SupportChatPanel({ onClose }) {
             </p>
           </div>
         ) : (
-          mensagens.map((m) => (
-            <div
-              key={m.msg_id}
-              className={`${styles.row} ${
-                m.remetente === 'admin' ? styles.rowMine : styles.rowTheirs
-              }`}
-            >
-              <div className={styles.bubble}>
-                <p className={styles.bubbleText}>{m.texto}</p>
-                <span className={styles.bubbleTime}>{formatHora(m.criado_em)}</span>
-              </div>
-            </div>
-          ))
+          mensagens.map((m, i) => {
+            const anterior = i > 0 ? mensagens[i - 1] : null;
+            const mostraSeparador =
+              !anterior || !mesmoDiaCal(anterior.criado_em, m.criado_em);
+            return (
+              <Fragment key={m.msg_id}>
+                {mostraSeparador && (
+                  <div className={styles.dateSeparator}>
+                    <span className={styles.dateSeparatorPill}>
+                      {formatDataSeparador(m.criado_em)}
+                    </span>
+                  </div>
+                )}
+                <div
+                  className={`${styles.row} ${
+                    m.remetente === 'admin' ? styles.rowMine : styles.rowTheirs
+                  }`}
+                >
+                  <div className={styles.bubble}>
+                    <p className={styles.bubbleText}>{m.texto}</p>
+                    <span className={styles.bubbleTime}>{formatHora(m.criado_em)}</span>
+                  </div>
+                </div>
+              </Fragment>
+            );
+          })
         )}
       </div>
 

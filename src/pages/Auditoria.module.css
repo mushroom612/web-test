@@ -159,51 +159,68 @@
 
 /* ── Table ──────────────────────────────────────────────────────────────── */
 
+/* Wrapper apenas para scroll horizontal — cada linha agora é um card próprio */
 .tableWrapper {
-  background-color: var(--surface-primary);
-  border-radius: var(--card-radius-desktop);
-  overflow: hidden;
+  overflow-x: auto;
   margin-bottom: var(--spacing-4);
 }
 
+/* border-spacing vertical cria o respiro entre as linhas-card */
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 10px;
 }
 
-.table thead {
-  background-color: var(--color-neutral-50);
-  border-bottom: 1px solid var(--color-neutral-200);
-}
-
-.table th {
-  padding: var(--spacing-4);
+/* Cabeçalho: rótulos flutuantes acima dos cards (sem fundo) */
+.table thead th {
+  padding: 0 18px 6px;
   text-align: left;
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
+  background: transparent;
 }
 
 .table tbody tr {
-  border-bottom: 1px solid var(--color-neutral-100);
   transition: background-color 0.15s ease;
 }
 
-.table tbody tr:hover {
-  background-color: var(--surface-secondary);
-}
-
-.rowEven {
-  background-color: var(--surface-primary);
-}
-
-.table td {
-  padding: var(--spacing-4);
+/* Cada linha = um card branco com borda própria */
+.table tbody td {
+  padding: 16px 18px;
   font-size: var(--font-size-sm);
   color: var(--text-primary);
   vertical-align: middle;
+  background-color: var(--surface-primary);
+  border-top: 1px solid var(--color-neutral-100);
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+/* Arredonda as pontas do card-linha na primeira e última célula */
+.table tbody td:first-child {
+  border-left: 1px solid var(--color-neutral-100);
+  border-top-left-radius: var(--border-radius-lg);
+  border-bottom-left-radius: var(--border-radius-lg);
+}
+
+.table tbody td:last-child {
+  border-right: 1px solid var(--color-neutral-100);
+  border-top-right-radius: var(--border-radius-lg);
+  border-bottom-right-radius: var(--border-radius-lg);
+}
+
+/* Hover: realça o card inteiro com leve tom verde + borda da marca */
+.table tbody tr:hover td {
+  background-color: var(--surface-secondary);
+  border-color: var(--color-green-200);
+}
+
+/* Mantida como no-op (a estrutura de cards dispensa zebra) */
+.rowEven {
+  background-color: transparent;
 }
 
 .cellDateTime {

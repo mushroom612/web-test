@@ -37,11 +37,10 @@
   position: fixed;
   min-width: 180px;
   background: var(--surface-primary);
-  border: 1px solid var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-200);
   border-radius: var(--border-radius-md);
   overflow: hidden;
   z-index: 1000;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   animation: slideDown 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

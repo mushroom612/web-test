@@ -51,7 +51,7 @@
 
 .metricCard {
   background-color: var(--surface-primary);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-100);
   border-radius: var(--card-radius-desktop);
   padding: 20px;
 }
@@ -147,7 +147,7 @@
 
 .chartCard {
   background-color: var(--surface-primary);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-100);
   border-radius: var(--card-radius-desktop);
   padding: 24px;
   width: 100%;
@@ -155,10 +155,9 @@
 
 .chartTooltip {
   background-color: var(--surface-primary);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 8px;
   padding: 10px 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .tooltipLabel {
@@ -179,7 +178,7 @@
 
 .feedbackSection {
   background-color: var(--surface-primary);
-  /* border: 1px solid #e5e7eb; */
+  /* border: 1px solid var(--color-neutral-100); */
   border-radius: var(--card-radius-desktop);
   padding: 24px;
   overflow-y: auto;

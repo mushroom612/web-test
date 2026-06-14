@@ -14,7 +14,7 @@ html {
 
 body {
   font-family:
-    "Roboto", sans-serif;
+    "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--surface-page);
@@ -73,7 +73,7 @@ select {
 
   /* ── Cores - Neutro ────────────────────────────────────────────────── */
   --color-neutral-0: #ffffff;
-  --color-neutral-50: #fafafa;
+  --color-neutral-50: #f8f8f8;
   --color-neutral-100: #ececec;
   --color-neutral-200: #d4d4d4;
   --color-neutral-300: #ababab;
@@ -90,7 +90,7 @@ select {
 
   /* ── Cores - Semânticas ────────────────────────────────────────────── */
   --color-semantic-error: #b91c1c;
-  --color-semantic-warning: #b45309;
+  --color-semantic-warning: #d97706;
   --color-semantic-success: #2d5016;
   --color-semantic-info: #1e40af;
 
@@ -217,7 +217,7 @@ select {
   --status-success-text: var(--color-green-900);
   --status-info-bg: var(--color-blue-100);
   --status-info-text: var(--color-blue-900);
-  --status-warning-bg: #fef3c7;
+  --status-warning-bg: #fffbeb;
   --status-warning-text: var(--color-semantic-warning);
   --status-error-bg: #fee2e2;
   --status-error-text: var(--color-semantic-error);
