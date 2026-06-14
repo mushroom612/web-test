@@ -89,20 +89,20 @@
 
 import { useState } from "react";
 import {
-  ArrowLeft,
-  Edit2,
-  Save,
-  X,
-  User,
-  Mail,
-  Phone,
-  Building2,
-  BookOpen,
-  ShieldCheck,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+  IconArrowLeft,
+  IconEdit,
+  IconDeviceFloppy,
+  IconX,
+  IconUser,
+  IconMail,
+  IconPhone,
+  IconBuilding,
+  IconBook,
+  IconShieldCheck,
+  IconCircleCheck,
+  IconAlertCircle,
+  IconLoader2,
+} from "@tabler/icons-react";
 import { api } from "../services/api";
 import styles from "./UserProfilePanel.module.css";
 
@@ -255,7 +255,7 @@ export function UserProfilePanel({
       <div className={styles.panelHeader}>
         {/* Botão de voltar: chama onClose para fechar o painel */}
         <button className={styles.backBtn} onClick={onClose}>
-          <ArrowLeft size={16} />
+          <IconArrowLeft size={16} />
           Voltar para Usuários
         </button>
 
@@ -270,12 +270,12 @@ export function UserProfilePanel({
                 setSaveError("");
               }}
             >
-              <Edit2 size={15} />
+              <IconEdit size={15} />
               Editar
             </button>
           ) : (
             <button className={styles.cancelBtn} onClick={handleCancelEdit}>
-              <X size={15} />
+              <IconX size={15} />
               Cancelar
             </button>
           )}
@@ -331,12 +331,12 @@ export function UserProfilePanel({
           {/* Mensagens de sucesso e erro */}
           {saveSuccess && (
             <div className={styles.alertSuccess}>
-              <CheckCircle size={15} /> {saveSuccess}
+              <IconCircleCheck size={15} /> {saveSuccess}
             </div>
           )}
           {saveError && (
             <div className={styles.alertError}>
-              <AlertCircle size={15} /> {saveError}
+              <IconAlertCircle size={15} /> {saveError}
             </div>
           )}
 
@@ -378,7 +378,7 @@ export function UserProfilePanel({
                 {/* Campo: Nome */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
-                    <User size={14} /> Nome completo
+                    <IconUser size={14} /> Nome completo
                   </label>
                   <input
                     name="usu_nome"
@@ -392,7 +392,7 @@ export function UserProfilePanel({
                 {/* Campo: E-mail (desabilitado — não pode ser alterado pelo admin) */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
-                    <Mail size={14} /> E-mail
+                    <IconMail size={14} /> E-mail
                   </label>
                   <input
                     className={styles.input}
@@ -405,7 +405,7 @@ export function UserProfilePanel({
                 {/* Campo: Telefone */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
-                    <Phone size={14} /> Telefone
+                    <IconPhone size={14} /> Telefone
                   </label>
                   <input
                     name="usu_telefone"
@@ -419,7 +419,7 @@ export function UserProfilePanel({
                 {/* Campo: Status da conta (dropdown Ativo/Inativo) */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
-                    <ShieldCheck size={14} /> Status da conta
+                    <IconShieldCheck size={14} /> Status da conta
                   </label>
                   <select
                     name="usu_status"
@@ -435,7 +435,7 @@ export function UserProfilePanel({
                 {/* Campos desabilitados: pertence à instituição/usuário */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
-                    <Building2 size={14} /> Instituição
+                    <IconBuilding size={14} /> Instituição
                   </label>
                   <input
                     className={styles.input}
@@ -446,7 +446,7 @@ export function UserProfilePanel({
 
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
-                    <BookOpen size={14} /> Curso
+                    <IconBook size={14} /> Curso
                   </label>
                   <input
                     className={styles.input}
@@ -470,11 +470,11 @@ export function UserProfilePanel({
                 >
                   {saving ? (
                     <>
-                      <Loader2 size={15} className={styles.spin} /> Salvando...
+                      <IconLoader2 size={15} className={styles.spin} /> Salvando...
                     </>
                   ) : (
                     <>
-                      <Save size={15} /> Salvar alterações
+                      <IconDeviceFloppy size={15} /> Salvar alterações
                     </>
                   )}
                 </button>

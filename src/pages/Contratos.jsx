@@ -27,10 +27,10 @@ import { BASE_URL } from '../services/http';
 import { useAuth } from '../context/AuthContext';
 import { StatusBadge } from '../components/StatusBadge';
 import {
-  Eye, Download, RotateCw, FileText,
-  Search, X, Loader2, Building2,
-  UserPlus, ChevronDown, ChevronUp, CheckCircle, Plus
-} from 'lucide-react';
+  IconEye, IconDownload, IconRotateClockwise, IconFileText,
+  IconSearch, IconX, IconLoader2, IconBuilding,
+  IconUserPlus, IconChevronDown, IconChevronUp, IconCircleCheck, IconPlus
+} from '@tabler/icons-react';
 import styles from './Contratos.module.css';
 
 const DURATION_LABEL = {
@@ -288,7 +288,7 @@ export function Contratos() {
       {isDev && (
         <>
           <div className={styles.searchWrapper}>
-            <Search size={18} className={styles.searchIcon} />
+            <IconSearch size={18} className={styles.searchIcon} />
             <input
               type="text"
               placeholder="Pesquisar por instituição, domínio ou endereço..."
@@ -302,7 +302,7 @@ export function Contratos() {
                 onClick={() => setSearchText('')}
                 title="Limpar pesquisa"
               >
-                <X size={16} />
+                <IconX size={16} />
               </button>
             )}
           </div>
@@ -324,12 +324,12 @@ export function Contratos() {
       {/* Conteúdo principal */}
       {loading ? (
         <div className={styles.noResults}>
-          <Loader2 size={32} style={{ animation: 'spin 0.8s linear infinite' }} />
+          <IconLoader2 size={32} style={{ animation: 'spin 0.8s linear infinite' }} />
           <p>Carregando contratos...</p>
         </div>
       ) : error ? (
         <div className={styles.noResults}>
-          <FileText size={48} />
+          <IconFileText size={48} />
           <p style={{ color: 'var(--color-semantic-error, #dc2626)' }}>{error}</p>
           <button
             onClick={loadContracts}
@@ -344,7 +344,7 @@ export function Contratos() {
         </div>
       ) : filteredContracts.length === 0 ? (
         <div className={styles.noResults}>
-          <FileText size={48} />
+          <IconFileText size={48} />
           <p>
             {contractSchools.length === 0
               ? 'Nenhum contrato cadastrado.'
@@ -430,14 +430,14 @@ export function Contratos() {
                         className={styles.admToggleBtn}
                         onClick={() => handleToggleAdminSection(escId)}
                       >
-                        <UserPlus size={13} />
+                        <IconUserPlus size={13} />
                         <span>
                           {admins.length > 0
                             ? `${admins.length} Administrador${admins.length > 1 ? 'es' : ''}`
                             : 'Administradores'}
                           {!isAdmExpanded && firstAdm && ` — ${firstAdm.usu_nome}`}
                         </span>
-                        {isAdmExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                        {isAdmExpanded ? <IconChevronUp size={13} /> : <IconChevronDown size={13} />}
                       </button>
 
                       {isAdmExpanded && (
@@ -493,12 +493,12 @@ export function Contratos() {
                               <div className={styles.admFormActions}>
                                 <button className={styles.admSaveBtn} disabled={adminSaving}
                                   onClick={() => handleSaveAdmin(escId)}>
-                                  {adminSaving ? <Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : <CheckCircle size={13} />}
+                                  {adminSaving ? <IconLoader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : <IconCircleCheck size={13} />}
                                   Adicionar
                                 </button>
                                 <button className={styles.admCancelBtn}
                                   onClick={() => { setAdminFormEsc(null); setAdminError(''); }}>
-                                  <X size={13} /> Cancelar
+                                  <IconX size={13} /> Cancelar
                                 </button>
                               </div>
                             </div>
@@ -507,7 +507,7 @@ export function Contratos() {
                           {isDev && !showAdminForm && (
                             <button className={styles.admAddBtn}
                               onClick={() => { setAdminFormEsc(escId); setAdminForm({ usu_nome: '', usu_email: '', usu_telefone: '', usu_senha: '', usu_confirmSenha: '' }); setAdminError(''); }}>
-                              <Plus size={13} /> Adicionar Administrador
+                              <IconPlus size={13} /> Adicionar Administrador
                             </button>
                           )}
                         </div>
@@ -537,7 +537,7 @@ export function Contratos() {
                       disabled={!renewState.duracao || renewLoading}
                     >
                       {renewLoading
-                        ? <><Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> Renovando...</>
+                        ? <><IconLoader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> Renovando...</>
                         : 'Confirmar'}
                     </button>
                     <button
@@ -559,7 +559,7 @@ export function Contratos() {
                     title={hasFile ? 'Abrir PDF em nova aba' : 'Nenhum arquivo enviado ainda'}
                     onClick={() => hasFile && handleView(school.esc_contrato_arquivo)}
                   >
-                    <Eye size={16} />
+                    <IconEye size={16} />
                     Visualizar
                   </button>
 
@@ -569,7 +569,7 @@ export function Contratos() {
                       className={styles.renewBtn}
                       onClick={() => setRenewState({ escId: school.esc_id, duracao: '' })}
                     >
-                      <RotateCw size={16} />
+                      <IconRotateClockwise size={16} />
                       Renovar
                     </button>
                   )}
@@ -584,8 +584,8 @@ export function Contratos() {
                     )}
                   >
                     {isDownloading
-                      ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Baixando...</>
-                      : <><Download size={16} /> Download</>}
+                      ? <><IconLoader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Baixando...</>
+                      : <><IconDownload size={16} /> Download</>}
                   </button>
                 </div>
               </div>

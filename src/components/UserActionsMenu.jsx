@@ -22,7 +22,7 @@
 // ============================================================
 
 import { useState, useRef, useEffect } from "react";
-import { Edit2, ShieldAlert, Eye, UserX, UserCheck } from "lucide-react";
+import { IconEdit, IconShieldExclamation, IconEye, IconUserMinus, IconUserCheck } from "@tabler/icons-react";
 import styles from "./UserActionsMenu.module.css";
 
 export function UserActionsMenu({ user, onEdit, onPenalize, onView, onToggleStatus }) {
@@ -78,7 +78,7 @@ export function UserActionsMenu({ user, onEdit, onPenalize, onView, onToggleStat
               className={styles.menuItem}
               onClick={() => { onView?.(user); setIsOpen(false); }}
             >
-              <Eye size={16} />
+              <IconEye size={16} />
               Ver Detalhes
             </button>
 
@@ -86,7 +86,7 @@ export function UserActionsMenu({ user, onEdit, onPenalize, onView, onToggleStat
               className={styles.menuItem}
               onClick={() => { onEdit?.(user); setIsOpen(false); }}
             >
-              <Edit2 size={16} />
+              <IconEdit size={16} />
               Editar
             </button>
 
@@ -94,7 +94,7 @@ export function UserActionsMenu({ user, onEdit, onPenalize, onView, onToggleStat
               className={`${styles.menuItem} ${styles.danger}`}
               onClick={() => { onPenalize?.(user); setIsOpen(false); }}
             >
-              <ShieldAlert size={16} />
+              <IconShieldExclamation size={16} />
               Penalizar
             </button>
 
@@ -104,8 +104,8 @@ export function UserActionsMenu({ user, onEdit, onPenalize, onView, onToggleStat
                 onClick={() => { onToggleStatus(user); setIsOpen(false); }}
               >
                 {user.usu_status === 1
-                  ? <><UserX size={16} /> Desativar</>
-                  : <><UserCheck size={16} /> Reativar</>}
+                  ? <><IconUserMinus size={16} /> Desativar</>
+                  : <><IconUserCheck size={16} /> Reativar</>}
               </button>
             )}
           </div>

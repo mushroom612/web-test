@@ -49,7 +49,7 @@
 // ============================================================
 
 import { useState } from 'react';
-import { Send } from 'lucide-react';
+import { IconSend } from '@tabler/icons-react';
 import { api } from '../services/api';
 import styles from './Notificacoes.module.css';
 
@@ -210,7 +210,7 @@ export function Notificacoes() {
 
             {/* Botão de envio: desabilitado enquanto está enviando */}
             <button type="submit" className={styles.submitBtn} disabled={loading}>
-              <Send size={18} />
+              <IconSend size={18} />
               {loading ? 'Enviando...' : 'Enviar Notificação'}
             </button>
           </form>

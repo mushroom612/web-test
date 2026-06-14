@@ -36,15 +36,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Users,
-  Car,
-  CheckCircle,
-  AlertCircle,
-  TrendingUp,
-  TrendingDown,
-  Loader2,
-  AlertTriangle,
-} from "lucide-react";
+  IconUsers,
+  IconCar,
+  IconCircleCheck,
+  IconAlertCircle,
+  IconTrendingUp,
+  IconTrendingDown,
+  IconLoader2,
+  IconAlertTriangle,
+} from "@tabler/icons-react";
 import {
   AreaChart,
   Area,
@@ -100,10 +100,10 @@ function formatSugestao(s) {
 // METRIC_CONFIG: define o ícone e as cores de cada card de métrica.
 // Usa índice posicional — o card 0 (Total de Usuários) usa a config [0], etc.
 const METRIC_CONFIG = [
-  { Icon: Users, iconColor: "#3b82f6", iconBg: "#dbeafe" }, // azul
-  { Icon: Car, iconColor: "#8b5cf6", iconBg: "#ede9fe" }, // roxo
-  { Icon: CheckCircle, iconColor: "#22c55e", iconBg: "#dcfce7" }, // verde
-  { Icon: AlertCircle, iconColor: "#f59e0b", iconBg: "#fef3c7" }, // amarelo
+  { Icon: IconUsers, iconColor: "#3b82f6", iconBg: "#dbeafe" }, // azul
+  { Icon: IconCar, iconColor: "#8b5cf6", iconBg: "#ede9fe" }, // roxo
+  { Icon: IconCircleCheck, iconColor: "#22c55e", iconBg: "#dcfce7" }, // verde
+  { Icon: IconAlertCircle, iconColor: "#f59e0b", iconBg: "#fef3c7" }, // amarelo
 ];
 
 // ChartTooltip: componente customizado para o tooltip do gráfico.
@@ -225,7 +225,7 @@ export function Painel() {
         {/* styles.loadingWrap → centraliza o spinner na tela */}
         <div className={styles.loadingWrap}>
           {/* styles.spin → animação CSS de rotação aplicada ao ícone */}
-          <Loader2 size={32} className={styles.spin} />
+          <IconLoader2 size={32} className={styles.spin} />
         </div>
       </div>
     );
@@ -257,7 +257,7 @@ export function Painel() {
             textAlign: "center",
           }}
         >
-          <AlertTriangle size={28} color="var(--color-semantic-error)" />
+          <IconAlertTriangle size={28} color="var(--color-semantic-error)" />
           <p
             style={{ margin: 0, color: "var(--text-primary)", fontWeight: 600 }}
           >
@@ -318,9 +318,9 @@ export function Painel() {
                 <div className={styles.metricFooter}>
                   {/* Renderiza seta para cima ou para baixo conforme trendUp */}
                   {metric.trendUp ? (
-                    <TrendingUp size={13} className={styles.trendUp} />
+                    <IconTrendingUp size={13} className={styles.trendUp} />
                   ) : (
-                    <TrendingDown size={13} className={styles.trendDown} />
+                    <IconTrendingDown size={13} className={styles.trendDown} />
                   )}
                   <span className={styles.trend}>{metric.trend}</span>
                 </div>

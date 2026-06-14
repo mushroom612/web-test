@@ -71,8 +71,10 @@
 // ============================================================
 
 import { useState, useEffect } from 'react';
-import { Loader2, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { IconLoader2, IconDownload } from '@tabler/icons-react';
 import { api } from '../services/api';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { Pagination } from '../components/Pagination';
 import styles from './Auditoria.module.css';
 
 // PAGE_SIZE: quantidade de registros por página.
@@ -92,25 +94,8 @@ const TABELA_LABELS = {
   SUGESTOES:   'Sugestão',
 };
 
-// ACTION_LABELS: traduz os códigos de ação (ex: 'CRIAR_CARONA') para
-// textos legíveis em português (ex: 'Criação de Carona').
-const ACTION_LABELS = {
-  CADASTRO_USU: 'Cadastro de Usuário',
-  CRIAR_CARONA: 'Criação de Carona',
-  PENALIDADE_SUSPENSAO: 'Suspensão por Penalidade',
-  PENALIDADE_APLICAR: 'Aplicação de Penalidade',
-  DELETAR_USU: 'Exclusão de Usuário',
-  STATUS_USU: 'Alteração de Status',
-  REMOVER_PENALIDADE: 'Remoção de Penalidade',
-  RESTAURAR_CARONA: 'Restauração de Carona',
-};
-
-// formatAction: converte um código de ação para texto legível.
-// acao.toUpperCase() → normaliza para maiúsculas antes de buscar no dicionário
-// ?? acao → se não encontrar no dicionário, exibe o código original como fallback
-function formatAction(acao = '') {
-  return ACTION_LABELS[acao.toUpperCase()] ?? acao;
-}
+// As ações agora vêm traduzidas do backend (Auditoria.jsx simplificado)
+// Não é necessário traduzir no frontend
 
 // formatDate: converte uma string de data/hora para o padrão brasileiro.
 // toLocaleString (com S) inclui horas e minutos, diferente de toLocaleDateString.
@@ -123,16 +108,13 @@ function formatDate(dateStr) {
   }
 }
 
-// getActionVariant: classifica uma ação em uma categoria de cor.
-// Usa expressões regulares (RegExp) para verificar palavras-chave no nome da ação.
-//   /SUSPENSAO|DELETAR|REMOVER/ → testa se a string contém qualquer um desses termos
-//   .test(upper) → retorna true se encontrou, false se não encontrou
+// getActionVariant: classifica uma ação em uma categoria de cor com base no texto em português.
 function getActionVariant(acao = '') {
-  const upper = acao.toUpperCase();
-  if (/SUSPENSAO|DELETAR|REMOVER/.test(upper)) return 'danger';   // vermelho
-  if (/PENALIDADE|STATUS/.test(upper)) return 'warning';           // amarelo
-  if (/CADASTRO|CRIAR|RESTAURAR/.test(upper)) return 'success';   // verde
-  return 'info';                                                    // azul (padrão)
+  const lower = acao.toLowerCase();
+  if (/suspensão|exclusão|remoção|falhado/.test(lower)) return 'danger';          // vermelho
+  if (/penalidade|status|inativação|bloqueio/.test(lower)) return 'warning';      // amarelo
+  if (/cadastro|criação|restauração|ativação|aceitação/.test(lower)) return 'success'; // verde
+  return 'info';                                                                    // azul (padrão)
 }
 
 export function Auditoria() {
@@ -231,8 +213,8 @@ export function Auditoria() {
         <button className={styles.exportBtn} onClick={handleExport} disabled={exporting}>
           {/* Mostra spinner durante a exportação, ícone Download quando idle */}
           {exporting
-            ? <Loader2 size={16} className={styles.spinIcon} />
-            : <Download size={16} />}
+            ? <IconLoader2 size={16} className={styles.spinIcon} />
+            : <IconDownload size={16} />}
           Exportar CSV
         </button>
       </div>
@@ -269,12 +251,7 @@ export function Auditoria() {
       </form>
 
       {/* Spinner de carregamento */}
-      {loading && (
-        <div className={styles.loadingWrapper}>
-          <Loader2 size={28} className={styles.spinIcon} />
-          <span>Carregando logs...</span>
-        </div>
-      )}
+      {loading && <LoadingSpinner size={28} text="Carregando logs..." />}
 
       {/* Caixa de erro (só exibe quando não está carregando E houve erro) */}
       {!loading && error && (
@@ -315,7 +292,7 @@ export function Auditoria() {
                           Isso usa template literal para montar o nome da classe CSS,
                           ex: badge_danger, badge_success, etc. */}
                       <span className={`${styles.actionBadge} ${styles[`badge_${getActionVariant(log.acao)}`]}`}>
-                        {formatAction(log.acao)}
+                        {log.acao}
                       </span>
                     </td>
                     <td className={styles.cellRegistro}>
@@ -335,32 +312,14 @@ export function Auditoria() {
           </div>
 
           {/* Controles de paginação */}
-          <div className={styles.pagination}>
-            <span className={styles.paginationInfo}>
-              Página {page} de {totalPages} · {total} registro{total !== 1 ? 's' : ''}
-            </span>
-            <div className={styles.paginationControls}>
-              {/* Botão "Anterior": desabilitado na primeira página.
-                  (p) => Math.max(1, p - 1) → garante que nunca vai abaixo de 1 */}
-              <button
-                className={styles.pageBtn}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
-                <ChevronLeft size={16} />
-                Anterior
-              </button>
-              {/* Botão "Próximo": desabilitado na última página */}
-              <button
-                className={styles.pageBtn}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-              >
-                Próximo
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            itemLabel="registro"
+            onPrevious={() => setPage(p => Math.max(1, p - 1))}
+            onNext={() => setPage(p => Math.min(totalPages, p + 1))}
+          />
         </>
       )}
     </div>

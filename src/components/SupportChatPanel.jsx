@@ -18,7 +18,7 @@
 // ============================================================
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Send, X, LifeBuoy } from 'lucide-react';
+import { IconSend, IconX, IconLifebuoy } from '@tabler/icons-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import styles from './SupportChatPanel.module.css';
@@ -137,7 +137,7 @@ export function SupportChatPanel({ onClose }) {
       <div className={styles.header}>
         <div className={styles.headerTitle}>
           <span className={styles.headerIcon}>
-            <LifeBuoy size={16} />
+            <IconLifebuoy size={16} />
           </span>
           <div>
             <p className={styles.headerName}>Suporte ao desenvolvedor</p>
@@ -145,7 +145,7 @@ export function SupportChatPanel({ onClose }) {
           </div>
         </div>
         <button className={styles.closeBtn} onClick={onClose} aria-label="Fechar">
-          <X size={18} />
+          <IconX size={18} />
         </button>
       </div>
 
@@ -155,7 +155,7 @@ export function SupportChatPanel({ onClose }) {
           <p className={styles.stateMsg}>Carregando conversa...</p>
         ) : mensagens.length === 0 ? (
           <div className={styles.emptyState}>
-            <LifeBuoy size={28} />
+            <IconLifebuoy size={28} />
             <p className={styles.emptyTitle}>Nenhuma mensagem ainda</p>
             <p className={styles.emptyText}>
               Mande sua primeira mensagem para a equipe de desenvolvimento.
@@ -195,7 +195,7 @@ export function SupportChatPanel({ onClose }) {
           disabled={!input.trim() || sending}
           aria-label="Enviar"
         >
-          <Send size={18} />
+          <IconSend size={18} />
         </button>
       </form>
     </div>

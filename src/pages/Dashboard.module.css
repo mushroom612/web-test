@@ -1,0 +1,226 @@
+/* ── Layout ──────────────────────────────────────────────── */
+
+.dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.loadingWrap {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Cabeçalho ───────────────────────────────────────────── */
+
+.pageHeader {
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pageSubtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ── Metric cards ────────────────────────────────────────── */
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 300px);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.metricCard {
+  background-color: var(--surface-primary);
+  border: 1px solid #e5e7eb;
+  border-radius: var(--card-radius-desktop);
+  padding: 20px;
+}
+
+.metricTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.metricIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metricValue {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.metricLabel {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.metricFooter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.trendUp {
+  color: #22c55e;
+}
+.trendDown {
+  color: #ef4444;
+}
+
+.trend {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.userFeedback {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+/* ── Content grid ────────────────────────────────────────── */
+
+.contentGrid {
+  display: flex;
+  /* grid-template-columns: 3fr 2fr; */
+  gap: 20px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--color-green-100, #dcfce7);
+  color: var(--btn-primary-bg);
+  white-space: nowrap;
+}
+
+/* ── Chart ───────────────────────────────────────────────── */
+
+.chartCard {
+  background-color: var(--surface-primary);
+  border: 1px solid #e5e7eb;
+  border-radius: var(--card-radius-desktop);
+  padding: 24px;
+  width: 100%;
+}
+
+.chartTooltip {
+  background-color: var(--surface-primary);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tooltipLabel {
+  margin: 0 0 3px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.tooltipValue {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ── Feedback ────────────────────────────────────────────── */
+
+.feedbackSection {
+  background-color: var(--surface-primary);
+  /* border: 1px solid #e5e7eb; */
+  border-radius: var(--card-radius-desktop);
+  padding: 24px;
+  overflow-y: auto;
+  max-height: 320px;
+  flex: 1;
+  scrollbar-width: none;
+  &:-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.feedbackList {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Responsivo ──────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+  .feedbackSection {
+    max-height: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+}

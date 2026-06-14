@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, ChevronLeft } from 'lucide-react';
+import { IconEye, IconEyeOff, IconChevronLeft } from '@tabler/icons-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import styles from './Login.module.css';
@@ -222,7 +222,7 @@ export function Login() {
                       className={styles.togglePassword}
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
                     </button>
                   </div>
                 </div>
@@ -252,7 +252,7 @@ export function Login() {
                   className={styles.backBtn}
                   onClick={handleForgotBack}
                 >
-                  <ChevronLeft size={16} />
+                  <IconChevronLeft size={16} />
                   Voltar
                 </button>
               )}
@@ -352,7 +352,7 @@ export function Login() {
                         className={styles.togglePassword}
                         onClick={() => setShowNewPassword(!showNewPassword)}
                       >
-                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showNewPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
                       </button>
                     </div>
                   </div>

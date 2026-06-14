@@ -17,9 +17,8 @@
 // ============================================================
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Send, MessageSquare } from 'lucide-react';
+import { IconSend, IconMessage } from '@tabler/icons-react';
 import { api } from '../services/api';
-import { useAuth } from '../context/AuthContext';
 import { useSuporteSocket } from '../hooks/useSuporteSocket';
 import styles from './Suporte.module.css';
 
@@ -49,7 +48,6 @@ function formatHora(iso) {
 }
 
 export function Suporte() {
-  const { user, isDev, isAdmin } = useAuth();
   const { socket, connected }    = useSuporteSocket();
 
   const [conversas,     setConversas]     = useState([]);
@@ -65,9 +63,8 @@ export function Suporte() {
 
   const selected = conversas.find((c) => c.usu_id === selectedId) || null;
 
-  // ── Carrega lista de conversas (Dev) ───────────────────────────────────
+  // ── Carrega lista de conversas ────────────────────────────────────────
   const loadLista = useCallback(async (silent = false) => {
-    if (!isDev) return;
     if (!silent) setLoadingLista(true);
     try {
       const data = await api.getConversasSuporte();
@@ -77,87 +74,69 @@ export function Suporte() {
     } finally {
       if (!silent) setLoadingLista(false);
     }
-  }, [isDev]);
+  }, []);
 
   useEffect(() => {
-    if (!isDev) { setLoadingLista(false); return; }
     loadLista();
-  }, [isDev, loadLista]);
+  }, [loadLista]);
 
   // ── Carrega thread ─────────────────────────────────────────────────────
   const loadThread = useCallback(async (adminId, silent = false) => {
     if (!adminId) return;
     if (!silent) setLoadingThread(true);
     try {
-      const data = isDev
-        ? await api.getThreadSuporte(adminId)
-        : await api.getMinhaThreadSuporte();
+      const data = await api.getThreadSuporte(adminId);
       setMensagens(data?.mensagens || []);
-      // Marca como lidas após carregar (fire-and-forget)
-      api.marcarLidasSuporte(isDev ? { usuId: adminId } : {}).catch(() => {});
-      if (isDev) loadLista(true);
+      api.marcarLidasSuporte({ usuId: adminId }).catch(() => {});
+      loadLista(true);
     } catch {
       // silencioso
     } finally {
       if (!silent) setLoadingThread(false);
     }
-  }, [isDev, loadLista]);
+  }, [loadLista]);
 
-  // ── Admin: entra na própria sala + carrega thread ao conectar ──────────
+  // ── Troca de sala ao selecionar outra conversa ────────────────────────
   useEffect(() => {
-    if (!isAdmin || !user?.usu_id || !socket || !connected) return;
-    socket.emit('entrar_suporte', { admin_usu_id: user.usu_id });
-    setSelectedId(user.usu_id);
-    loadThread(user.usu_id);
-  }, [isAdmin, user?.usu_id, socket, connected, loadThread]);
-
-  // ── Dev: troca de sala ao selecionar outra conversa ────────────────────
-  useEffect(() => {
-    if (!isDev || !socket) return;
+    if (!socket) return;
     const prev = prevSelectedRef.current;
     if (prev && prev !== selectedId) socket.emit('sair_suporte', { admin_usu_id: prev });
     if (selectedId && connected) socket.emit('entrar_suporte', { admin_usu_id: selectedId });
     prevSelectedRef.current = selectedId;
-  }, [isDev, selectedId, socket, connected]);
+  }, [selectedId, socket, connected]);
 
-  // ── Carrega thread do Dev ao selecionar ────────────────────────────────
+  // ── Carrega thread ao selecionar ──────────────────────────────────────
   useEffect(() => {
-    if (!isDev || selectedId == null) return;
+    if (selectedId == null) return;
     loadThread(selectedId);
-  }, [isDev, selectedId, loadThread]);
+  }, [selectedId, loadThread]);
 
   // ── Recebe mensagens em tempo real ─────────────────────────────────────
   useEffect(() => {
     if (!socket) return;
 
     const handleMsg = (msg) => {
-      // Adiciona à thread se for da conversa aberta
-      if (isAdmin || msg.spm_remetente !== (isDev ? 'admin' : 'dev') || true) {
-        setMensagens((prev) => [
-          ...prev,
-          {
-            msg_id:    msg.spm_id,
-            texto:     msg.spm_texto,
-            remetente: msg.spm_remetente,
-            criado_em: msg.spm_criada_em,
-          },
-        ]);
-      }
-      // Dev: atualiza prévia + zera badge da conversa recebida
-      if (isDev) {
-        setConversas((prev) =>
-          prev.map((c) =>
-            c.usu_id === selectedId
-              ? { ...c, ultima_mensagem: msg.spm_texto, ultima_em: msg.spm_criada_em }
-              : c
-          )
-        );
-      }
+      setMensagens((prev) => [
+        ...prev,
+        {
+          msg_id:    msg.spm_id,
+          texto:     msg.spm_texto,
+          remetente: msg.spm_remetente,
+          criado_em: msg.spm_criada_em,
+        },
+      ]);
+      setConversas((prev) =>
+        prev.map((c) =>
+          c.usu_id === selectedId
+            ? { ...c, ultima_mensagem: msg.spm_texto, ultima_em: msg.spm_criada_em }
+            : c
+        )
+      );
     };
 
     socket.on('mensagem_suporte_recebida', handleMsg);
     return () => socket.off('mensagem_suporte_recebida', handleMsg);
-  }, [socket, isAdmin, isDev, selectedId]);
+  }, [socket, selectedId]);
 
   // ── Scroll automático ──────────────────────────────────────────────────
   useEffect(() => {
@@ -169,17 +148,12 @@ export function Suporte() {
   const handleSend = async (e) => {
     e?.preventDefault();
     const texto = input.trim();
-    if (!texto || sending) return;
-    if (isDev && !selectedId) return;
+    if (!texto || sending || !selectedId) return;
 
     setSending(true);
     setInput('');
     try {
-      if (isAdmin) {
-        await api.enviarMensagemSuporte(texto);
-      } else {
-        await api.responderSuporte(selectedId, texto);
-      }
+      await api.responderSuporte(selectedId, texto);
       // Mensagem aparece via socket broadcast — sem reload manual necessário
     } catch {
       setInput(texto); // restaura em caso de erro
@@ -206,61 +180,54 @@ export function Suporte() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Suporte</h1>
-        <p className={styles.subtitle}>
-          {isDev
-            ? 'Converse com os administradores das escolas e responda dúvidas'
-            : 'Envie mensagens diretamente ao Desenvolvedor do sistema'}
-        </p>
+        <p className={styles.subtitle}>Converse com os administradores das escolas e responda dúvidas</p>
       </div>
 
       <div className={styles.layout}>
-        {/* ── Coluna esquerda: lista de conversas (Dev only) ── */}
-        {isDev && (
-          <aside className={styles.listPane}>
-            <div className={styles.listHeader}>
-              <span>Conversas</span>
-              <span className={styles.listCount}>{conversas.length}</span>
-            </div>
+        {/* ── Coluna esquerda: lista de conversas ── */}
+        <aside className={styles.listPane}>
+          <div className={styles.listHeader}>
+            <span>Conversas</span>
+            <span className={styles.listCount}>{conversas.length}</span>
+          </div>
 
-            <div className={styles.list}>
-              {loadingLista ? (
-                <p className={styles.stateMsg}>Carregando...</p>
-              ) : conversas.length === 0 ? (
-                <p className={styles.stateMsg}>Nenhuma conversa por enquanto.</p>
-              ) : (
-                conversas.map((c) => (
-                  <button
-                    key={c.usu_id}
-                    className={`${styles.listItem} ${
-                      c.usu_id === selectedId ? styles.listItemActive : ''
-                    }`}
-                    onClick={() => handleSelectConversa(c.usu_id)}
-                  >
-                    <span className={styles.avatar}>{getInitials(c.admin_nome)}</span>
-                    <div className={styles.listItemBody}>
-                      <div className={styles.listItemTop}>
-                        <span className={styles.listItemName}>{c.admin_nome}</span>
-                        <span className={styles.listItemTime}>{formatHora(c.ultima_em)}</span>
-                      </div>
-                      <span className={styles.listItemEscola}>{c.esc_nome}</span>
-                      <span className={styles.listItemPreview}>{c.ultima_mensagem}</span>
+          <div className={styles.list}>
+            {loadingLista ? (
+              <p className={styles.stateMsg}>Carregando...</p>
+            ) : conversas.length === 0 ? (
+              <p className={styles.stateMsg}>Nenhuma conversa por enquanto.</p>
+            ) : (
+              conversas.map((c) => (
+                <button
+                  key={c.usu_id}
+                  className={`${styles.listItem} ${
+                    c.usu_id === selectedId ? styles.listItemActive : ''
+                  }`}
+                  onClick={() => handleSelectConversa(c.usu_id)}
+                >
+                  <span className={styles.avatar}>{getInitials(c.admin_nome)}</span>
+                  <div className={styles.listItemBody}>
+                    <div className={styles.listItemTop}>
+                      <span className={styles.listItemName}>{c.admin_nome}</span>
+                      <span className={styles.listItemTime}>{formatHora(c.ultima_em)}</span>
                     </div>
-                    {c.nao_lidas > 0 && (
-                      <span className={styles.unreadBadge}>{c.nao_lidas}</span>
-                    )}
-                  </button>
-                ))
-              )}
-            </div>
-          </aside>
-        )}
+                    <span className={styles.listItemEscola}>{c.esc_nome}</span>
+                    <span className={styles.listItemPreview}>{c.ultima_mensagem}</span>
+                  </div>
+                  {c.nao_lidas > 0 && (
+                    <span className={styles.unreadBadge}>{c.nao_lidas}</span>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        </aside>
 
         {/* ── Coluna direita: thread ── */}
-        <section className={`${styles.threadPane} ${isAdmin ? styles.threadPaneFull : ''}`}>
-          {/* Dev sem conversa selecionada */}
-          {isDev && !selected ? (
+        <section className={styles.threadPane}>
+          {!selected ? (
             <div className={styles.emptyThread}>
-              <MessageSquare size={36} />
+              <IconMessage size={36} />
               <p className={styles.emptyThreadTitle}>Selecione uma conversa</p>
               <p className={styles.emptyThreadText}>
                 Escolha um administrador à esquerda para ver e responder as mensagens.
@@ -278,16 +245,6 @@ export function Suporte() {
                   </div>
                 </div>
               )}
-              {isAdmin && (
-                <div className={styles.threadHeader}>
-                  <span className={styles.avatar}>Dev</span>
-                  <div>
-                    <p className={styles.threadName}>Desenvolvedor</p>
-                    <p className={styles.threadEscola}>Suporte técnico do sistema</p>
-                  </div>
-                  {connected && <span className={styles.onlineIndicator}>● online</span>}
-                </div>
-              )}
 
               {/* Corpo das mensagens */}
               <div className={styles.threadBody} ref={bodyRef}>
@@ -300,7 +257,7 @@ export function Suporte() {
                     <div
                       key={m.msg_id}
                       className={`${styles.row} ${
-                        m.remetente === (isDev ? 'dev' : 'admin')
+                        m.remetente === 'dev'
                           ? styles.rowMine
                           : styles.rowTheirs
                       }`}
@@ -330,7 +287,7 @@ export function Suporte() {
                   disabled={!input.trim() || sending}
                   aria-label="Enviar"
                 >
-                  <Send size={18} />
+                  <IconSend size={18} />
                 </button>
               </form>
             </>

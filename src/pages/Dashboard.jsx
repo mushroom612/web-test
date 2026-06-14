@@ -36,13 +36,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Users, Car, CheckCircle, AlertCircle, TrendingUp, TrendingDown, Loader2, AlertTriangle } from 'lucide-react';
+import { IconUsers, IconCar, IconCircleCheck, IconAlertCircle, IconTrendingUp, IconTrendingDown } from '@tabler/icons-react';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ErrorBanner } from '../components/ErrorBanner';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { api } from '../services/api';
 import { FeedbackCard } from '../components/FeedbackCard';
-import styles from './Painel.module.css';
+import styles from './Dashboard.module.css';
 
 // formatSugestao: converte o registro vindo de /api/sugestoes
 // para o formato que os componentes visuais esperam.
@@ -112,10 +114,10 @@ function formatDenuncia(d) {
 // METRIC_CONFIG: define o ícone e as cores de cada card de métrica.
 // Usa índice posicional — o card 0 (Total de Usuários) usa a config [0], etc.
 const METRIC_CONFIG = [
-  { Icon: Users,        iconColor: '#3b82f6', iconBg: '#dbeafe' }, // azul
-  { Icon: Car,          iconColor: '#8b5cf6', iconBg: '#ede9fe' }, // roxo
-  { Icon: CheckCircle,  iconColor: '#22c55e', iconBg: '#dcfce7' }, // verde
-  { Icon: AlertCircle,  iconColor: '#f59e0b', iconBg: '#fef3c7' }  // amarelo
+  { Icon: IconUsers,        iconColor: '#3b82f6', iconBg: '#dbeafe' }, // azul
+  { Icon: IconCar,          iconColor: '#8b5cf6', iconBg: '#ede9fe' }, // roxo
+  { Icon: IconCircleCheck,  iconColor: '#22c55e', iconBg: '#dcfce7' }, // verde
+  { Icon: IconAlertCircle,  iconColor: '#f59e0b', iconBg: '#fef3c7' }  // amarelo
 ];
 
 // ChartTooltip: componente customizado para o tooltip do gráfico.
@@ -191,9 +193,8 @@ export function Dashboard() {
   // A separação resolve o problema do Admin: getSugestoes retorna 403
   // para per_tipo=1, pois /api/sugestoes é exclusivo do Desenvolvedor.
   // Na Fase 2, Admin usa getDenuncias e Dev usa getSugestoes.
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) { setLoading(true); setError(null); }
     try {
       // Fase 1: as 3 stats são críticas — se qualquer uma cair o
       // Dashboard não tem conteúdo útil para exibir.
@@ -267,14 +268,21 @@ export function Dashboard() {
         setChartData([]);
       }
     } catch (err) {
-      setError(err.message || 'Não foi possível carregar o Dashboard.');
+      if (!silent) setError(err.message || 'Não foi possível carregar o Dashboard.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [isAdmin]);
 
-  // useEffect: dispara o carregamento uma única vez na montagem.
   useEffect(() => { load(); }, [load]);
+
+  // Poll a cada 30s; pausa quando a aba está em segundo plano
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') load(true);
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [load]);
 
   // metricsDisplay: monta os 4 cards a partir das stats reais.
   // Quando metrics é null (loading ou erro), devolve um array vazio —
@@ -323,61 +331,24 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className={styles.dashboard}>
-        {/* styles.loadingWrap → centraliza o spinner na tela */}
-        <div className={styles.loadingWrap}>
-          {/* styles.spin → animação CSS de rotação aplicada ao ícone */}
-          <Loader2 size={32} className={styles.spin} />
-        </div>
+        <LoadingSpinner size={32} />
       </div>
     );
   }
 
-  // Tela de erro: aparece quando qualquer chamada falhou. Substitui
-  // o antigo fallback silencioso para mock — agora o usuário sabe
-  // que algo deu errado e tem um botão explícito para retentar.
+  // Tela de erro: aparece quando qualquer chamada falhou.
   if (error) {
     return (
       <div className={styles.dashboard}>
         <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>Dashboard</h1>
+          <h1 className={styles.pageTitle}>Painel</h1>
           <p className={styles.pageSubtitle}>Visão geral da plataforma Tuctuc</p>
         </div>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '48px 24px',
-            background: 'var(--surface-primary)',
-            border: '1px solid var(--color-neutral-100)',
-            borderRadius: 'var(--border-radius-lg)',
-            color: 'var(--text-secondary)',
-            textAlign: 'center'
-          }}
-        >
-          <AlertTriangle size={28} color="var(--color-semantic-error)" />
-          <p style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 600 }}>
-            Não foi possível carregar o Dashboard.
-          </p>
-          <p style={{ margin: 0, fontSize: 13 }}>{error}</p>
-          <button
-            type="button"
-            onClick={load}
-            style={{
-              marginTop: 8,
-              padding: '8px 16px',
-              border: 'none',
-              borderRadius: 'var(--border-radius-md)',
-              background: 'var(--btn-primary-bg)',
-              color: 'var(--btn-primary-text)',
-              cursor: 'pointer',
-              fontWeight: 600
-            }}
-          >
-            Tentar novamente
-          </button>
-        </div>
+        <ErrorBanner
+          error={error}
+          title="Não foi possível carregar o Dashboard."
+          onRetry={load}
+        />
       </div>
     );
   }
@@ -411,8 +382,8 @@ export function Dashboard() {
               <div className={styles.metricFooter}>
                 {/* Renderiza seta para cima ou para baixo conforme trendUp */}
                 {metric.trendUp
-                  ? <TrendingUp size={13} className={styles.trendUp} />
-                  : <TrendingDown size={13} className={styles.trendDown} />
+                  ? <IconTrendingUp size={13} className={styles.trendUp} />
+                  : <IconTrendingDown size={13} className={styles.trendDown} />
                 }
                 <span className={styles.trend}>{metric.trend}</span>
               </div>

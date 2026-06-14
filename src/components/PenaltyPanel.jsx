@@ -99,18 +99,18 @@
 
 import { useState, useCallback, useEffect } from "react";
 import {
-  Ban,
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-  Trash2,
-  Plus,
-  X,
-  ShieldAlert,
-  Clock,
-  UserX,
-  ArrowLeft,
-} from "lucide-react";
+  IconBan,
+  IconLoader2,
+  IconAlertCircle,
+  IconCircleCheck,
+  IconTrash,
+  IconPlus,
+  IconX,
+  IconShieldExclamation,
+  IconClock,
+  IconUserMinus,
+  IconArrowLeft,
+} from "@tabler/icons-react";
 import { api } from "../services/api";
 import styles from "./PenaltyPanel.module.css";
 
@@ -124,10 +124,10 @@ const TIPO_LABELS = {
 
 // TIPO_ICONS: componente de ícone para cada tipo de penalidade.
 const TIPO_ICONS = {
-  1: ShieldAlert,
-  2: ShieldAlert,
-  3: Ban,
-  4: UserX,
+  1: IconShieldExclamation,
+  2: IconShieldExclamation,
+  3: IconBan,
+  4: IconUserMinus,
 };
 
 // TIPO_SEVERITY: categoria de cor/gravidade para estilização do ícone.
@@ -358,7 +358,7 @@ export function PenaltyPanel({ user, onClose }) {
             </div>
           </div>
           <button className={styles.closeBtn} onClick={onClose}>
-            <ArrowLeft size={16} />
+            <IconArrowLeft size={16} />
             Voltar para Usuários
           </button>
         </div>
@@ -394,7 +394,7 @@ export function PenaltyPanel({ user, onClose }) {
                     setFormSuccess("");
                   }}
                 >
-                  <Plus size={16} />
+                  <IconPlus size={16} />
                   Aplicar Penalidade
                 </button>
               )}
@@ -405,7 +405,7 @@ export function PenaltyPanel({ user, onClose }) {
               <div className={styles.formCard}>
                 <div className={styles.formCardHeader}>
                   <div className={styles.sectionLabel}>
-                    <Ban size={15} />
+                    <IconBan size={15} />
                     Nova penalidade
                   </div>
                   {/* Botão X para fechar o formulário sem aplicar */}
@@ -413,7 +413,7 @@ export function PenaltyPanel({ user, onClose }) {
                     className={styles.ghostBtn}
                     onClick={() => setShowForm(false)}
                   >
-                    <X size={16} />
+                    <IconX size={16} />
                   </button>
                 </div>
 
@@ -496,7 +496,7 @@ export function PenaltyPanel({ user, onClose }) {
                   {/* Aviso especial para tipo 4 (Suspensão de conta) */}
                   {form.pen_tipo === "4" && (
                     <div className={styles.suspensionWarning}>
-                      <AlertCircle size={15} />A suspensão bloqueia o login do
+                      <IconAlertCircle size={15} />A suspensão bloqueia o login do
                       usuário e cancela todas as caronas ativas. Esta ação é
                       permanente até ser removida manualmente.
                     </div>
@@ -505,7 +505,7 @@ export function PenaltyPanel({ user, onClose }) {
                   {/* Mensagem de erro do formulário */}
                   {formError && (
                     <div className={styles.alertError}>
-                      <AlertCircle size={15} /> {formError}
+                      <IconAlertCircle size={15} /> {formError}
                     </div>
                   )}
 
@@ -518,12 +518,12 @@ export function PenaltyPanel({ user, onClose }) {
                     >
                       {formLoading ? (
                         <>
-                          <Loader2 size={15} className={styles.spin} />{" "}
+                          <IconLoader2 size={15} className={styles.spin} />{" "}
                           Aplicando...
                         </>
                       ) : (
                         <>
-                          <Ban size={15} /> Aplicar Penalidade
+                          <IconBan size={15} /> Aplicar Penalidade
                         </>
                       )}
                     </button>
@@ -542,12 +542,12 @@ export function PenaltyPanel({ user, onClose }) {
             {/* Mensagens globais de sucesso e erro de remoção */}
             {formSuccess && (
               <div className={styles.alertSuccess}>
-                <CheckCircle size={15} /> {formSuccess}
+                <IconCircleCheck size={15} /> {formSuccess}
               </div>
             )}
             {removeError && (
               <div className={styles.alertError}>
-                <AlertCircle size={15} /> {removeError}
+                <IconAlertCircle size={15} /> {removeError}
               </div>
             )}
 
@@ -573,7 +573,7 @@ export function PenaltyPanel({ user, onClose }) {
               {/* Spinner enquanto carrega a lista */}
               {listLoading && (
                 <div className={styles.loadingState}>
-                  <Loader2 size={20} className={styles.spin} />
+                  <IconLoader2 size={20} className={styles.spin} />
                   <span>Carregando penalidades...</span>
                 </div>
               )}
@@ -581,14 +581,14 @@ export function PenaltyPanel({ user, onClose }) {
               {/* Erro ao carregar a lista */}
               {listError && !listLoading && (
                 <div className={styles.alertError}>
-                  <AlertCircle size={15} /> {listError}
+                  <IconAlertCircle size={15} /> {listError}
                 </div>
               )}
 
               {/* Estado vazio: nenhuma penalidade encontrada */}
               {!listLoading && filteredPenalties.length === 0 && (
                 <div className={styles.emptyState}>
-                  <CheckCircle size={32} />
+                  <IconCircleCheck size={32} />
                   <p>
                     {filterStatus === "Ativas"
                       ? "Nenhuma penalidade ativa."
@@ -603,8 +603,8 @@ export function PenaltyPanel({ user, onClose }) {
                   const status = getPenaltyStatus(pen);
                   const active = status === "ativa";
 
-                  // ?? Ban → usa Ban como ícone padrão se o tipo não estiver no mapa
-                  const Icon = TIPO_ICONS[pen.pen_tipo] ?? Ban;
+                  // ?? IconBan → usa Ban como ícone padrão se o tipo não estiver no mapa
+                  const Icon = TIPO_ICONS[pen.pen_tipo] ?? IconBan;
                   const severity = TIPO_SEVERITY[pen.pen_tipo];
 
                   return (
@@ -646,7 +646,7 @@ export function PenaltyPanel({ user, onClose }) {
                           {/* Datas de aplicação e expiração */}
                           <div className={styles.penaltyMeta}>
                             <span>
-                              <Clock size={12} /> Aplicada em{" "}
+                              <IconClock size={12} /> Aplicada em{" "}
                               {formatDate(pen.pen_aplicado_em)}
                             </span>
                             <span>
@@ -670,9 +670,9 @@ export function PenaltyPanel({ user, onClose }) {
                           title="Remover penalidade"
                         >
                           {removeLoading === pen.pen_id ? (
-                            <Loader2 size={15} className={styles.spin} />
+                            <IconLoader2 size={15} className={styles.spin} />
                           ) : (
-                            <Trash2 size={15} />
+                            <IconTrash size={15} />
                           )}
                           Remover
                         </button>

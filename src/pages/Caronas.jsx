@@ -33,11 +33,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Car, Users, MapPin, CheckCircle, XCircle,
-  Loader2, ChevronRight, X, User, AlertTriangle
-} from 'lucide-react';
+  IconCar, IconUsers, IconMapPin, IconCircleCheck, IconCircleX,
+  IconLoader2, IconChevronRight, IconX, IconUser
+} from '@tabler/icons-react';
 import { api } from '../services/api';
 import { StatusBadge } from '../components/StatusBadge';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ErrorBanner } from '../components/ErrorBanner';
+import { EmptyState } from '../components/EmptyState';
+import { Pagination } from '../components/Pagination';
 import styles from './Caronas.module.css';
 
 // statusLabel: traduz car_status (número) → rótulo do StatusBadge.
@@ -131,10 +135,13 @@ function mergeResumo(baseRide, resumo) {
 
 // Opções de filtro disponíveis na barra de abas (rótulos da API)
 const FILTER_OPTIONS = ['Todos', 'Aberta', 'Em espera', 'Finalizada', 'Cancelada'];
+const PAGE_SIZE = 15;
 
 export function Caronas() {
   const [rides, setRides] = useState([]);
   const [stats, setStats] = useState(null);     // { total, abertas, em_espera, finalizadas, canceladas }
+  const [total, setTotal] = useState(0);        // total de caronas
+  const [page, setPage] = useState(1);          // página atual
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filterStatus, setFilterStatus] = useState('Todos'); // filtro ativo
@@ -157,12 +164,11 @@ export function Caronas() {
     try {
       const [statsResp, caronasResp] = await Promise.all([
         api.getStats('caronas'),
-        // limit generoso para abranger o histórico recente sem paginação.
-        // Quando crescer, vale migrar para infinite scroll/paginação real.
-        api.getCaronas({ limit: 50 })
+        api.getCaronas({ limit: PAGE_SIZE, page })
       ]);
       setStats(statsResp?.stats || null);
       const lista = caronasResp?.caronas || [];
+      setTotal(caronasResp?.total ?? 0);
       // Ordena do mais recente ao mais antigo antes de mapear.
       // Compara data + hora como string ISO — funciona porque o formato
       // YYYY-MM-DD garante ordenação lexicográfica correta.
@@ -177,7 +183,7 @@ export function Caronas() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -219,13 +225,6 @@ export function Caronas() {
     return () => { cancelled = true; };
   }, [selectedId, detailCache]);
 
-  // Filtra as caronas conforme o status selecionado na barra de abas.
-  // Filtro permanece client-side por enquanto — pode virar query no
-  // backend (?status=) quando a lista crescer.
-  const filteredRides = rides.filter(r =>
-    filterStatus === 'Todos' || r.status === filterStatus
-  );
-
   // selectedRide combina dados da lista + cache de detalhe.
   // Enquanto o /resumo não chega, usamos só o que veio da lista —
   // a UI mostra um indicador de carregamento nos campos faltantes.
@@ -245,21 +244,21 @@ export function Caronas() {
   function handleFilterChange(status) {
     setFilterStatus(status);
     setSelectedId(null);
+    setPage(1); // volta para página 1 ao mudar filtro
   }
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   // Tela de carregamento (boot inicial — stats + lista)
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingWrap}>
-          <Loader2 size={28} className={styles.spin} />
-        </div>
+        <LoadingSpinner size={28} />
       </div>
     );
   }
 
-  // Tela de erro: substitui o antigo fallback silencioso para mock.
-  // O usuário sabe que algo deu errado e pode retentar com 1 clique.
+  // Tela de erro: o usuário sabe que algo deu errado e pode retentar com 1 clique.
   if (error) {
     return (
       <div className={styles.container}>
@@ -269,38 +268,11 @@ export function Caronas() {
             <p className={styles.subtitle}>Gerencie todas as caronas da plataforma</p>
           </div>
         </div>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 12,
-            padding: '48px 24px',
-            background: 'var(--surface-primary)',
-            border: '1px solid var(--color-neutral-100)',
-            borderRadius: 'var(--border-radius-lg)',
-            color: 'var(--text-secondary)',
-            textAlign: 'center'
-          }}
-        >
-          <AlertTriangle size={28} color="var(--color-semantic-error)" />
-          <p style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 600 }}>
-            Não foi possível carregar as caronas.
-          </p>
-          <p style={{ margin: 0, fontSize: 13 }}>{error}</p>
-          <button
-            type="button"
-            onClick={load}
-            style={{
-              marginTop: 8, padding: '8px 16px', border: 'none',
-              borderRadius: 'var(--border-radius-md)',
-              background: 'var(--btn-primary-bg)', color: 'var(--btn-primary-text)',
-              cursor: 'pointer', fontWeight: 600
-            }}
-          >
-            Tentar novamente
-          </button>
-        </div>
+        <ErrorBanner
+          error={error}
+          title="Não foi possível carregar as caronas."
+          onRetry={load}
+        />
       </div>
     );
   }
@@ -325,28 +297,28 @@ export function Caronas() {
       {/* Cards de resumo com totais por status (vindos de /api/admin/stats/caronas) */}
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
-          <Car size={16} className={styles.statIconBlue} />
+          <IconCar size={16} className={styles.statIconBlue} />
           <div>
             <p className={styles.statValue}>{totalGeral}</p>
             <p className={styles.statLabel}>Total</p>
           </div>
         </div>
         <div className={styles.statCard}>
-          <CheckCircle size={16} className={styles.statIconGreen} />
+          <IconCircleCheck size={16} className={styles.statIconGreen} />
           <div>
             <p className={styles.statValue}>{totalAtivas}</p>
             <p className={styles.statLabel}>Ativas</p>
           </div>
         </div>
         <div className={styles.statCard}>
-          <CheckCircle size={16} className={styles.statIconBlue} />
+          <IconCircleCheck size={16} className={styles.statIconBlue} />
           <div>
             <p className={styles.statValue}>{totalFinalizadas}</p>
             <p className={styles.statLabel}>Finalizadas</p>
           </div>
         </div>
         <div className={styles.statCard}>
-          <XCircle size={16} className={styles.statIconRed} />
+          <IconCircleX size={16} className={styles.statIconRed} />
           <div>
             <p className={styles.statValue}>{totalCanceladas}</p>
             <p className={styles.statLabel}>Canceladas</p>
@@ -374,14 +346,11 @@ export function Caronas() {
 
         {/* Painel esquerdo: lista de cards de caronas */}
         <div className={styles.listPanel}>
-          {filteredRides.length === 0 && (
-            <div className={styles.emptyState}>
-              <Car size={32} />
-              <p>Nenhuma carona encontrada.</p>
-            </div>
+          {rides.length === 0 && (
+            <EmptyState icon={IconCar} title="Nenhuma carona encontrada." />
           )}
 
-          {filteredRides.map(ride => {
+          {rides.map(ride => {
             const isSelected = selectedId === ride.id;
             return (
               <div
@@ -397,7 +366,7 @@ export function Caronas() {
                   </div>
                   <div className={styles.listCardRight}>
                     <StatusBadge status={ride.status} />
-                    <ChevronRight size={14} className={styles.chevron} />
+                    <IconChevronRight size={14} className={styles.chevron} />
                   </div>
                 </div>
                 {/* A lista da API não traz origem/destino — só aparece no
@@ -405,7 +374,7 @@ export function Caronas() {
                     indicar que existe informação adicional ali. */}
                 <div className={styles.listCardFooter}>
                   <span className={styles.vagasPill}>
-                    <Users size={11} />
+                    <IconUsers size={11} />
                     {ride.vagasDisponiveis} vaga{ride.vagasDisponiveis !== 1 ? 's' : ''}
                   </span>
                   {ride.vehicle && (
@@ -417,6 +386,19 @@ export function Caronas() {
               </div>
             );
           })}
+
+          {/* Paginação */}
+          {rides.length > 0 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              itemLabel="carona"
+              onPrevious={() => setPage(p => Math.max(1, p - 1))}
+              onNext={() => setPage(p => Math.min(totalPages, p + 1))}
+              compact
+            />
+          )}
         </div>
 
         {/* Painel direito: detalhe da carona selecionada. Só renderiza
@@ -430,7 +412,7 @@ export function Caronas() {
                 <span className={styles.detailDate}>{selectedRide.date}</span>
               </div>
               <button className={styles.closeDetailBtn} onClick={handleCloseDetail} title="Fechar">
-                <X size={16} />
+                <IconX size={16} />
               </button>
             </div>
 
@@ -440,7 +422,7 @@ export function Caronas() {
               <div>
                 <p className={styles.detailSenderName}>{selectedRide.driverName}</p>
                 <p className={styles.detailSenderSub}>
-                  <User size={11} /> Motorista #{selectedRide.driverId}
+                  <IconUser size={11} /> Motorista #{selectedRide.driverId}
                 </p>
               </div>
             </div>
@@ -460,18 +442,18 @@ export function Caronas() {
               <p className={styles.detailSectionLabel}>Rota</p>
               {detailLoading && !selectedRide.origin ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
-                  <Loader2 size={14} className={styles.spin} />
+                  <IconLoader2 size={14} className={styles.spin} />
                   <span style={{ fontSize: 13 }}>Carregando rota...</span>
                 </div>
               ) : (
                 <div className={styles.routeDetail}>
                   <div className={styles.routeDetailRow}>
-                    <MapPin size={14} className={styles.routeIconOrigin} />
+                    <IconMapPin size={14} className={styles.routeIconOrigin} />
                     <span>{selectedRide.origin || '—'}</span>
                   </div>
                   <div className={styles.routeDetailConnector} />
                   <div className={styles.routeDetailRow}>
-                    <MapPin size={14} className={styles.routeIconDest} />
+                    <IconMapPin size={14} className={styles.routeIconDest} />
                     <span>{selectedRide.destination || '—'}</span>
                   </div>
                 </div>
@@ -508,7 +490,7 @@ export function Caronas() {
               <div className={styles.detailSection}>
                 <p className={styles.detailSectionLabel}>Passageiros</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
-                  <Loader2 size={14} className={styles.spin} />
+                  <IconLoader2 size={14} className={styles.spin} />
                   <span style={{ fontSize: 13 }}>Carregando passageiros...</span>
                 </div>
               </div>

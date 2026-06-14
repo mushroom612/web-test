@@ -72,11 +72,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import {
-  Send, MessageSquare, Archive, Trash2,
-  Loader2, AlertTriangle, CheckCircle, Clock,
-  Flag, ShieldAlert, User, ChevronRight, X,
-  CornerDownRight, Info, Car
-} from 'lucide-react';
+  IconSend, IconMessage, IconArchive, IconTrash,
+  IconLoader2, IconAlertTriangle, IconCircleCheck, IconClock,
+  IconFlag, IconShieldExclamation, IconUser, IconChevronRight, IconX,
+  IconCornerDownRight, IconInfoCircle, IconCar
+} from '@tabler/icons-react';
 import { PenaltyPanel } from '../components/PenaltyPanel';
 import styles from './Sugestoes.module.css';
 
@@ -176,9 +176,9 @@ const STATUS_OPTIONS = ['Pendente', 'Em análise', 'Resolvido'];
 
 // STATUS_ICONS: mapeia cada status para seu ícone correspondente
 const STATUS_ICONS = {
-  'Pendente':   Clock,
-  'Em análise': Info,
-  'Resolvido':  CheckCircle
+  'Pendente':   IconClock,
+  'Em análise': IconInfoCircle,
+  'Resolvido':  IconCircleCheck
 };
 
 export function Sugestoes() {
@@ -228,9 +228,8 @@ export function Sugestoes() {
   // Após o fetch, pré-popula archivedIds com itens que já vieram
   // com status 2 (Arquivado) da API — para que o filtro "Arquivados"
   // mostre o estado real do banco, não apenas o da sessão atual.
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) { setLoading(true); setError(null); }
     try {
       const fetchTudo = isAdmin
         ? api.getDenuncias()
@@ -242,17 +241,26 @@ export function Sugestoes() {
 
       const lista = await fetchTudo;
       setItems(lista);
-      // Pré-popula archivedIds com itens já arquivados no banco
-      setArchivedIds(new Set(lista.filter(i => i.archived).map(i => i.id)));
+      const fromServer = new Set(lista.filter(i => i.archived).map(i => i.id));
+      // Silent: mescla com archivedIds locais para preservar ações do usuário
+      if (silent) setArchivedIds(prev => new Set([...prev, ...fromServer]));
+      else setArchivedIds(fromServer);
     } catch (err) {
-      setError(err.message || 'Não foi possível carregar os dados.');
+      if (!silent) setError(err.message || 'Não foi possível carregar os dados.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [isAdmin]);
 
-  // useEffect: dispara o carregamento na montagem e quando o papel muda
   useEffect(() => { load(); }, [load]);
+
+  // Poll a cada 30s; pausa quando a aba está em segundo plano
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') load(true);
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [load]);
 
   // Auto-seleciona o item quando a URL contém ?id=sug-N ou ?id=den-N
   // (navegado a partir do Dashboard).
@@ -383,6 +391,18 @@ export function Sugestoes() {
     if (selectedId === id) handleCloseDetail();
   }
 
+  // handleUnarchive: restaura um item arquivado para Aberto (status 1).
+  async function handleUnarchive(id) {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    try {
+      if (item._tipo === 'denuncia') await api.desarquivarDenuncia(item._id);
+      else await api.desarquivarSugestao(item._id);
+    } catch { /* mantém update otimista */ }
+    setArchivedIds(prev => { const s = new Set(prev); s.delete(id); return s; });
+    setStatusMap(prev => ({ ...prev, [id]: 'Pendente' }));
+  }
+
   // handleDelete: exclui o item permanentemente via soft delete da API.
   // Exclusivo para Desenvolvedor (per_tipo=2) — o botão só é renderizado
   // quando isDev for true.
@@ -431,7 +451,7 @@ export function Sugestoes() {
       <div className={styles.container}>
         {/* styles.loadingWrap → centraliza o spinner na tela */}
         <div className={styles.loadingWrap}>
-          <Loader2 size={28} className={styles.spin} />
+          <IconLoader2 size={28} className={styles.spin} />
         </div>
       </div>
     );
@@ -460,7 +480,7 @@ export function Sugestoes() {
             textAlign: 'center'
           }}
         >
-          <AlertTriangle size={28} color="var(--color-semantic-error)" />
+          <IconAlertTriangle size={28} color="var(--color-semantic-error)" />
           <p style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 600 }}>
             Não foi possível carregar os dados.
           </p>
@@ -505,7 +525,7 @@ export function Sugestoes() {
       <div className={styles.statsRow}>
         {!isAdmin && (
           <div className={styles.statCard}>
-            <MessageSquare size={16} className={styles.statIconBlue} />
+            <IconMessage size={16} className={styles.statIconBlue} />
             <div>
               <p className={styles.statValue}>{activeItems.filter(i => i.type === 'Sugestão').length}</p>
               <p className={styles.statLabel}>Sugestões</p>
@@ -513,14 +533,14 @@ export function Sugestoes() {
           </div>
         )}
         <div className={styles.statCard}>
-          <AlertTriangle size={16} className={styles.statIconRed} />
+          <IconAlertTriangle size={16} className={styles.statIconRed} />
           <div>
             <p className={styles.statValue}>{activeItems.filter(i => i.type === 'Denúncia').length}</p>
             <p className={styles.statLabel}>Denúncias</p>
           </div>
         </div>
         <div className={styles.statCard}>
-          <Clock size={16} className={styles.statIconYellow} />
+          <IconClock size={16} className={styles.statIconYellow} />
           <div>
             {/* statusMap[i.id] ?? i.status → usa o status local se existir */}
             <p className={styles.statValue}>{activeItems.filter(i => (statusMap[i.id] ?? i.status) === 'Pendente').length}</p>
@@ -528,7 +548,7 @@ export function Sugestoes() {
           </div>
         </div>
         <div className={styles.statCard}>
-          <CheckCircle size={16} className={styles.statIconGreen} />
+          <IconCircleCheck size={16} className={styles.statIconGreen} />
           <div>
             <p className={styles.statValue}>{activeItems.filter(i => (statusMap[i.id] ?? i.status) === 'Resolvido').length}</p>
             <p className={styles.statLabel}>Resolvidos</p>
@@ -544,8 +564,8 @@ export function Sugestoes() {
             className={`${styles.filterBtn} ${filterType === type ? styles.active : ''}`}
             onClick={() => handleFilterChange(type)}
           >
-            {type === 'Denúncia' && <AlertTriangle size={13} />}
-            {type === 'Sugestão' && <MessageSquare size={13} />}
+            {type === 'Denúncia' && <IconAlertTriangle size={13} />}
+            {type === 'Sugestão' && <IconMessage size={13} />}
             {type}
           </button>
         ))}
@@ -555,8 +575,8 @@ export function Sugestoes() {
           className={`${styles.filterBtn} ${isArchiveView ? styles.active : ''}`}
           onClick={() => handleFilterChange('Arquivados')}
         >
-          <Archive size={13} />
-          Arquivados ({archivedIds.size})
+          <IconArchive size={13} />
+          Arquivados
         </button>
       </div>
 
@@ -567,7 +587,7 @@ export function Sugestoes() {
         <div className={styles.listPanel}>
           {isArchiveView && (
             <div className={styles.archiveBanner}>
-              <Archive size={13} />
+              <IconArchive size={13} />
               Itens arquivados ficam ocultos da lista principal.
             </div>
           )}
@@ -575,8 +595,8 @@ export function Sugestoes() {
           {filteredItems.length === 0 && (
             <div className={styles.emptyState}>
               {isArchiveView
-                ? <><Archive size={32} /><p>Nenhum item arquivado.</p></>
-                : <><MessageSquare size={32} /><p>Nenhuma entrada encontrada.</p></>}
+                ? <><IconArchive size={32} /><p>Nenhum item arquivado.</p></>
+                : <><IconMessage size={32} /><p>Nenhuma entrada encontrada.</p></>}
             </div>
           )}
 
@@ -585,7 +605,7 @@ export function Sugestoes() {
             const isArchived    = archivedIds.has(item.id);
             const currentStatus = statusMap[item.id] ?? item.status;
             const isDenuncia    = item.type === 'Denúncia';
-            const StatusIcon    = STATUS_ICONS[currentStatus] ?? Clock;
+            const StatusIcon    = STATUS_ICONS[currentStatus] ?? IconClock;
 
             return (
               <div
@@ -609,10 +629,10 @@ export function Sugestoes() {
                   </div>
                   <div className={styles.listCardRight}>
                     <span className={`${styles.typeBadge} ${isDenuncia ? styles.typeDenuncia : styles.typeSugestao}`}>
-                      {isDenuncia ? <AlertTriangle size={10} /> : <MessageSquare size={10} />}
+                      {isDenuncia ? <IconAlertTriangle size={10} /> : <IconMessage size={10} />}
                       {item.type}
                     </span>
-                    <ChevronRight size={14} className={styles.chevron} />
+                    <IconChevronRight size={14} className={styles.chevron} />
                   </div>
                 </div>
                 {/* Na lista exibe o motivo (denúncia) ou o texto (sugestão) */}
@@ -631,14 +651,14 @@ export function Sugestoes() {
                       {/* urgentTag: só aparece em denúncias não resolvidas */}
                       {isDenuncia && currentStatus !== 'Resolvido' && (
                         <span className={styles.urgentTag}>
-                          <Flag size={10} />
+                          <IconFlag size={10} />
                           Requer atenção
                         </span>
                       )}
                       {/* repliedTag: aparece quando o admin já respondeu */}
                       {item.response && (
                         <span className={styles.repliedTag}>
-                          <CornerDownRight size={10} />
+                          <IconCornerDownRight size={10} />
                           Respondido
                         </span>
                       )}
@@ -656,7 +676,7 @@ export function Sugestoes() {
         {selectedItem && (() => {
           const isArchived = archivedIds.has(selectedItem.id);
           const isDenuncia = selectedItem.type === 'Denúncia';
-          const StatusIcon = STATUS_ICONS[selectedStatus] ?? Clock;
+          const StatusIcon = STATUS_ICONS[selectedStatus] ?? IconClock;
 
           return (
             <div className={styles.detailPanel}>
@@ -664,13 +684,13 @@ export function Sugestoes() {
               <div className={styles.detailHeader}>
                 <div className={styles.detailHeaderLeft}>
                   <span className={`${styles.typeBadge} ${isDenuncia ? styles.typeDenuncia : styles.typeSugestao}`}>
-                    {isDenuncia ? <AlertTriangle size={11} /> : <MessageSquare size={11} />}
+                    {isDenuncia ? <IconAlertTriangle size={11} /> : <IconMessage size={11} />}
                     {selectedItem.type}
                   </span>
                   <span className={styles.detailDate}>{selectedItem.date}</span>
                 </div>
                 <button className={styles.closeDetailBtn} onClick={handleCloseDetail} title="Fechar">
-                  <X size={16} />
+                  <IconX size={16} />
                 </button>
               </div>
 
@@ -684,7 +704,7 @@ export function Sugestoes() {
                   {/* userId pode ser null em sugestões (API não retorna usu_id na lista) */}
                   {selectedItem.userId && (
                     <p className={styles.detailSenderSub}>
-                      <User size={11} /> Usuário #{selectedItem.userId}
+                      <IconUser size={11} /> Usuário #{selectedItem.userId}
                     </p>
                   )}
                 </div>
@@ -718,7 +738,7 @@ export function Sugestoes() {
               {isDenuncia && (
                 <div className={styles.denunciaContext}>
                   <div className={styles.denunciaContextHeader}>
-                    <AlertTriangle size={13} />
+                    <IconAlertTriangle size={13} />
                     Contexto da denúncia
                   </div>
                   {/* Exibe o nome do usuário denunciado quando disponível (den_tipo=1) */}
@@ -736,7 +756,7 @@ export function Sugestoes() {
                     {!isArchived && (
                       // Abre o PenaltyPanel para aplicar penalidade ao usuário alvo
                       <button className={styles.penalizeBtn} onClick={handlePenalizeFromComplaint}>
-                        <ShieldAlert size={14} />
+                        <IconShieldExclamation size={14} />
                         Aplicar penalidade ao usuário relatado
                       </button>
                     )}
@@ -746,7 +766,7 @@ export function Sugestoes() {
                         className={styles.viewRideBtn}
                         onClick={() => navigate(`/caronas?id=${selectedItem.caronaId}`)}
                       >
-                        <Car size={14} />
+                        <IconCar size={14} />
                         Ver carona relacionada
                       </button>
                     )}
@@ -759,7 +779,7 @@ export function Sugestoes() {
                 <p className={styles.detailSectionLabel}>Status</p>
                 <div className={styles.statusRow}>
                   {STATUS_OPTIONS.map(s => {
-                    const Icon = STATUS_ICONS[s] ?? Clock;
+                    const Icon = STATUS_ICONS[s] ?? IconClock;
                     return (
                       <button
                         key={s}
@@ -811,8 +831,8 @@ export function Sugestoes() {
                       disabled={!responseText.trim() || sending}
                     >
                       {sending
-                        ? <><Loader2 size={13} className={styles.spin} /> Enviando...</>
-                        : <><Send size={13} /> Enviar resposta</>}
+                        ? <><IconLoader2 size={13} className={styles.spin} /> Enviando...</>
+                        : <><IconSend size={13} /> Enviar resposta</>}
                     </button>
                   </div>
                 </div>
@@ -823,8 +843,15 @@ export function Sugestoes() {
                 {/* Arquivar só aparece para itens ainda não arquivados */}
                 {!isArchived && (
                   <button className={styles.archiveBtn} onClick={() => handleArchive(selectedItem.id)}>
-                    <Archive size={13} />
+                    <IconArchive size={13} />
                     Arquivar
+                  </button>
+                )}
+                {/* Desarquivar só aparece para itens arquivados */}
+                {isArchived && (
+                  <button className={styles.unarchiveBtn} onClick={() => handleUnarchive(selectedItem.id)}>
+                    <IconArchive size={13} />
+                    Restaurar
                   </button>
                 )}
                 {/* Excluir permanentemente: exclusivo para Desenvolvedor.
@@ -832,7 +859,7 @@ export function Sugestoes() {
                     deletado e não aparece mais em nenhuma listagem. */}
                 {isDev && (
                   <button className={styles.deleteBtn} onClick={() => handleDelete(selectedItem.id)}>
-                    <Trash2 size={13} />
+                    <IconTrash size={13} />
                     Excluir
                   </button>
                 )}

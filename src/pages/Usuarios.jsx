@@ -34,14 +34,17 @@
 //     .noResults       → mensagem quando nenhum usuário é encontrado
 // ============================================================
 
-import { useState, useEffect } from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { IconSearch } from '@tabler/icons-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { StatusBadge } from '../components/StatusBadge';
 import { PenaltyPanel } from '../components/PenaltyPanel';
 import { UserProfilePanel } from '../components/UserProfilePanel';
 import { UserActionsMenu } from '../components/UserActionsMenu';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ErrorBanner } from '../components/ErrorBanner';
+import { Pagination } from '../components/Pagination';
 import styles from './Usuarios.module.css';
 
 // UserAvatar: avatar de linha da tabela.
@@ -95,6 +98,8 @@ function perTipoLabel(per_tipo) {
   return 'Usuário';
 }
 
+const PAGE_SIZE = 10;
+
 export function Usuarios() {
   // isDev: usado para controlar quais ações de status são visíveis.
   // Admin (per_tipo=1) não pode desativar usuários comuns (per_tipo=0).
@@ -102,7 +107,9 @@ export function Usuarios() {
 
   // Estados de controle da interface:
   const [searchTerm, setSearchTerm] = useState('');       // texto digitado na busca
-  const [users, setUsers] = useState([]);                  // lista de usuários carregada da API
+  const [page, setPage] = useState(1);                     // página atual
+  const [users, setUsers] = useState([]);                  // lista de usuários da página atual
+  const [total, setTotal] = useState(0);                   // total de usuários
   const [loading, setLoading] = useState(true);            // spinner de carregamento
   const [error, setError] = useState('');                  // mensagem de erro do fetch inicial
 
@@ -114,23 +121,31 @@ export function Usuarios() {
   // mode: 'view' = só visualizar | 'edit' = modo de edição
   const [profilePanel, setProfilePanel] = useState(null);
 
-  // useEffect: carrega os usuários da API ao montar o componente.
-  useEffect(() => {
-    api
-      .getUsers({ limit: 100 })
-      .then((data) => setUsers(data.usuarios || []))
-      .catch((err) => setError(err.message || 'Não foi possível carregar os usuários.'))
-      .finally(() => setLoading(false));
-  }, []);
+  const loadUsers = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const data = await api.getUsers({ limit: PAGE_SIZE, page });
+      setUsers(data.usuarios || []);
+      setTotal(data.total ?? 0);
+    } catch (err) {
+      if (!silent) setError(err.message || 'Não foi possível carregar os usuários.');
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [page]);
 
-  // filtered: versão filtrada da lista de usuários conforme o searchTerm.
-  // A busca é case-insensitive (toLowerCase normaliza maiúsculas).
-  const filtered = users.filter((u) => {
-    const nome = (u.usu_nome || '').toLowerCase();
-    const email = (u.usu_email || '').toLowerCase();
-    const q = searchTerm.toLowerCase();
-    return nome.includes(q) || email.includes(q);
-  });
+  useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  // Poll a cada 60s; pausa quando a aba está em segundo plano
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') loadUsers(true);
+    }, 60_000);
+    return () => clearInterval(id);
+  }, [loadUsers]);
+
+  // totalPages: número total de páginas para paginação
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   // Handlers: funções que respondem a ações do usuário.
 
@@ -161,7 +176,8 @@ export function Usuarios() {
   const handleToggleStatus = async (user) => {
     const novoStatus = user.usu_status === 1 ? 0 : 1;
     const acao = novoStatus === 0 ? 'desativar' : 'reativar';
-    if (!window.confirm(`Tem certeza que deseja ${acao} ${user.usu_nome}?`)) return;
+    const nome = user.usu_nome || user.usu_email || `usuário #${user.usu_id}`;
+    if (!window.confirm(`Tem certeza que deseja ${acao} ${nome}?`)) return;
     try {
       await api.updateUserStatus(user.usu_id, novoStatus);
       setUsers((prev) =>
@@ -170,7 +186,8 @@ export function Usuarios() {
         )
       );
     } catch (err) {
-      alert(`Erro ao ${acao} usuário: ${err.message}`);
+      const msg = err?.body?.error || err?.body?.message || `Não foi possível ${acao} o usuário.`;
+      alert(msg);
     }
   };
 
@@ -187,7 +204,7 @@ export function Usuarios() {
       {/* Barra de busca */}
       <div className={styles.actionBar}>
         <div className={styles.searchBox}>
-          <Search size={18} />
+          <IconSearch size={18} />
           <input
             type="text"
             placeholder="Buscar por nome ou e-mail..."
@@ -199,100 +216,97 @@ export function Usuarios() {
       </div>
 
       {/* Spinner: aparece apenas enquanto loading for true */}
-      {loading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
-          <Loader2 size={28} style={{ animation: 'spin 1s linear infinite' }} />
-        </div>
-      )}
+      {loading && <LoadingSpinner size={28} />}
 
       {/* Banner de erro: exibe quando o fetch inicial falha */}
-      {!loading && error && (
-        <div style={{
-          padding: '12px 16px',
-          background: 'var(--color-red-50, #fef2f2)',
-          border: '1px solid var(--color-red-200, #fecaca)',
-          borderRadius: 'var(--border-radius-md)',
-          color: 'var(--color-semantic-error, #dc2626)',
-          fontSize: 14
-        }}>
-          {error}
-        </div>
-      )}
+      {!loading && error && <ErrorBanner error={error} />}
 
       {/* Tabela de usuários: só aparece quando o carregamento termina */}
       {!loading && (
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                {/* Cada th tem uma classe própria para controlar a largura */}
-                <th className={styles.colName}>Nome</th>
-                <th className={styles.colType}>Tipo</th>
-                <th className={styles.colSchool}>Escola</th>
-                <th className={styles.colCourse}>Curso</th>
-                <th className={styles.colStatus}>Status</th>
-                <th className={styles.colActions}>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((user, index) => (
-                // index % 2 === 0 → aplica fundo diferente nas linhas pares
-                // criando o efeito zebrado da tabela
-                <tr
-                  key={user.usu_id}
-                  className={index % 2 === 0 ? styles.rowEven : ''}
-                >
-                  {/* Célula de nome: avatar circular + nome + e-mail */}
-                  <td className={styles.cellName}>
-                    <div className={styles.userCell}>
-                      <UserAvatar
-                        src={user.usu_foto}
-                        name={user.usu_nome}
-                        className={styles.avatar}
-                      />
-                      <div className={styles.userDetails}>
-                        <p className={styles.userName}>{user.usu_nome}</p>
-                        <span className={styles.userEmail}>{user.usu_email}</span>
-                      </div>
-                    </div>
-                  </td>
-                  {/* per_tipo vem do endpoint /api/admin/usuarios */}
-                  <td className={styles.cellType}>
-                    <span className={styles.typeLabel}>{perTipoLabel(user.per_tipo)}</span>
-                  </td>
-                  {/* esc_nome / cur_nome: campos retornados pelo endpoint de lista admin */}
-                  <td className={styles.cellSchool}>
-                    <span className={styles.schoolLabel}>{user.esc_nome ?? '—'}</span>
-                  </td>
-                  <td className={styles.cellCourse}>
-                    <span className={styles.courseLabel}>{user.cur_nome ?? '—'}</span>
-                  </td>
-                  {/* StatusBadge: componente reutilizável de badge colorido */}
-                  <td className={styles.cellStatus}>
-                    <StatusBadge status={statusLabel(user.usu_status)} />
-                  </td>
-                  {/* UserActionsMenu: menu ⋮ com as opções da linha.
-                      onToggleStatus → ativa/desativa via PATCH /api/admin/usuarios/:id/status */}
-                  <td className={styles.cellActions}>
-                    <UserActionsMenu
-                      user={user}
-                      onEdit={handleEditUser}
-                      onPenalize={handlePenaltyClick}
-                      onView={handleViewUser}
-                      // Admin só pode alterar status de outros admins (per_tipo=1),
-                      // não de usuários comuns. Dev pode alterar qualquer um.
-                      onToggleStatus={isDev || user.per_tipo === 1 ? handleToggleStatus : undefined}
-                    />
-                  </td>
+        <>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  {/* Cada th tem uma classe própria para controlar a largura */}
+                  <th className={styles.colName}>Nome</th>
+                  <th className={styles.colType}>Tipo</th>
+                  <th className={styles.colSchool}>Escola</th>
+                  <th className={styles.colCourse}>Curso</th>
+                  <th className={styles.colStatus}>Status</th>
+                  <th className={styles.colActions}>Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {users.map((user, index) => (
+                  // index % 2 === 0 → aplica fundo diferente nas linhas pares
+                  // criando o efeito zebrado da tabela
+                  <tr
+                    key={user.usu_id}
+                    className={index % 2 === 0 ? styles.rowEven : ''}
+                  >
+                    {/* Célula de nome: avatar circular + nome + e-mail */}
+                    <td className={styles.cellName}>
+                      <div className={styles.userCell}>
+                        <UserAvatar
+                          src={user.usu_foto}
+                          name={user.usu_nome}
+                          className={styles.avatar}
+                        />
+                        <div className={styles.userDetails}>
+                          <p className={styles.userName}>{user.usu_nome}</p>
+                          <span className={styles.userEmail}>{user.usu_email}</span>
+                        </div>
+                      </div>
+                    </td>
+                    {/* per_tipo vem do endpoint /api/admin/usuarios */}
+                    <td className={styles.cellType}>
+                      <span className={styles.typeLabel}>{perTipoLabel(user.per_tipo)}</span>
+                    </td>
+                    {/* esc_nome / cur_nome: campos retornados pelo endpoint de lista admin */}
+                    <td className={styles.cellSchool}>
+                      <span className={styles.schoolLabel}>{user.esc_nome ?? '—'}</span>
+                    </td>
+                    <td className={styles.cellCourse}>
+                      <span className={styles.courseLabel}>{user.cur_nome ?? '—'}</span>
+                    </td>
+                    {/* StatusBadge: componente reutilizável de badge colorido */}
+                    <td className={styles.cellStatus}>
+                      <StatusBadge status={statusLabel(user.usu_status)} />
+                    </td>
+                    {/* UserActionsMenu: menu ⋮ com as opções da linha.
+                        onToggleStatus → ativa/desativa via PATCH /api/admin/usuarios/:id/status */}
+                    <td className={styles.cellActions}>
+                      <UserActionsMenu
+                        user={user}
+                        onEdit={handleEditUser}
+                        onPenalize={handlePenaltyClick}
+                        onView={handleViewUser}
+                        // Admin só pode alterar status de outros admins (per_tipo=1),
+                        // não de usuários comuns. Dev pode alterar qualquer um.
+                        onToggleStatus={isDev || user.per_tipo === 1 ? handleToggleStatus : undefined}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Paginação */}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            itemLabel="usuário"
+            onPrevious={() => setPage(p => Math.max(1, p - 1))}
+            onNext={() => setPage(p => Math.min(totalPages, p + 1))}
+          />
+        </>
       )}
 
       {/* Mensagem de lista vazia */}
-      {!loading && filtered.length === 0 && (
+      {!loading && users.length === 0 && (
         <div className={styles.noResults}>
           <p>Nenhum usuário encontrado.</p>
         </div>
