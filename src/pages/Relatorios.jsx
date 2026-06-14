@@ -25,19 +25,104 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Download, Users, Car, AlertCircle, BarChart2,
-  Loader2, FileText, Filter, Lock
-} from 'lucide-react';
+  IconDownload, IconUsers, IconCar, IconAlertCircle, IconChartBar,
+  IconLoader2, IconFileText, IconFilter, IconLock, IconFilePlus
+} from '@tabler/icons-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import styles from './Relatorios.module.css';
 
+// HEADER_LABELS: traduz nomes de coluna do banco para português legível.
+// Nunca expõe nomenclatura técnica no PDF.
+const HEADER_LABELS = {
+  // Caronas
+  car_data:         'Data',
+  car_hor_saida:    'Horário',
+  car_hora_saida:   'Horário',
+  car_hora:         'Horário',
+  car_status:       'Status',
+  car_desc:         'Descrição',
+  car_vagas:        'Vagas',
+  car_vagas_dispo:  'Vagas Disponíveis',
+  car_valor:        'Valor (R$)',
+  // Motorista
+  motorista:        'Motorista',
+  motorista_email:  'E-mail do Motorista',
+  // Localização
+  origem:           'Origem',
+  destino:          'Destino',
+  car_origem:       'Origem',
+  car_destino:      'Destino',
+  pon_origem:       'Origem',
+  pon_destino:      'Destino',
+  ponto_partida:    'Origem',
+  ponto_chegada:    'Destino',
+  local_origem:     'Origem',
+  local_destino:    'Destino',
+  // Veículo
+  vei_placa:        'Placa',
+  vei_marca_modelo: 'Veículo',
+  vei_tipo:         'Tipo de Veículo',
+  // Usuário
+  usu_nome:         'Nome',
+  usu_email:        'E-mail',
+  usu_status:       'Status',
+  per_tipo:         'Perfil',
+  // Instituição / Curso
+  esc_nome:         'Instituição',
+  cur_nome:         'Curso',
+  // Penalidades
+  pen_tipo:         'Tipo de Penalidade',
+  pen_descricao:    'Descrição',
+  pen_data:         'Data',
+  pen_status:       'Status',
+  pen_expira_em:    'Expira em',
+  // Genéricos
+  data:             'Data',
+  status:           'Status',
+  nome:             'Nome',
+  email:            'E-mail',
+  descricao:        'Descrição',
+  tipo:             'Tipo',
+  valor:            'Valor',
+  total:            'Total',
+};
+
+// HIDDEN_COLUMNS: IDs internos que nunca devem aparecer no PDF.
+const HIDDEN_COLUMNS = new Set([
+  'car_id', 'usu_id', 'esc_id', 'cur_id', 'pen_id',
+  'den_id', 'sug_id', 'per_id', 'vei_id', 'motorista_id', 'id',
+]);
+
+// CARONAS_COLUMN_ORDER: ordem preferida de colunas no PDF de caronas.
+// Colunas não listadas aqui ficam no final, na ordem original do CSV.
+const CARONAS_COLUMN_ORDER = [
+  'motorista', 'usu_nome', 'motorista_email', 'usu_email',
+  'car_data', 'car_hor_saida', 'car_hora_saida', 'car_hora',
+  'car_status', 'status',
+  'origem', 'car_origem', 'pon_origem', 'ponto_partida', 'local_origem',
+  'destino', 'car_destino', 'pon_destino', 'ponto_chegada', 'local_destino',
+  'vei_placa', 'vei_marca_modelo', 'car_vagas_dispo', 'car_vagas',
+  'esc_nome', 'car_desc',
+];
+
+// translateHeader: converte nome técnico de coluna para rótulo legível.
+// Se não estiver no mapa, limpa o nome (retira prefixo tipo "xxx_",
+// substitui _ por espaço, capitaliza) sem nunca mostrar o campo bruto.
+function translateHeader(raw) {
+  const key = raw.trim().toLowerCase();
+  if (HEADER_LABELS[key]) return HEADER_LABELS[key];
+  // Fallback: remove prefixo de 3 letras + underscore (ex: "car_", "usu_")
+  const cleaned = key.replace(/^[a-z]{2,4}_/, '').replace(/_/g, ' ');
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
 // iconMap: associa o nome do ícone (string) ao componente JSX
 const iconMap = {
-  Users:        <Users size={22} />,
-  Car:          <Car size={22} />,
-  AlertCircle:  <AlertCircle size={22} />,
-  BarChart2:    <BarChart2 size={22} />
+  Users:        <IconUsers size={22} />,
+  Car:          <IconCar size={22} />,
+  AlertCircle:  <IconAlertCircle size={22} />,
+  BarChart2:    <IconChartBar size={22} />
 };
 
 // REPORT_CARDS: definição estática dos 4 tipos de relatório.
@@ -119,7 +204,7 @@ function downloadCSV(csvText, filename) {
 
 
 export function Relatorios() {
-  const { isAdmin, isDev } = useAuth();
+  const { isAdmin, isDev, user } = useAuth();
 
   // stats: estatísticas das 3 categorias para exibir nos cards
   const [stats, setStats]     = useState(null);
@@ -353,6 +438,214 @@ export function Relatorios() {
     }
   }
 
+  // handleGeneratePDF: gera PDF com jsPDF + autoTable.
+  // Todos os cabeçalhos passam pelo translateHeader() — nenhum nome
+  // de coluna do banco aparece no documento final.
+  async function handleGeneratePDF(report) {
+    const pdfKey = `${report.id}-pdf`;
+    setGenerating(prev => new Set(prev).add(pdfKey));
+    try {
+      const hoje = new Date();
+      const hojeStr      = hoje.toISOString().slice(0, 10);
+      const hojeFormatado = hoje.toLocaleDateString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+
+      const { jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pageW = doc.internal.pageSize.getWidth();
+
+      // ── Cabeçalho verde ──────────────────────────────────────────
+      doc.setFillColor(22, 163, 74);
+      doc.rect(0, 0, pageW, 22, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.text('TucTuc', 12, 13);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text(`Gerado em ${hojeFormatado}`, pageW - 12, 13, { align: 'right' });
+
+      // ── Subtítulo ────────────────────────────────────────────────
+      doc.setTextColor(30, 30, 30);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text(report.title, 12, 31);
+
+      let tableStartY = 36;
+      if (user?.esc_nome) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Instituição: ${user.esc_nome}`, 12, 37);
+        tableStartY = 43;
+      }
+
+      // ── Conteúdo da tabela ────────────────────────────────────────
+      if (report.id === 'atividade') {
+        const data = await api.getRelatorioAtividade({ dias: 30 });
+        autoTable(doc, {
+          head: [['Indicador', 'Valor']],
+          body: [
+            ['Período analisado',  `${data.periodo?.dias ?? 30} dias`],
+            ['Início do período',   data.periodo?.inicio ?? '—'],
+            ['Total de caronas',    String(data.caronas?.total ?? 0)],
+            ['Caronas finalizadas', String(data.caronas?.finalizadas ?? 0)],
+            ['Caronas canceladas',  String(data.caronas?.canceladas ?? 0)],
+            ['Novos usuários',      String(data.usuarios?.novos ?? 0)],
+          ],
+          startY: tableStartY,
+          styles:      { fontSize: 10, cellPadding: 4 },
+          headStyles:  { fillColor: [22, 163, 74], textColor: 255, fontStyle: 'bold' },
+          columnStyles: { 0: { fontStyle: 'bold', cellWidth: 90 } },
+          alternateRowStyles: { fillColor: [245, 250, 246] },
+        });
+
+      } else if (report.id === 'caronas') {
+        // O endpoint de CSV de caronas retorna apenas totais agregados (não linhas individuais).
+        // Busca os dados individuais via getCaronas() + getCaronaResumo() para montar o PDF.
+        const caronasData = await api.getCaronas({
+          limit: 100,
+          ...(appliedFilters.dateFrom ? { data_inicio: appliedFilters.dateFrom } : {}),
+          ...(appliedFilters.dateTo   ? { data_fim:    appliedFilters.dateTo }   : {}),
+          ...(isDev && selectedEscId  ? { esc_id: selectedEscId }                : {})
+        });
+        const caronas = caronasData?.caronas ?? [];
+
+        if (!caronas.length) {
+          alert('Nenhum dado encontrado para os filtros selecionados.');
+          return;
+        }
+
+        // Busca origem/destino de cada carona em paralelo (sem bloquear em caso de falha)
+        const resumoResults = await Promise.allSettled(
+          caronas.map(c => api.getCaronaResumo(c.car_id))
+        );
+
+        // Monta mapa car_id → { origem, destino } com os endereços dos pontos
+        const pontosMap = {};
+        resumoResults.forEach((res, i) => {
+          if (res.status !== 'fulfilled') return;
+          const pontos = res.value?.pontos ?? [];
+          const o = pontos.find(p => p.pon_tipo === 0);
+          const d = pontos.find(p => p.pon_tipo === 1);
+          pontosMap[caronas[i].car_id] = {
+            origem:  o?.pon_nome || o?.pon_endereco || '—',
+            destino: d?.pon_nome || d?.pon_endereco || '—',
+          };
+        });
+
+        const STATUS_LABEL = { 0: 'Cancelada', 1: 'Aberta', 2: 'Em espera', 3: 'Finalizada' };
+
+        const pdfHeaders = ['Motorista', 'Data', 'Horário', 'Status', 'Origem', 'Destino', 'Vagas', 'Placa'];
+        const pdfRows = caronas.map(c => [
+          c.motorista     || '—',
+          c.car_data      ? new Date(c.car_data).toLocaleDateString('pt-BR') : '—',
+          c.car_hor_saida || '—',
+          STATUS_LABEL[c.car_status] ?? '—',
+          pontosMap[c.car_id]?.origem  || '—',
+          pontosMap[c.car_id]?.destino || '—',
+          String(c.car_vagas_dispo ?? '—'),
+          c.vei_placa     || '—',
+        ]);
+
+        const totalRows = pdfRows.length;
+        autoTable(doc, {
+          head: [pdfHeaders],
+          body: pdfRows,
+          startY: tableStartY,
+          styles:      { fontSize: 7, cellPadding: 3 },
+          headStyles:  { fillColor: [22, 163, 74], textColor: 255, fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [245, 250, 246] },
+          columnStyles: {
+            0: { cellWidth: 36 },  // Motorista
+            4: { cellWidth: 42 },  // Origem
+            5: { cellWidth: 42 },  // Destino
+          },
+          didDrawPage: (hookData) => {
+            const pageCount = doc.internal.getNumberOfPages();
+            const pageH = doc.internal.pageSize.getHeight();
+            doc.setFontSize(7);
+            doc.setTextColor(130);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Total: ${totalRows} registro${totalRows !== 1 ? 's' : ''}`, 12, pageH - 6);
+            doc.text(`Página ${hookData.pageNumber} de ${pageCount}`, pageW - 12, pageH - 6, { align: 'right' });
+          }
+        });
+
+      } else {
+        // CSV-based: usuarios e penalidades
+        let csvText;
+        switch (report.id) {
+          case 'usuarios':
+            csvText = await api.downloadRelatorioUsuarios({ esc_id: selectedEscId });
+            break;
+          case 'penalidades':
+            csvText = await api.downloadRelatorioPenalidades({ esc_id: selectedEscId });
+            break;
+          default:
+            return;
+        }
+
+        if (typeof csvText !== 'string' || !csvText.trim()) {
+          alert('Nenhum dado encontrado para os filtros selecionados.');
+          return;
+        }
+
+        const lines = csvText.replace(/^﻿/, '').trim().split('\n');
+        const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+
+        // Índices das colunas visíveis (sem IDs internos do banco)
+        const visibleIdx = rawHeaders
+          .map((h, i) => ({ h: h.toLowerCase(), i }))
+          .filter(({ h }) => !HIDDEN_COLUMNS.has(h))
+          .map(({ i }) => i);
+
+        const headers = visibleIdx.map(i => translateHeader(rawHeaders[i]));
+        const rows = lines.slice(1).map(line => {
+          const cells = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+          return visibleIdx.map(i => cells[i] ?? '');
+        });
+
+        const totalRows = rows.length;
+
+        autoTable(doc, {
+          head: [headers],
+          body: rows,
+          startY: tableStartY,
+          styles:      { fontSize: 8, cellPadding: 3 },
+          headStyles:  { fillColor: [22, 163, 74], textColor: 255, fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [245, 250, 246] },
+          didDrawPage: (hookData) => {
+            const pageCount = doc.internal.getNumberOfPages();
+            const pageH = doc.internal.pageSize.getHeight();
+            doc.setFontSize(7);
+            doc.setTextColor(130);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Total: ${totalRows} registro${totalRows !== 1 ? 's' : ''}`, 12, pageH - 6);
+            doc.text(`Página ${hookData.pageNumber} de ${pageCount}`, pageW - 12, pageH - 6, { align: 'right' });
+          }
+        });
+      }
+
+      doc.save(`relatorio-${report.id}-${hojeStr}.pdf`);
+      setRecentList(prev => [{
+        id:    Date.now(),
+        title: `${report.title} (PDF)`,
+        date:  hojeFormatado,
+        size:  'PDF'
+      }, ...prev]);
+    } catch (err) {
+      alert(`Erro ao gerar PDF: ${err.message}`);
+    } finally {
+      setGenerating(prev => { const n = new Set(prev); n.delete(`${report.id}-pdf`); return n; });
+    }
+  }
+
   // visibleCards: oculta relatórios Dev-only para Admin
   const visibleCards = REPORT_CARDS.filter(r => !r.devOnly || isDev);
 
@@ -360,7 +653,7 @@ export function Relatorios() {
     return (
       <div className={styles.container}>
         <div className={styles.loadingWrapper}>
-          <Loader2 size={28} className={styles.spinner} />
+          <IconLoader2 size={28} className={styles.spinner} />
         </div>
       </div>
     );
@@ -375,7 +668,7 @@ export function Relatorios() {
       {/* ── Card de filtros ── */}
       <div className={styles.filterCard}>
         <div className={styles.filterHeader}>
-          <Filter size={15} />
+          <IconFilter size={15} />
           Filtros
         </div>
         <div className={styles.filterGrid}>
@@ -467,7 +760,7 @@ export function Relatorios() {
       {/* Erro ao aplicar filtro nos stats */}
       {statsError && (
         <div className={styles.statsErrorBanner}>
-          <AlertCircle size={14} />
+          <IconAlertCircle size={14} />
           {statsError}
         </div>
       )}
@@ -490,7 +783,7 @@ export function Relatorios() {
                 <div className={styles.cardMainStat}>
                   <span className={styles.mainStatValue}>
                     {statsLoading
-                      ? <Loader2 size={16} className={styles.btnSpinner} />
+                      ? <IconLoader2 size={16} className={styles.btnSpinner} />
                       : mainValue}
                   </span>
                   <span className={styles.mainStatLabel}>{cfg?.mainLabel}</span>
@@ -504,16 +797,28 @@ export function Relatorios() {
                 <p className={styles.secondaryStat}>{secondaryValue}</p>
               )}
 
-              {/* Botão de download — todos os cards usam o mesmo padrão */}
-              <button
-                className={styles.generateBtn}
-                onClick={() => handleGenerate(report)}
-                disabled={isGenerating}
-              >
-                {isGenerating
-                  ? <><Loader2 size={14} className={styles.btnSpinner} /> Gerando...</>
-                  : <><Download size={14} /> {report.actionLabel}</>}
-              </button>
+              <div className={styles.cardButtons}>
+                {!isAdmin && (
+                  <button
+                    className={styles.generateBtn}
+                    onClick={() => handleGenerate(report)}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating
+                      ? <><IconLoader2 size={14} className={styles.btnSpinner} /> Gerando...</>
+                      : <><IconDownload size={14} /> CSV</>}
+                  </button>
+                )}
+                <button
+                  className={styles.pdfBtn}
+                  onClick={() => handleGeneratePDF(report)}
+                  disabled={generating.has(`${report.id}-pdf`)}
+                >
+                  {generating.has(`${report.id}-pdf`)
+                    ? <><IconLoader2 size={14} className={styles.btnSpinner} /> Gerando...</>
+                    : <><IconFilePlus size={14} /> PDF</>}
+                </button>
+              </div>
             </div>
           );
         })}
@@ -523,7 +828,7 @@ export function Relatorios() {
           <div className={`${styles.reportCard} ${styles.reportCardLocked}`}>
             <div className={styles.cardTop}>
               <div className={`${styles.iconWrapper} ${styles.iconWrapperLocked}`}>
-                <Lock size={22} />
+                <IconLock size={22} />
               </div>
             </div>
             <h3 className={styles.reportTitle}>Usuários &amp; Penalidades</h3>
@@ -544,7 +849,7 @@ export function Relatorios() {
           {recentList.map((r) => (
             <div key={r.id} className={styles.reportItem}>
               <div className={styles.reportItemIcon}>
-                <FileText size={18} />
+                <IconFileText size={18} />
               </div>
               <div className={styles.reportInfo}>
                 <p className={styles.reportName}>{r.title}</p>
