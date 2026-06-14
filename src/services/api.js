@@ -386,6 +386,11 @@ export const api = {
     return http.post(`/api/sugestoes/${sugId}/arquivar`);
   },
 
+  // Restaura sugestão arquivada — POST /api/sugestoes/:id/desarquivar
+  async desarquivarSugestao(sugId) {
+    return http.post(`/api/sugestoes/${sugId}/desarquivar`);
+  },
+
   // ── Denúncias (Administrador + Desenvolvedor) ─────────────────
   // Endpoint: GET /api/denuncias
   // Admin: escopo automático à sua escola (backend filtra via JWT)
@@ -414,6 +419,11 @@ export const api = {
   // Arquiva a denúncia — POST /api/denuncias/:id/arquivar
   async arquivarDenuncia(denId) {
     return http.post(`/api/denuncias/${denId}/arquivar`);
+  },
+
+  // Restaura denúncia arquivada — POST /api/denuncias/:id/desarquivar
+  async desarquivarDenuncia(denId) {
+    return http.post(`/api/denuncias/${denId}/desarquivar`);
   },
 
   // Exclui (soft delete) uma sugestão — DELETE /api/sugestoes/:id
