@@ -30,18 +30,19 @@ import { NavLink, useNavigate } from "react-router-dom";
 // Cada nome é um ícone diferente — ex: Home = ícone de casa,
 // Car = ícone de carro, LogOut = ícone de seta saindo.
 import {
-  Home,
-  BarChart3,
-  Search,
-  Plus,
-  Car,
-  FileText,
-  MessageSquare,
-  Bell,
-  Shield,
-  LifeBuoy,
-  LogOut,
-} from "lucide-react";
+  IconHome,
+  IconChartBar,
+  IconSearch,
+  IconPlus,
+  IconCar,
+  IconFileText,
+  IconMessage,
+  IconBell,
+  IconShield,
+  IconLifebuoy,
+  IconLogout,
+  IconX,
+} from "@tabler/icons-react";
 
 import { useAuth } from "../context/AuthContext";
 import styles from "./Aside.module.css";
@@ -61,7 +62,7 @@ function getInitials(name = "") {
   );
 }
 
-export function Aside() {
+export function Aside({ isOpen, onClose }) {
   // useAuth: estado global de autenticação.
   //   user   → objeto com os dados do usuário logado (vindo de /me)
   //   isDev  → true se per_tipo === 2 (Desenvolvedor — vê tudo)
@@ -99,13 +100,13 @@ export function Aside() {
       title: "VISÃO GERAL",
       items: [
         {
-          icon: Home,
+          icon: IconHome,
           label: "Painel",
           path: "/dashboard",
           developerOnly: false,
         },
         {
-          icon: BarChart3,
+          icon: IconChartBar,
           label: "Relatórios",
           path: "/relatorios",
           developerOnly: false,
@@ -116,14 +117,14 @@ export function Aside() {
       title: "USUÁRIOS",
       items: [
         {
-          icon: Search,
+          icon: IconSearch,
           label: "Procurar Usuário",
           path: "/usuarios",
           developerOnly: false,
         },
         {
-          icon: Plus,
-          label: "Cadastrar",
+          icon: IconPlus,
+          label: "Instituições",
           path: "/cadastrar",
           developerOnly: true,
         },
@@ -133,41 +134,41 @@ export function Aside() {
       title: "OPERAÇÕES",
       items: [
         {
-          icon: Car,
+          icon: IconCar,
           label: "Registros de Carona",
           path: "/caronas",
           developerOnly: false,
         },
         {
-          icon: FileText,
+          icon: IconFileText,
           label: "Contratos",
           path: "/contratos",
           developerOnly: false,
         },
         {
-          icon: MessageSquare,
+          icon: IconMessage,
           // Admin só vê Denúncias; Dev vê Sugestões + Denúncias
           label: isAdmin ? "Denúncias" : "Sugestões/Denúncias",
           path: "/sugestoes",
           developerOnly: false,
         },
         // {
-        //   icon: Bell,
+        //   icon: IconBell,
         //   label: "Emitir Notificação",
         //   path: "/notificacoes",
         //   developerOnly: true,
         // },
         {
-          icon: Shield,
+          icon: IconShield,
           label: "Auditoria",
           path: "/auditoria",
           developerOnly: true,
         },
         {
-          icon: LifeBuoy,
+          icon: IconLifebuoy,
           label: "Suporte",
           path: "/suporte",
-          developerOnly: false,
+          developerOnly: true,
         },
       ],
     },
@@ -194,27 +195,21 @@ export function Aside() {
   const [cardExpanded, setCardExpanded] = useState(false);
 
   return (
-    <aside className={styles.aside}>
+    <aside className={`${styles.aside} ${isOpen ? styles.asideOpen : ''}`}>
       {/* Cabeçalho com a logo do sistema */}
       <div className={styles.header}>
         <div className={styles.logo}>
-          {/* OPÇÃO 1: Apenas com ícone + texto (padrão) */}
-          {/* <Car size={24} />
-          <span>CaronaCity</span> */}
-
-          {/* OPÇÃO 2: Apenas com logo (descomente abaixo e comente a opção 1) */}
           <img
             src="/logo-texto.png"
             alt="CaronaCity"
             className={styles.logoImg}
           />
-
-          {/* OPÇÃO 3: Logo + texto (descomente abaixo comete a opção 1) */}
-          {/*
-          <img src="/logo-texto.png" alt="CaronaCity" className={styles.logoImg} />
-          <span>CaronaCity</span>
-          */}
         </div>
+        {onClose && (
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Fechar menu">
+            <IconX size={20} />
+          </button>
+        )}
       </div>
 
       {/* Navegação principal — percorre as seções filtradas */}
@@ -285,7 +280,7 @@ export function Aside() {
             </div>
           </button>
           <button className={styles.logoutBtn} onClick={handleLogout}>
-            <LogOut size={18} />
+            <IconLogout size={18} />
           </button>
         </div>
       </div>

@@ -28,31 +28,26 @@
 // Estilo: AdminLayout.module.css
 // ============================================================
 
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Aside } from "../components/Aside";
 import { Topbar } from "../components/Topbar";
 import styles from "./AdminLayout.module.css";
 
 export function AdminLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    // Container principal: organiza Aside e mainArea lado a lado
-    // (provavelmente usando display: flex no CSS)
     <div className={styles.container}>
-      {/* Menu lateral fixo à esquerda.
-          Definido em src/components/Aside.jsx */}
-      <Aside />
+      <Aside isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Área principal à direita do menu */}
+      {sidebarOpen && (
+        <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />
+      )}
+
       <div className={styles.mainArea}>
-        {/* Barra superior com título da página atual,
-            ícone de notificações e botão de logout.
-            Definido em src/components/Topbar.jsx */}
-        <Topbar />
+        <Topbar onMenuToggle={() => setSidebarOpen((prev) => !prev)} />
 
-        {/* Área de conteúdo: aqui o React Router injeta
-            automaticamente a página correspondente à URL.
-            Ex: /painel  → <Painel />
-                /caronas   → <Caronas />    */}
         <main className={styles.content}>
           <Outlet />
         </main>

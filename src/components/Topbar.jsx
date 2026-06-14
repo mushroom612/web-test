@@ -22,7 +22,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bell, LogOut, ChevronDown, LifeBuoy } from "lucide-react";
+import { IconBell, IconLogout, IconChevronDown, IconLifebuoy, IconMenu2 } from "@tabler/icons-react";
 import { notificationData } from "../data/mockData";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
@@ -50,9 +50,10 @@ function getInitials(name = "") {
 // É um objeto JavaScript simples onde a chave é a URL
 // e o valor é o nome a exibir.
 const pageNames = {
-  "/dashboard": "Dashboard",
+  "/dashboard": "Painel",
   "/usuarios": "Usuários",
-  "/cadastrar": "Cadastrar Usuário",
+  "/cadastrar": "Instituições",
+  "/cadastrar/novo": "Nova Instituição",
   "/caronas": "Registros de Carona",
   "/sugestoes": "Sugestões e Denúncias",
   "/relatorios": "Relatórios",
@@ -62,7 +63,7 @@ const pageNames = {
   "/suporte": "Suporte",
 };
 
-export function Topbar() {
+export function Topbar({ onMenuToggle }) {
   // useLocation: retorna um objeto com informações da URL atual.
   // location.pathname → string com o caminho, ex: '/dashboard'
   const location = useLocation();
@@ -148,8 +149,17 @@ export function Topbar() {
   return (
     // <header> → elemento HTML semântico para cabeçalhos de seção
     <header className={styles.topbar}>
-      {/* Lado esquerdo: título da página atual */}
+      {/* Lado esquerdo: hamburger (mobile) + título da página */}
       <div className={styles.left}>
+        {onMenuToggle && (
+          <button
+            className={styles.hamburger}
+            onClick={onMenuToggle}
+            aria-label="Abrir menu"
+          >
+            <IconMenu2 size={22} />
+          </button>
+        )}
         <h1 className={styles.pageTitle}>{currentPageName}</h1>
       </div>
 
@@ -162,7 +172,7 @@ export function Topbar() {
             onClick={() => toggleMenu("notifications")}
             aria-label="Notificações"
           >
-            <Bell size={20} />
+            <IconBell size={20} />
             {notifCount > 0 && (
               <span className={styles.badge}>{notifCount}</span>
             )}
@@ -213,7 +223,7 @@ export function Topbar() {
               {getInitials(userName)}
             </span>
             <span className={styles.userName}>{userName}</span>
-            <ChevronDown
+            <IconChevronDown
               size={14}
               className={
                 openMenu === "user" ? styles.chevronUp : styles.chevronDown
@@ -239,7 +249,7 @@ export function Topbar() {
                 className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
                 onClick={handleLogout}
               >
-                <LogOut size={15} />
+                <IconLogout size={15} />
                 <span>Sair</span>
               </button>
             </div>
@@ -255,7 +265,7 @@ export function Topbar() {
             aria-label={isDev ? "Suporte" : "Falar com o desenvolvedor"}
             title={isDev ? "Suporte" : "Falar com o desenvolvedor"}
           >
-            <LifeBuoy size={20} />
+            <IconLifebuoy size={20} />
             {suporteNaoLidas > 0 && (
               <span className={styles.badge}>{suporteNaoLidas}</span>
             )}
@@ -269,7 +279,7 @@ export function Topbar() {
 
         {/* Botão de logout — chama handleLogout ao ser clicado */}
         <button className={styles.logoutBtn} onClick={handleLogout}>
-          <LogOut size={20} />
+          <IconLogout size={20} />
         </button>
       </div>
     </header>

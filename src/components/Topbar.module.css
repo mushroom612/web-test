@@ -10,6 +10,28 @@
 
 .left {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 6px;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.hamburger:hover {
+  background-color: var(--color-green-100);
+  color: var(--btn-primary-bg);
 }
 
 .pageTitle {
@@ -155,6 +177,10 @@
   .userSection {
     padding: 0;
     border: none;
+  }
+
+  .hamburger {
+    display: flex;
   }
 }
 

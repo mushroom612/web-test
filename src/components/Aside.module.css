@@ -11,6 +11,27 @@
 .header {
   padding: 24px 16px;
   border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.closeBtn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 4px;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.closeBtn:hover {
+  background-color: var(--color-green-100);
+  color: var(--btn-primary-bg);
 }
 
 .logo {
@@ -154,7 +175,20 @@
 
 @media (max-width: 768px) {
   .aside {
-    display: none;
+    position: fixed;
+    top: 0;
+    left: -240px;
+    z-index: 100;
+    transition: left 0.25s ease;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .asideOpen {
+    left: 0;
+  }
+
+  .closeBtn {
+    display: flex;
   }
 }
 
