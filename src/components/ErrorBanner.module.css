@@ -1,0 +1,58 @@
+/* Variante inline: banner vermelho simples dentro da página */
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--color-red-50, #fef2f2);
+  border: 1px solid var(--color-red-200, #fecaca);
+  border-radius: var(--border-radius-md);
+  color: var(--color-semantic-error, #dc2626);
+  font-size: 14px;
+}
+
+/* Variante card: painel centralizado com ícone e botão retry */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  background: var(--surface-primary);
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--border-radius-lg);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.cardIcon {
+  color: var(--color-semantic-error, #dc2626);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cardMessage {
+  margin: 0;
+  font-size: 13px;
+}
+
+.retryBtn {
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--border-radius-md);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.retryBtn:hover {
+  opacity: 0.9;
+}
