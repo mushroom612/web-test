@@ -46,7 +46,7 @@
   display: grid;
   grid-template-columns: repeat(2, 300px);
   gap: 16px;
-  margin-bottom: 24px;
+  flex-shrink: 0;
 }
 
 .metricCard {
@@ -109,7 +109,8 @@
 .userFeedback {
   display: flex;
   gap: 24px;
-  justify-content: space-between;
+  align-items: stretch;
+  margin-bottom: var(--spacing-6);
 }
 /* ── Content grid ────────────────────────────────────────── */
 
@@ -177,17 +178,19 @@
 /* ── Feedback ────────────────────────────────────────────── */
 
 .feedbackSection {
+  flex: 1;
+  min-width: 0;
   background-color: var(--surface-primary);
-  /* border: 1px solid var(--color-neutral-100); */
+  border: 1px solid var(--color-neutral-100);
   border-radius: var(--card-radius-desktop);
   padding: 24px;
   overflow-y: auto;
-  max-height: 320px;
-  flex: 1;
+  max-height: 360px;
   scrollbar-width: none;
-  &:-webkit-scrollbar {
-    display: none;
-  }
+}
+
+.feedbackSection::-webkit-scrollbar {
+  display: none;
 }
 
 .feedbackList {
@@ -204,6 +207,13 @@
 }
 
 @media (max-width: 1024px) {
+  .userFeedback {
+    flex-direction: column;
+  }
+  .metricsGrid {
+    flex-shrink: unset;
+    width: 100%;
+  }
   .contentGrid {
     grid-template-columns: 1fr;
   }

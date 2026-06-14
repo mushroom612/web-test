@@ -21,7 +21,7 @@
 // ============================================================
 
 import { useState, useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { IconBell, IconLogout, IconChevronDown, IconLifebuoy, IconMenu2 } from "@tabler/icons-react";
 import { notificationData } from "../data/mockData";
 import { useAuth } from "../context/AuthContext";
@@ -44,43 +44,12 @@ function getInitials(name = "") {
   );
 }
 
-// pageNames: dicionário que mapeia cada rota para o nome
-// "amigável" que aparece como título na barra superior.
-// Ex: a URL '/caronas' vira "Registros de Carona" na tela.
-// É um objeto JavaScript simples onde a chave é a URL
-// e o valor é o nome a exibir.
-const pageNames = {
-  "/dashboard": "Painel",
-  "/usuarios": "Usuários",
-  "/cadastrar": "Instituições",
-  "/cadastrar/novo": "Nova Instituição",
-  "/caronas": "Registros de Carona",
-  "/sugestoes": "Sugestões e Denúncias",
-  "/relatorios": "Relatórios",
-  "/contratos": "Contratos",
-  "/notificacoes": "Emitir Notificação",
-  "/auditoria": "Auditoria",
-  "/suporte": "Suporte",
-};
-
 export function Topbar({ onMenuToggle }) {
-  // useLocation: retorna um objeto com informações da URL atual.
-  // location.pathname → string com o caminho, ex: '/dashboard'
-  const location = useLocation();
-
-  // useNavigate: retorna a função navigate() usada para
-  // mudar de rota programaticamente (via código, não clique em link).
   const navigate = useNavigate();
 
-  // useAuth: usuário real + logout. user pode ser null por instantes
-  // (entre montagem e chegada do /me); defaults defensivos abaixo.
   const { user, isDev, isAdmin, logout } = useAuth();
   const userName = user?.usu_nome || "Usuário";
   const userEmail = user?.usu_email || "";
-
-  // Busca no dicionário pageNames o título da rota atual.
-  // Se a rota não estiver mapeada, usa 'Dashboard' como padrão.
-  const currentPageName = pageNames[location.pathname] || "Dashboard";
 
   const [openMenu, setOpenMenu] = useState(null); // 'notifications' | 'suporte' | 'user' | null
   const [notifCount, setNotifCount] = useState(notificationData.count);
@@ -147,9 +116,7 @@ export function Topbar({ onMenuToggle }) {
   };
 
   return (
-    // <header> → elemento HTML semântico para cabeçalhos de seção
     <header className={styles.topbar}>
-      {/* Lado esquerdo: hamburger (mobile) + título da página */}
       <div className={styles.left}>
         {onMenuToggle && (
           <button
@@ -160,7 +127,6 @@ export function Topbar({ onMenuToggle }) {
             <IconMenu2 size={22} />
           </button>
         )}
-        <h1 className={styles.pageTitle}>{currentPageName}</h1>
       </div>
 
       {/* Lado direito: notificações, usuário e ações */}
