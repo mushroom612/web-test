@@ -115,12 +115,19 @@
   cursor: not-allowed;
 }
 
-.filterActions {
+.filterView {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: var(--spacing-3);
   padding-top: var(--spacing-4);
   border-top: 1px solid var(--color-neutral-100);
+}
+
+.filterActions {
+  display: flex;
+  max-width: fit-content;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
 }
 
 .clearBtn {

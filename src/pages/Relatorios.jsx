@@ -729,13 +729,7 @@ export function Relatorios() {
           </div>
         </div>
 
-        <div className={styles.filterActions}>
-          <button className={styles.clearBtn} onClick={handleClearFilters}>Limpar</button>
-          <button className={styles.applyBtn} onClick={handleApplyFilters}>
-            Aplicar Filtros
-          </button>
-        </div>
-
+        <div className={styles.filterView}>
         {/* Indicador dos filtros em vigor nos downloads */}
         {hasAppliedFilters && (
           <div className={styles.appliedFiltersInfo}>
@@ -755,6 +749,14 @@ export function Relatorios() {
             )}
           </div>
         )}
+        <div className={styles.filterActions}>
+          <button className={styles.clearBtn} onClick={handleClearFilters}>Limpar</button>
+          <button className={styles.applyBtn} onClick={handleApplyFilters}>
+            Aplicar Filtros
+          </button>
+        </div>
+        </div>
+
       </div>
 
       {/* Erro ao aplicar filtro nos stats */}

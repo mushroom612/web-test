@@ -6,7 +6,7 @@
 .header {
   margin-bottom: 28px;
   display: flex;
-  align-items: flex-start;
+  /* align-items: flex-start; */
   justify-content: space-between;
   gap: 12px;
 }
@@ -391,16 +391,16 @@
 }
 
 .submitBtn {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 16px;
+  max-height: fit-content;
+  padding: var(--spacing-3) var(--spacing-4);
   background-color: var(--btn-primary-bg);
   color: var(--btn-primary-text);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--border-radius-lg);
   font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
