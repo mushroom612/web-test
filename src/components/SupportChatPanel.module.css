@@ -30,7 +30,7 @@
   gap: 8px;
   padding: 12px 14px;
   background-color: var(--btn-primary-bg);
-  color: #fff;
+  color: var(--color-neutral-0);
 }
 
 .headerTitle {
@@ -68,7 +68,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #fff;
+  color: var(--color-neutral-0);
   opacity: 0.85;
   padding: 4px;
   border-radius: 6px;
@@ -199,7 +199,7 @@
   align-items: flex-end;
   gap: 8px;
   padding: 10px;
-  border-top: 1px solid #ececf0;
+  border-top: 1px solid var(--color-neutral-100);
   background-color: var(--surface-primary);
 }
 
@@ -231,7 +231,7 @@
   border: none;
   border-radius: 50%;
   background-color: var(--btn-primary-bg);
-  color: #fff;
+  color: var(--color-neutral-0);
   cursor: pointer;
   display: flex;
   align-items: center;
