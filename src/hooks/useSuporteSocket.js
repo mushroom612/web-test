@@ -34,6 +34,7 @@ export function useSuporteSocket() {
     s.on('connect',    () => setConnected(true));
     s.on('disconnect', () => setConnected(false));
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(s);
 
     return () => {

@@ -16,7 +16,7 @@
 // Estilo: Suporte.module.css
 // ============================================================
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { Fragment, useEffect, useRef, useState, useCallback } from 'react';
 import { IconSend, IconMessage } from '@tabler/icons-react';
 import { api } from '../services/api';
 import { useSuporteSocket } from '../hooks/useSuporteSocket';
@@ -45,6 +45,36 @@ function formatHora(iso) {
     d.getFullYear() === hoje.getFullYear();
   if (mesmoDia) return hhmm;
   return `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} ${hhmm}`;
+}
+
+// mesmoDiaCal: true se duas datas ISO caem no mesmo dia do calendário.
+function mesmoDiaCal(a, b) {
+  if (!a || !b) return false;
+  const da = new Date(a);
+  const db = new Date(b);
+  return (
+    da.getFullYear() === db.getFullYear() &&
+    da.getMonth() === db.getMonth() &&
+    da.getDate() === db.getDate()
+  );
+}
+
+// formatDataSeparador: rótulo do separador de data (Hoje / Ontem / data),
+// igual ao chat do app.
+function formatDataSeparador(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const hoje = new Date();
+  const ontem = new Date(hoje);
+  ontem.setDate(ontem.getDate() - 1);
+  if (mesmoDiaCal(d, hoje)) return 'Hoje';
+  if (mesmoDiaCal(d, ontem)) return 'Ontem';
+  const mesmoAno = d.getFullYear() === hoje.getFullYear();
+  return d.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: mesmoAno ? 'long' : '2-digit',
+    ...(mesmoAno ? {} : { year: 'numeric' })
+  });
 }
 
 export function Suporte() {
@@ -178,11 +208,6 @@ export function Suporte() {
   // ── Render ─────────────────────────────────────────────────────────────
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Suporte</h1>
-        <p className={styles.subtitle}>Converse com os administradores das escolas e responda dúvidas</p>
-      </div>
-
       <div className={styles.layout}>
         {/* ── Coluna esquerda: lista de conversas ── */}
         <aside className={styles.listPane}>
@@ -253,21 +278,34 @@ export function Suporte() {
                 ) : mensagens.length === 0 ? (
                   <p className={styles.stateMsg}>Nenhuma mensagem ainda. Inicie a conversa!</p>
                 ) : (
-                  mensagens.map((m) => (
-                    <div
-                      key={m.msg_id}
-                      className={`${styles.row} ${
-                        m.remetente === 'dev'
-                          ? styles.rowMine
-                          : styles.rowTheirs
-                      }`}
-                    >
-                      <div className={styles.bubble}>
-                        <p className={styles.bubbleText}>{m.texto}</p>
-                        <span className={styles.bubbleTime}>{formatHora(m.criado_em)}</span>
-                      </div>
-                    </div>
-                  ))
+                  mensagens.map((m, i) => {
+                    const anterior = i > 0 ? mensagens[i - 1] : null;
+                    const mostraSeparador =
+                      !anterior || !mesmoDiaCal(anterior.criado_em, m.criado_em);
+                    return (
+                      <Fragment key={m.msg_id}>
+                        {mostraSeparador && (
+                          <div className={styles.dateSeparator}>
+                            <span className={styles.dateSeparatorPill}>
+                              {formatDataSeparador(m.criado_em)}
+                            </span>
+                          </div>
+                        )}
+                        <div
+                          className={`${styles.row} ${
+                            m.remetente === 'dev'
+                              ? styles.rowMine
+                              : styles.rowTheirs
+                          }`}
+                        >
+                          <div className={styles.bubble}>
+                            <p className={styles.bubbleText}>{m.texto}</p>
+                            <span className={styles.bubbleTime}>{formatHora(m.criado_em)}</span>
+                          </div>
+                        </div>
+                      </Fragment>
+                    );
+                  })
                 )}
               </div>
 

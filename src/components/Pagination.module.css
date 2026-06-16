@@ -8,16 +8,16 @@
 
 .compact {
   padding: 12px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
 }
 
 .info {
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
 .compact .info {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
 }
 
 .controls {
@@ -38,7 +38,7 @@
   border-radius: var(--border-radius-md);
   background: var(--surface-primary);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   transition: opacity 0.15s;
 }
@@ -46,7 +46,7 @@
 .compact .btn {
   padding: 6px 10px;
   border-radius: var(--border-radius-sm);
-  font-size: 12px;
+  font-size: var(--font-size-xs);
 }
 
 .btn:disabled {

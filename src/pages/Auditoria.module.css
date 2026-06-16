@@ -3,14 +3,13 @@
   margin: 0 auto;
 }
 
-/* ── Header ─────────────────────────────────────────────────────────────── */
+/* ── Toolbar (filtros + export numa linha) ──────────────────────────────── */
 
-.header {
+.toolbar {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-6);
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-5);
 }
 
 .title {
@@ -54,17 +53,50 @@
   cursor: not-allowed;
 }
 
+.exportBtnGroup {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.exportBtnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-5);
+  background-color: transparent;
+  color: var(--btn-primary-bg);
+  border: 1.5px solid var(--btn-primary-bg);
+  border-radius: var(--btn-primary-radius);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.exportBtnSecondary:hover:not(:disabled) {
+  background-color: var(--color-green-50, #f0fdf4);
+}
+
+.exportBtnSecondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ── Filters ────────────────────────────────────────────────────────────── */
 
 .filters {
+  flex: 1;
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-3);
   align-items: center;
   background-color: var(--surface-primary);
-  padding: var(--spacing-4) var(--spacing-5);
+  padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--border-radius-lg);
-  margin-bottom: var(--spacing-5);
+  min-width: 0;
 }
 
 .filterInput {
@@ -159,51 +191,68 @@
 
 /* ── Table ──────────────────────────────────────────────────────────────── */
 
+/* Wrapper apenas para scroll horizontal — cada linha agora é um card próprio */
 .tableWrapper {
-  background-color: var(--surface-primary);
-  border-radius: var(--card-radius-desktop);
-  overflow: hidden;
+  overflow-x: auto;
   margin-bottom: var(--spacing-4);
 }
 
+/* border-spacing vertical cria o respiro entre as linhas-card */
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 10px;
 }
 
-.table thead {
-  background-color: var(--color-neutral-50);
-  border-bottom: 1px solid var(--color-neutral-200);
-}
-
-.table th {
-  padding: var(--spacing-4);
+/* Cabeçalho: rótulos flutuantes acima dos cards (sem fundo) */
+.table thead th {
+  padding: 0 18px 6px;
   text-align: left;
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
+  background: transparent;
 }
 
 .table tbody tr {
-  border-bottom: 1px solid var(--color-neutral-100);
   transition: background-color 0.15s ease;
 }
 
-.table tbody tr:hover {
-  background-color: var(--surface-secondary);
-}
-
-.rowEven {
-  background-color: var(--surface-primary);
-}
-
-.table td {
-  padding: var(--spacing-4);
+/* Cada linha = um card branco com borda própria */
+.table tbody td {
+  padding: 16px 18px;
   font-size: var(--font-size-sm);
   color: var(--text-primary);
   vertical-align: middle;
+  background-color: var(--surface-primary);
+  border-top: 1px solid var(--color-neutral-100);
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+/* Arredonda as pontas do card-linha na primeira e última célula */
+.table tbody td:first-child {
+  border-left: 1px solid var(--color-neutral-100);
+  border-top-left-radius: var(--border-radius-lg);
+  border-bottom-left-radius: var(--border-radius-lg);
+}
+
+.table tbody td:last-child {
+  border-right: 1px solid var(--color-neutral-100);
+  border-top-right-radius: var(--border-radius-lg);
+  border-bottom-right-radius: var(--border-radius-lg);
+}
+
+/* Hover: realça o card inteiro com leve tom verde + borda da marca */
+.table tbody tr:hover td {
+  background-color: var(--surface-secondary);
+  border-color: var(--color-green-200);
+}
+
+/* Mantida como no-op (a estrutura de cards dispensa zebra) */
+.rowEven {
+  background-color: transparent;
 }
 
 .cellDateTime {
@@ -224,7 +273,7 @@
 .cellRegistro {
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
-  text-align: center;
+  text-align: left;
 }
 
 .cellEscola {

@@ -74,7 +74,7 @@ import { api } from '../services/api';
 import {
   IconSend, IconMessage, IconArchive, IconTrash,
   IconLoader2, IconAlertTriangle, IconCircleCheck, IconClock,
-  IconFlag, IconShieldExclamation, IconUser, IconChevronRight, IconX,
+  IconShieldExclamation, IconUser, IconChevronRight, IconX,
   IconCornerDownRight, IconInfoCircle, IconCar
 } from '@tabler/icons-react';
 import { PenaltyPanel } from '../components/PenaltyPanel';
@@ -120,6 +120,7 @@ function sugestaoToItem(s) {
     id:              `sug-${s.sug_id}`,  // chave interna única — sem colisão com den_id
     _id:             s.sug_id,           // ID numérico original para chamadas de API
     _tipo:           'sugestao',         // identifica qual endpoint chamar nas ações
+    _rawDate:        s.sug_data || '',   // ISO string para ordenação cronológica
     userId:          s.usu_id ?? null,
     userName:        nome,
     avatar:          nome.charAt(0).toUpperCase(),
@@ -155,6 +156,7 @@ function denunciaToItem(d) {
     id:              `den-${d.den_id}`,  // chave interna única — sem colisão com sug_id
     _id:             d.den_id,           // ID numérico original para chamadas de API
     _tipo:           'denuncia',
+    _rawDate:        d.den_data || '',   // ISO string para ordenação cronológica
     userId:          d.usu_id ?? null,
     userName:        nome,
     avatar:          nome.charAt(0).toUpperCase(),
@@ -231,13 +233,15 @@ export function Sugestoes() {
   const load = useCallback(async (silent = false) => {
     if (!silent) { setLoading(true); setError(null); }
     try {
+      const sortByDate = (a, b) => new Date(b._rawDate) - new Date(a._rawDate);
+
       const fetchTudo = isAdmin
         ? api.getDenuncias()
             .then(d => (d.denuncias || []).map(denunciaToItem))
         : Promise.all([
             api.getSugestoes().then(s => (s.sugestoes || []).map(sugestaoToItem)),
             api.getDenuncias().then(d => (d.denuncias || []).map(denunciaToItem))
-          ]).then(([sugs, dens]) => [...sugs, ...dens]);
+          ]).then(([sugs, dens]) => [...sugs, ...dens].sort(sortByDate));
 
       const lista = await fetchTudo;
       setItems(lista);
@@ -462,11 +466,6 @@ export function Sugestoes() {
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>{isAdmin ? 'Denúncias' : 'Sugestões e Denúncias'}</h1>
-          </div>
-        </div>
         <div
           style={{
             display: 'flex',
@@ -508,18 +507,6 @@ export function Sugestoes() {
 
   return (
     <div className={styles.container}>
-
-      {/* Cabeçalho da página — título muda conforme o papel */}
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>{isAdmin ? 'Denúncias' : 'Sugestões e Denúncias'}</h1>
-          <p className={styles.subtitle}>
-            {isAdmin
-              ? 'Gerencie as denúncias enviadas pelos usuários da sua instituição'
-              : 'Gerencie os feedbacks, dúvidas e denúncias enviados pelos usuários'}
-          </p>
-        </div>
-      </div>
 
       {/* Cards de resumo — Admin não vê o card de Sugestões */}
       <div className={styles.statsRow}>
@@ -648,13 +635,6 @@ export function Sugestoes() {
                         <StatusIcon size={11} />
                         {currentStatus}
                       </span>
-                      {/* urgentTag: só aparece em denúncias não resolvidas */}
-                      {isDenuncia && currentStatus !== 'Resolvido' && (
-                        <span className={styles.urgentTag}>
-                          <IconFlag size={10} />
-                          Requer atenção
-                        </span>
-                      )}
                       {/* repliedTag: aparece quando o admin já respondeu */}
                       {item.response && (
                         <span className={styles.repliedTag}>

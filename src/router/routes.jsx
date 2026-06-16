@@ -60,6 +60,7 @@ import { Suporte } from '../pages/Suporte';
 //   isAuthenticated=false → redireciona para "/" (Login)
 //   role < 1         → usuário comum bloqueado; redireciona
 //   role >= 1        → libera (<Outlet />)
+// eslint-disable-next-line react-refresh/only-export-components
 function PrivateRoute() {
   const { isAuthenticated, loading, role } = useAuth();
 
@@ -89,6 +90,7 @@ function PrivateRoute() {
 // Importante: também protege contra acesso direto via URL.
 // Mesmo que o item do menu fique oculto para o Admin, digitar
 // /auditoria na barra cai aqui e é redirecionado.
+// eslint-disable-next-line react-refresh/only-export-components
 function DevRoute() {
   const { isDev } = useAuth();
   if (!isDev) return <Navigate to="/dashboard" replace />;

@@ -4,27 +4,27 @@
 }
 
 .header {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-6);
 }
 
 .title {
   margin: 0 0 4px;
-  font-size: 24px;
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .subtitle {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
 .actionBar {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-4);
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-6);
 }
 
 .searchBox {
@@ -33,9 +33,9 @@
   display: flex;
   align-items: center;
   background-color: var(--surface-primary);
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 0 12px;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-full);
+  padding: 0 16px;
   color: var(--text-secondary);
 }
 
@@ -43,12 +43,30 @@
   flex-shrink: 0;
 }
 
+.clearBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.clearBtn:hover {
+  color: var(--text-primary);
+}
+
 .searchInput {
   flex: 1;
   border: none;
   outline: none;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   background: transparent;
   color: var(--text-primary);
 }
@@ -62,8 +80,8 @@
   background-color: var(--btn-primary-bg);
   color: var(--btn-primary-text);
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: var(--btn-primary-radius);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -74,50 +92,63 @@
   background-color: var(--color-green-800);
 }
 
+/* Wrapper apenas para scroll horizontal — cada linha agora é um card próprio */
 .tableWrapper {
-  background-color: var(--surface-primary);
-  border-radius: var(--card-radius-desktop);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
+/* border-spacing vertical cria o respiro entre as linhas-card */
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 10px;
 }
 
-.table thead {
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.table th {
-  padding: 16px;
+/* Cabeçalho: rótulos flutuantes acima dos cards (sem fundo) */
+.table thead th {
+  padding: 0 18px 6px;
   text-align: left;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
+  background: transparent;
 }
 
+/* Cada linha = um card branco com borda própria */
 .table tbody tr {
-  border-bottom: 1px solid #e0e0e0;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.15s ease;
 }
 
-.table tbody tr:hover {
-  background-color: #f9f9f9;
-}
-
-.rowEven {
-  background-color: #ffffff;
-}
-
-.table td {
-  padding: 16px;
-  font-size: 14px;
+.table tbody td {
+  padding: 16px 18px;
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   vertical-align: middle;
+  background-color: var(--surface-primary);
+  border-top: 1px solid var(--color-neutral-100);
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+/* Arredonda as pontas do card-linha na primeira e última célula */
+.table tbody td:first-child {
+  border-left: 1px solid var(--color-neutral-100);
+  border-top-left-radius: var(--border-radius-lg);
+  border-bottom-left-radius: var(--border-radius-lg);
+}
+
+.table tbody td:last-child {
+  border-right: 1px solid var(--color-neutral-100);
+  border-top-right-radius: var(--border-radius-lg);
+  border-bottom-right-radius: var(--border-radius-lg);
+}
+
+/* Sem efeito de hover no card — o card é informativo, não interativo */
+
+/* Mantida como no-op (a estrutura de cards dispensa zebra) */
+.rowEven {
+  background-color: transparent;
 }
 
 .colName {
@@ -150,72 +181,108 @@
 
 .colActions {
   width: 10%;
-  text-align: center;
+  text-align: right;
+}
+
+.cellActions {
+  text-align: right;
 }
 
 
 .userCell {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--spacing-3);
+}
+
+.userDetails {
+  min-width: 0;
 }
 
 .avatar {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-full);
   background-color: var(--color-green-100);
+  color: var(--color-green-800);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
   flex-shrink: 0;
 }
 
 
 .userName {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .userEmail {
   display: block;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
 
 .typeLabel {
-  padding: 4px 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  font-size: 12px;
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.typeUser {
+  background-color: var(--color-neutral-100);
   color: var(--text-secondary);
+}
+
+.typeAdmin {
+  background-color: var(--color-green-100);
+  color: var(--color-green-800);
+}
+
+.typeDev {
+  background-color: var(--color-blue-100);
+  color: var(--color-blue-700);
 }
 
 .schoolLabel {
-  padding: 4px 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  font-size: 12px;
-  color: var(--text-secondary);
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
 .courseLabel {
-  padding: 4px 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  font-size: 12px;
+  display: block;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
 }
 
 
 .cellAccess {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
@@ -223,11 +290,11 @@
 
 .ipCode {
   padding: 2px 6px;
-  background-color: #f5f5f5;
-  border-radius: 3px;
+  background-color: var(--color-neutral-50);
+  border-radius: var(--border-radius-sm);
   font-family: 'Courier New', monospace;
-  font-size: 12px;
-  color: #555;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
 }
 
 .iconBtn {
@@ -277,7 +344,7 @@
 
 @media (max-width: 768px) {
   .table {
-    font-size: 12px;
+    font-size: var(--font-size-xs);
   }
 
   .table td,
@@ -286,11 +353,11 @@
   }
 
   .userName {
-    font-size: 13px;
+    font-size: var(--font-size-sm);
   }
 
   .userEmail {
-    font-size: 11px;
+    font-size: var(--font-size-xs);
   }
 
   .actionBar {

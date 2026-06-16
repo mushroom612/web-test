@@ -15,13 +15,13 @@
 
 .title {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
 }
 
 .description {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
@@ -37,7 +37,7 @@
   color: var(--btn-primary-text);
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
 }
 
 .actionBtn:hover {

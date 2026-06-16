@@ -237,12 +237,6 @@ export function Painel() {
   if (error) {
     return (
       <div className={styles.dashboard}>
-        <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>Dashboard</h1>
-          <p className={styles.pageSubtitle}>
-            Visão geral da plataforma Tuctuc
-          </p>
-        </div>
         <div
           style={{
             display: "flex",
@@ -287,11 +281,6 @@ export function Painel() {
 
   return (
     <div className={styles.dashboard}>
-      {/* Cabeçalho da página */}
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Dashboard</h1>
-        <p className={styles.pageSubtitle}>Visão geral da plataforma Tuctuc</p>
-      </div>
       <div className={styles.userFeedback}>
         {/* ── Grade de cards de métricas ───────────────────────────
           styles.metricsGrid = display: grid com 4 colunas

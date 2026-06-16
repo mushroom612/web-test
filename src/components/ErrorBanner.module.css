@@ -8,7 +8,7 @@
   border: 1px solid var(--color-red-200, #fecaca);
   border-radius: var(--border-radius-md);
   color: var(--color-semantic-error, #dc2626);
-  font-size: 14px;
+  font-size: var(--font-size-sm);
 }
 
 /* Variante card: painel centralizado com ícone e botão retry */
@@ -31,14 +31,14 @@
 
 .cardTitle {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .cardMessage {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
 }
 
 .retryBtn {
@@ -50,7 +50,7 @@
   color: var(--btn-primary-text);
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
 }
 
 .retryBtn:hover {

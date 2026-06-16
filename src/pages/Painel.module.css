@@ -29,14 +29,14 @@
 
 .pageTitle {
   margin: 0 0 4px;
-  font-size: 24px;
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .pageSubtitle {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
@@ -51,7 +51,7 @@
 
 .metricCard {
   background-color: var(--surface-primary);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-100);
   border-radius: var(--card-radius-desktop);
   padding: 20px;
 }
@@ -74,7 +74,7 @@
 }
 
 .metricValue {
-  font-size: 28px;
+  font-size: var(--font-size-3xl);
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
@@ -82,7 +82,7 @@
 
 .metricLabel {
   margin: 0 0 12px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -103,7 +103,7 @@
 }
 
 .trend {
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
 }
 .userFeedback {
@@ -128,7 +128,7 @@
 
 .sectionTitle {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -136,7 +136,7 @@
 .badge {
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   background-color: var(--color-green-100, #dcfce7);
   color: var(--btn-primary-bg);
@@ -147,7 +147,7 @@
 
 .chartCard {
   background-color: var(--surface-primary);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-100);
   border-radius: var(--card-radius-desktop);
   padding: 24px;
   width: 100%;
@@ -155,22 +155,21 @@
 
 .chartTooltip {
   background-color: var(--surface-primary);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 8px;
   padding: 10px 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .tooltipLabel {
   margin: 0 0 3px;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
   font-weight: 500;
 }
 
 .tooltipValue {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -179,7 +178,7 @@
 
 .feedbackSection {
   background-color: var(--surface-primary);
-  /* border: 1px solid #e5e7eb; */
+  /* border: 1px solid var(--color-neutral-100); */
   border-radius: var(--card-radius-desktop);
   padding: 24px;
   overflow-y: auto;

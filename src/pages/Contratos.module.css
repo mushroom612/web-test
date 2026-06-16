@@ -40,7 +40,7 @@
   padding: var(--spacing-3) var(--spacing-3) var(--spacing-3) var(--spacing-10);
   background-color: var(--surface-primary);
   border: 1px solid var(--color-neutral-200);
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-full);
   font-size: var(--font-size-sm);
   color: var(--text-primary);
   font-family: inherit;
@@ -91,7 +91,7 @@
   margin-bottom: var(--spacing-6);
   background-color: var(--surface-primary);
   padding: var(--spacing-1);
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-full);
   width: fit-content;
 }
 
@@ -99,7 +99,7 @@
   padding: var(--spacing-2) var(--spacing-4);
   background-color: transparent;
   border: none;
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-full);
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-secondary);
@@ -225,7 +225,7 @@
 }
 
 .renewBtn {
-  background-color: #fef3c7;
+  background-color: var(--status-warning-bg);
   color: var(--color-semantic-warning);
 }
 
@@ -288,10 +288,10 @@
   flex-wrap: wrap;
   padding: 10px 12px;
   margin-bottom: 12px;
-  background-color: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: 8px;
-  font-size: 13px;
+  background-color: var(--status-warning-bg);
+  border: 1px solid var(--status-warning-bg);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
 }
 
 .renewFormLabel {
@@ -302,9 +302,9 @@
 
 .renewSelect {
   padding: 5px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 13px;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
   background-color: var(--surface-primary);
   color: var(--text-primary);
   cursor: pointer;
@@ -318,8 +318,8 @@
   background-color: var(--btn-primary-bg);
   color: var(--btn-primary-text);
   border: none;
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -333,18 +333,18 @@
 .renewCancelBtn {
   padding: 5px 12px;
   background: none;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 13px;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .renewCancelBtn:hover:not(:disabled) {
-  background-color: #fef2f2;
-  border-color: #fca5a5;
-  color: #dc2626;
+  background-color: var(--status-error-bg);
+  border-color: var(--color-semantic-error);
+  color: var(--color-semantic-error);
 }
 
 /* ── Seção de Administradores no card de contrato ──
@@ -363,7 +363,7 @@
   padding: var(--spacing-2) var(--spacing-3);
   margin-bottom: var(--spacing-3);
   background-color: var(--surface-page);
-  border: none;
+  border: 1px solid var(--color-neutral-200);
   border-radius: var(--border-radius-md);
   color: var(--text-secondary);
   font-size: var(--font-size-xs);
@@ -372,11 +372,12 @@
   letter-spacing: 0.4px;
   cursor: pointer;
   text-align: left;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .admToggleBtn:hover {
   background-color: var(--surface-tertiary);
+  border-color: var(--color-neutral-300);
   color: var(--text-primary);
 }
 
@@ -384,7 +385,7 @@
   flex: 1;
 }
 
-/* Seção expandida: mesmo visual de cardInfo */
+/* Seção expandida: mesmo visual de cardInfo com borda definida */
 .admSection {
   display: flex;
   flex-direction: column;
@@ -392,6 +393,7 @@
   padding: var(--spacing-3);
   margin-bottom: var(--spacing-3);
   background-color: var(--surface-page);
+  border: 1px solid var(--color-neutral-200);
   border-radius: var(--border-radius-md);
 }
 
@@ -644,7 +646,7 @@
 
 @media (max-width: 1024px) {
   .table {
-    font-size: 12px;
+    font-size: var(--font-size-xs);
   }
 
   .table th,

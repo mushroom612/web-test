@@ -267,9 +267,14 @@ export const api = {
   // Shape: { message, totalGeral, total, page, limit,
   //          usuarios: [{ usu_id, usu_nome, usu_email, usu_status,
   //                       usu_verificacao, esc_nome, cur_nome, per_tipo }] }
-  async getUsers({ page = 1, limit = 50, q = '', esc_id } = {}) {
+  async getUsers({ page = 1, limit = 50, q = '', esc_id, order } = {}) {
     return http.get('/api/admin/usuarios', {
-      query: { page, limit, ...(q ? { q } : {}), ...(esc_id ? { esc_id } : {}) }
+      query: {
+        page, limit,
+        ...(q      ? { q }         : {}),
+        ...(esc_id ? { esc_id }    : {}),
+        ...(order  ? { order }     : {}),
+      }
     });
   },
 
@@ -437,29 +442,6 @@ export const api = {
   // Apenas Desenvolvedor (per_tipo=2) tem permissão.
   async deleteDenuncia(denId) {
     return http.del(`/api/denuncias/${denId}`);
-  },
-
-  // ── Notificações ───────────────────────────────────────────
-  // enviarNotificacao: despacha para o endpoint correto conforme o destinatário.
-  //
-  // usu_id preenchido → POST /api/notificacoes/enviar  (usuário específico)
-  //   Body: { usu_id, noti_titulo, noti_descricao }
-  //
-  // usu_id ausente → POST /api/admin/notificacoes/escola  (broadcast à escola do Admin)
-  //   Body: { noti_titulo, noti_descricao }
-  //   Acesso: Admin only (backend usa per_escola_id do JWT para escopo).
-  async enviarNotificacao({ titulo, mensagem, usu_id } = {}) {
-    if (usu_id) {
-      return http.post('/api/notificacoes/enviar', {
-        usu_id,
-        noti_titulo:    titulo,
-        noti_descricao: mensagem
-      });
-    }
-    return http.post('/api/admin/notificacoes/escola', {
-      noti_titulo:    titulo,
-      noti_descricao: mensagem
-    });
   },
 
   // ── Logs de Auditoria (apenas Desenvolvedor) ───────────────

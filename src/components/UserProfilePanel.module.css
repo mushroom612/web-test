@@ -6,7 +6,7 @@
   left: 240px;
   right: 0;
   bottom: 0;
-  background-color: var(--surface-secondary, #f9fafb);
+  background-color: var(--surface-secondary, var(--color-neutral-50));
   z-index: 200;
   display: flex;
   flex-direction: column;
@@ -30,30 +30,33 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 28px;
-  border-bottom: 1px solid #e5e7eb;
-  background-color: var(--surface-primary, #fff);
+  border-bottom: 1px solid var(--color-neutral-100);
+  background-color: var(--surface-primary, var(--color-neutral-0));
   flex-shrink: 0;
 }
 
 .backBtn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 13px;
+  gap: 2px;
+  padding: 6px 8px;
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  color: var(--btn-primary-bg);
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
   font-family: inherit;
 }
 
 .backBtn:hover {
-  background-color: #f3f4f6;
-  color: var(--text-primary);
+  opacity: 0.75;
+}
+
+.backBtn:active {
+  opacity: 0.5;
 }
 
 .headerActions {
@@ -68,10 +71,10 @@
   gap: 6px;
   padding: 8px 16px;
   background-color: var(--btn-primary-bg, #4e8726);
-  color: #fff;
+  color: var(--color-neutral-0);
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -89,9 +92,9 @@
   padding: 8px 14px;
   background: transparent;
   color: var(--text-secondary);
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
@@ -99,7 +102,7 @@
 }
 
 .cancelBtn:hover {
-  background-color: #f3f4f6;
+  background-color: var(--color-neutral-50);
   color: var(--text-primary);
 }
 
@@ -122,9 +125,9 @@
 /* ── Card hero (avatar + nome) ───────────────────────────── */
 
 .heroCard {
-  background-color: var(--surface-primary, #fff);
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  background-color: var(--surface-primary, var(--color-neutral-0));
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--card-radius-desktop);
   padding: 24px 28px;
   display: flex;
   align-items: center;
@@ -136,8 +139,8 @@
   height: 72px;
   border-radius: 50%;
   background-color: var(--btn-primary-bg, #4e8726);
-  color: #fff;
-  font-size: 24px;
+  color: var(--color-neutral-0);
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -152,14 +155,14 @@
 
 .heroName {
   margin: 0 0 4px;
-  font-size: 20px;
+  font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .heroEmail {
   margin: 0 0 12px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
@@ -174,31 +177,31 @@
   align-items: center;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  background-color: #f3f4f6;
-  color: #374151;
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-700);
 }
 
 .badge_active {
-  background-color: #dcfce7;
-  color: #15803d;
+  background-color: var(--status-success-bg);
+  color: var(--color-green-800);
 }
 .badge_inactive {
-  background-color: #f3f4f6;
-  color: #6b7280;
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-500);
 }
 .badge_success {
-  background-color: #dcfce7;
-  color: #15803d;
+  background-color: var(--status-success-bg);
+  color: var(--color-green-800);
 }
 .badge_warning {
-  background-color: #fef3c7;
-  color: #b45309;
+  background-color: var(--status-warning-bg);
+  color: var(--color-semantic-warning);
 }
 .badge_danger {
-  background-color: #fee2e2;
-  color: #b91c1c;
+  background-color: var(--status-error-bg);
+  color: var(--color-semantic-error);
 }
 
 /* ── Grid de informações ─────────────────────────────────── */
@@ -210,8 +213,8 @@
 }
 
 .infoCard {
-  background-color: var(--surface-primary, #fff);
-  border: 1px solid #e5e7eb;
+  background-color: var(--surface-primary, var(--color-neutral-0));
+  border: 1px solid var(--color-neutral-100);
   border-radius: 10px;
   padding: 14px 16px;
 }
@@ -220,7 +223,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -234,20 +237,20 @@
 
 .infoValue {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-primary);
   word-break: break-word;
 }
 
 .color_success {
-  color: #15803d;
+  color: var(--color-green-800);
 }
 .color_warning {
-  color: #b45309;
+  color: var(--color-semantic-warning);
 }
 .color_danger {
-  color: #b91c1c;
+  color: var(--color-semantic-error);
 }
 .color_neutral {
   color: var(--text-secondary);
@@ -255,15 +258,15 @@
 
 .mono {
   font-family: "Courier New", monospace;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
 }
 
 /* ── Formulário de edição ────────────────────────────────── */
 
 .editForm {
-  background-color: var(--surface-primary, #fff);
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background-color: var(--surface-primary, var(--color-neutral-0));
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--card-radius-desktop);
   padding: 24px;
 }
 
@@ -284,7 +287,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-primary);
 }
@@ -295,11 +298,11 @@
 
 .input {
   padding: 9px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 8px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
-  background-color: var(--color-neutral-0, #fff);
+  background-color: var(--color-neutral-0, var(--color-neutral-0));
   font-family: inherit;
   width: 100%;
 }
@@ -310,7 +313,7 @@
 }
 
 .input:disabled {
-  background-color: #f9fafb;
+  background-color: var(--color-neutral-50);
   color: var(--text-secondary);
   cursor: not-allowed;
   border-style: dashed;
@@ -318,7 +321,7 @@
 
 .editNote {
   margin: 0 0 16px;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
   font-style: italic;
 }
@@ -327,7 +330,7 @@
   display: flex;
   gap: 10px;
   padding-top: 16px;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--color-neutral-50);
 }
 
 .saveBtn {
@@ -336,10 +339,10 @@
   gap: 6px;
   padding: 9px 18px;
   background-color: var(--btn-primary-bg, #4e8726);
-  color: #fff;
+  color: var(--color-neutral-0);
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -364,19 +367,19 @@
   gap: 8px;
   padding: 11px 14px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
 }
 
 .alertSuccess {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
+  background-color: var(--color-green-50);
+  border: 1px solid var(--color-green-200);
+  color: var(--color-green-800);
 }
 
 .alertError {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
+  background-color: var(--status-error-bg);
+  border: 1px solid var(--status-error-bg);
+  color: var(--color-semantic-error);
 }
 
 /* ── Misc ────────────────────────────────────────────────── */

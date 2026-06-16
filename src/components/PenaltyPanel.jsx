@@ -109,7 +109,7 @@ import {
   IconShieldExclamation,
   IconClock,
   IconUserMinus,
-  IconArrowLeft,
+  IconChevronLeft,
 } from "@tabler/icons-react";
 import { api } from "../services/api";
 import styles from "./PenaltyPanel.module.css";
@@ -358,8 +358,8 @@ export function PenaltyPanel({ user, onClose }) {
             </div>
           </div>
           <button className={styles.closeBtn} onClick={onClose}>
-            <IconArrowLeft size={16} />
-            Voltar para Usuários
+            <IconChevronLeft size={18} />
+            Usuários
           </button>
         </div>
 

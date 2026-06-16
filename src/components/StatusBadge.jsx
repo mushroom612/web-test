@@ -31,7 +31,7 @@
 
 import styles from "./StatusBadge.module.css";
 
-export function StatusBadge({ status, type = "status" }) {
+export function StatusBadge({ status }) {
   // statusStyles: dicionário que associa cada texto de status a um par de cores.
   // As cores seguem uma convenção semântica:
   //   verde  → positivo (Ativo, Concluída, Resolvido, Sugestão)

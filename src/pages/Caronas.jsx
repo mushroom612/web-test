@@ -31,7 +31,7 @@
 // ============================================================
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   IconCar, IconUsers, IconMapPin, IconCircleCheck, IconCircleX,
   IconLoader2, IconChevronRight, IconX, IconUser
@@ -90,6 +90,9 @@ function listItemToRide(r) {
     status: statusLabel(r.car_status),
     statusCode: r.car_status,
     date: formatDateTime(r.car_data, r.car_hor_saida),
+    // Data e hora separadas para os chips DATA/HORA do detalhe (estilo app)
+    dataLabel: r.car_data ? String(r.car_data).slice(0, 10).split('-').reverse().join('/') : '—',
+    horaLabel: r.car_hor_saida ? String(r.car_hor_saida).slice(0, 5) : '—',
     description: r.car_desc,
     // Lista não traz origem/destino; ficam null até o /resumo chegar.
     origin: null,
@@ -135,9 +138,13 @@ function mergeResumo(baseRide, resumo) {
 
 // Opções de filtro disponíveis na barra de abas (rótulos da API)
 const FILTER_OPTIONS = ['Todos', 'Aberta', 'Em espera', 'Finalizada', 'Cancelada'];
+// STATUS_TO_CODE: converte o rótulo do filtro para o código numérico da API
+const STATUS_TO_CODE = { 'Aberta': 1, 'Em espera': 2, 'Finalizada': 3, 'Cancelada': 0 };
 const PAGE_SIZE = 15;
 
 export function Caronas() {
+  const navigate = useNavigate();
+
   const [rides, setRides] = useState([]);
   const [stats, setStats] = useState(null);     // { total, abertas, em_espera, finalizadas, canceladas }
   const [total, setTotal] = useState(0);        // total de caronas
@@ -162,9 +169,10 @@ export function Caronas() {
     setLoading(true);
     setError(null);
     try {
+      const statusCode = filterStatus !== 'Todos' ? STATUS_TO_CODE[filterStatus] : undefined;
       const [statsResp, caronasResp] = await Promise.all([
         api.getStats('caronas'),
-        api.getCaronas({ limit: PAGE_SIZE, page })
+        api.getCaronas({ limit: PAGE_SIZE, page, status: statusCode })
       ]);
       setStats(statsResp?.stats || null);
       const lista = caronasResp?.caronas || [];
@@ -183,7 +191,7 @@ export function Caronas() {
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, filterStatus]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -262,12 +270,6 @@ export function Caronas() {
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>Registros de Carona</h1>
-            <p className={styles.subtitle}>Gerencie todas as caronas da plataforma</p>
-          </div>
-        </div>
         <ErrorBanner
           error={error}
           title="Não foi possível carregar as caronas."
@@ -287,13 +289,6 @@ export function Caronas() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Registros de Carona</h1>
-          <p className={styles.subtitle}>Gerencie todas as caronas da plataforma</p>
-        </div>
-      </div>
-
       {/* Cards de resumo com totais por status (vindos de /api/admin/stats/caronas) */}
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
@@ -409,7 +404,6 @@ export function Caronas() {
             <div className={styles.detailHeader}>
               <div className={styles.detailHeaderLeft}>
                 <StatusBadge status={selectedRide.status} />
-                <span className={styles.detailDate}>{selectedRide.date}</span>
               </div>
               <button className={styles.closeDetailBtn} onClick={handleCloseDetail} title="Fechar">
                 <IconX size={16} />
@@ -417,13 +411,31 @@ export function Caronas() {
             </div>
 
             {/* Informações do motorista (já disponíveis na lista) */}
-            <div className={styles.detailSender}>
+            <div
+              className={`${styles.detailSender} ${selectedRide.driverId ? styles.clickableUser : ''}`}
+              onClick={() => selectedRide.driverId && navigate(`/usuarios?id=${selectedRide.driverId}`)}
+              title={selectedRide.driverId ? 'Ver perfil do motorista' : undefined}
+            >
               <span className={styles.avatarLg}>{selectedRide.driverInitial}</span>
               <div>
                 <p className={styles.detailSenderName}>{selectedRide.driverName}</p>
                 <p className={styles.detailSenderSub}>
                   <IconUser size={11} /> Motorista #{selectedRide.driverId}
                 </p>
+              </div>
+            </div>
+
+            {/* Chips DATA / HORA — mesmo padrão do card do app */}
+            <div className={styles.detailSection}>
+              <div className={styles.metaRow}>
+                <div className={styles.metaChip}>
+                  <span className={styles.metaChipLabel}>Data</span>
+                  <span className={styles.metaChipValue}>{selectedRide.dataLabel}</span>
+                </div>
+                <div className={styles.metaChip}>
+                  <span className={styles.metaChipLabel}>Hora</span>
+                  <span className={styles.metaChipValue}>{selectedRide.horaLabel}</span>
+                </div>
               </div>
             </div>
 
@@ -437,9 +449,8 @@ export function Caronas() {
             )}
 
             {/* Rota: origem/destino vêm do /resumo. Mostra spinner
-                enquanto aguarda. */}
+                enquanto aguarda. Rótulos Origem/Destino no estilo do card do app. */}
             <div className={styles.detailSection}>
-              <p className={styles.detailSectionLabel}>Rota</p>
               {detailLoading && !selectedRide.origin ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
                   <IconLoader2 size={14} className={styles.spin} />
@@ -449,12 +460,18 @@ export function Caronas() {
                 <div className={styles.routeDetail}>
                   <div className={styles.routeDetailRow}>
                     <IconMapPin size={14} className={styles.routeIconOrigin} />
-                    <span>{selectedRide.origin || '—'}</span>
+                    <div>
+                      <span className={styles.routeLabel}>Origem</span>
+                      <span>{selectedRide.origin || '—'}</span>
+                    </div>
                   </div>
                   <div className={styles.routeDetailConnector} />
                   <div className={styles.routeDetailRow}>
                     <IconMapPin size={14} className={styles.routeIconDest} />
-                    <span>{selectedRide.destination || '—'}</span>
+                    <div>
+                      <span className={styles.routeLabel}>Destino</span>
+                      <span>{selectedRide.destination || '—'}</span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -494,21 +511,34 @@ export function Caronas() {
                   <span style={{ fontSize: 13 }}>Carregando passageiros...</span>
                 </div>
               </div>
-            ) : selectedRide.passengers.length > 0 && (
+            ) : (
               <div className={styles.detailSection}>
                 <p className={styles.detailSectionLabel}>
-                  Passageiros ({selectedRide.passengers.length})
+                  {selectedRide.passengers.length > 0
+                    ? `Passageiros (${selectedRide.passengers.length})`
+                    : 'Passageiros'}
                 </p>
-                <div className={styles.passengerList}>
-                  {selectedRide.passengers.map(p => (
-                    <div key={p.usu_id} className={styles.passengerRow}>
-                      <span className={styles.passengerAvatar}>
-                        {(p.usu_nome || 'U').charAt(0).toUpperCase()}
-                      </span>
-                      <span className={styles.passengerName}>{p.usu_nome}</span>
-                    </div>
-                  ))}
-                </div>
+                {selectedRide.passengers.length > 0 ? (
+                  <div className={styles.passengerList}>
+                    {selectedRide.passengers.map(p => (
+                      <div
+                        key={p.usu_id}
+                        className={`${styles.passengerRow} ${p.usu_id ? styles.clickableUser : ''}`}
+                        onClick={() => p.usu_id && navigate(`/usuarios?id=${p.usu_id}`)}
+                        title={p.usu_id ? 'Ver perfil do passageiro' : undefined}
+                      >
+                        <span className={styles.passengerAvatar}>
+                          {(p.usu_nome || 'U').charAt(0).toUpperCase()}
+                        </span>
+                        <span className={styles.passengerName}>{p.usu_nome}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={styles.helperBox}>
+                    <p className={styles.helperText}>Nenhum passageiro confirmado ainda.</p>
+                  </div>
+                )}
               </div>
             )}
 

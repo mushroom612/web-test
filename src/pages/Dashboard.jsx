@@ -340,10 +340,6 @@ export function Dashboard() {
   if (error) {
     return (
       <div className={styles.dashboard}>
-        <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>Painel</h1>
-          <p className={styles.pageSubtitle}>Visão geral da plataforma Tuctuc</p>
-        </div>
         <ErrorBanner
           error={error}
           title="Não foi possível carregar o Dashboard."
@@ -355,11 +351,6 @@ export function Dashboard() {
 
   return (
     <div className={styles.dashboard}>
-      {/* Cabeçalho da página */}
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Painel</h1>
-        <p className={styles.pageSubtitle}>Visão geral da plataforma Tuctuc</p>
-      </div>
       <div className={styles.userFeedback}>
 {/* ── Grade de cards de métricas ───────────────────────────
           styles.metricsGrid = display: grid com 4 colunas
