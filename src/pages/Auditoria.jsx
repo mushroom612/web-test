@@ -1,88 +1,56 @@
 // ============================================================
 // pages/Auditoria.jsx — Visualizador de logs de auditoria
 //
-// Exibe um histórico de ações realizadas por administradores
-// na plataforma. Esta página é restrita a desenvolvedores (role 2).
+// Exibe um histórico de ações realizadas na plataforma separando
+// ações do painel administrativo (Admin/Dev) das ações do app
+// mobile (usuários comuns).
+//
+// Abas:
+//   "Painel Admin/Dev" → ações de moderação, login, penalidades,
+//     escolas, contratos, denúncias. Colunas: Administrador + Escola.
+//   "App — Usuários"   → ações de carona e solicitação feitas pelo
+//     app mobile. Coluna: Usuário.
+//
+// A separação é feita client-side com base no conjunto APP_ACOES:
+//   ações CARONA_* e SOLICITACAO_* pertencem ao App;
+//   todas as demais pertencem ao Painel.
 //
 // Funcionalidades:
-//   - Tabela paginada de logs (20 registros por página — PAGE_SIZE)
 //   - Filtros: tipo de ação, data de início e data de fim
 //   - Filtros só são aplicados ao clicar "Filtrar" (não em tempo real)
 //   - Badges coloridos por categoria de ação (danger/warning/success/info)
-//   - Exportação dos logs como CSV
-//   - Mensagem de erro amigável quando o acesso é negado (403)
+//   - Exportação dos logs filtrados pela aba ativa como PDF
+//   - Exportação de todos os logs como CSV
 //
-// Como funciona a paginação:
-//   - `page`: número da página atual (começa em 1)
-//   - `total`: total de registros que correspondem ao filtro
-//   - `totalPages`: total de páginas = Math.ceil(total / PAGE_SIZE)
-//   - Ao mudar de página, o useEffect rebusca os dados da API com
-//     os novos parâmetros `page` e os filtros ativos.
-//
-// Separação entre filtros digitados e filtros aplicados:
-//   - `filterAcao`, `filterDataInicio`, `filterDataFim` → estados do input
-//     (o que o usuário está digitando, mas ainda não aplicou)
-//   - `appliedFilters` → filtros que realmente estão em vigor na consulta.
-//   Isso evita que a lista recarregue a cada tecla digitada.
+// Paginação: server-side (20 por página). A filtragem por aba é
+// aplicada sobre a página atual, então o número de linhas visíveis
+// pode variar entre abas para a mesma página.
 //
 // Bibliotecas usadas:
 //   - react              → useState, useEffect
-//   - lucide-react       → Loader2, Download, ChevronLeft, ChevronRight
+//   - @tabler/icons-react → ícones
+//   - jspdf + jspdf-autotable → exportação PDF (importação lazy)
 //
 // Dados consumidos:
 //   - api.getLogs({ page, limit, acao, dataInicio, dataFim })
-//   - api.exportLogs() → baixa os logs como arquivo CSV
-//
-// Interligação:
-//   - Importa: api.js
+//   - api.exportLogs() → CSV com todos os logs
 //
 // Estilo: Auditoria.module.css
-//   Classes CSS utilizadas:
-//     .container         → área raiz da página
-//     .header            → cabeçalho com título e botão "Exportar CSV"
-//     .title             → texto "Auditoria"
-//     .subtitle          → descrição abaixo do título
-//     .exportBtn         → botão de exportação CSV (canto superior direito)
-//     .filters           → formulário de filtros (linha horizontal)
-//     .filterInput       → campo de texto/data para filtrar
-//     .filterBtn         → botão "Filtrar" (submit do form)
-//     .filterBtnGhost    → botão "Limpar" (estilo secundário)
-//     .loadingWrapper    → centraliza o spinner durante o carregamento
-//     .spinIcon          → aplica animação de rotação ao ícone Loader2
-//     .errorBox          → caixa vermelha com mensagem de erro
-//     .tableWrapper      → container com scroll horizontal da tabela
-//     .table             → tabela HTML com as colunas de log
-//     .rowEven           → fundo alternado para linhas pares (efeito zebrado)
-//     .cellDateTime      → célula com data e hora (fonte menor)
-//     .cellAdmin         → célula com ID do administrador
-//     .actionBadge       → badge colorido com a ação (span)
-//     .badge_danger      → vermelho (suspensão, exclusão, remoção)
-//     .badge_warning     → amarelo (penalidade, alteração de status)
-//     .badge_success     → verde (cadastro, criação, restauração)
-//     .badge_info        → azul (ação genérica)
-//     .cellRegistro      → célula com o ID do registro afetado
-//     .cellIP            → célula com o IP do administrador
-//     .ipCode            → texto de IP com fonte monospace
-//     .emptyMsg          → mensagem quando não há registros
-//     .pagination        → rodapé com informações e controles de página
-//     .paginationInfo    → texto "Página X de Y · Z registros"
-//     .paginationControls → agrupa os botões de navegação
-//     .pageBtn           → botão "Anterior" / "Próximo"
 // ============================================================
 
 import { useState, useEffect } from 'react';
-import { IconLoader2, IconDownload, IconFileTypePdf } from '@tabler/icons-react';
+import {
+  IconLoader2, IconDownload, IconFileTypePdf,
+  IconLayoutDashboard, IconDeviceMobile
+} from '@tabler/icons-react';
 import { api } from '../services/api';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { Pagination } from '../components/Pagination';
 import styles from './Auditoria.module.css';
 
-// PAGE_SIZE: quantidade de registros por página.
-// Valor fixo definido como constante para facilitar a mudança futura.
+// PAGE_SIZE: registros por página (alinhado com o backend).
 const PAGE_SIZE = 20;
 
-// TABELA_LABELS: converte o nome da tabela no banco para um label legível.
-// Usado na coluna "Registro" para exibir ex: "Usuário #5" em vez de "5".
 const TABELA_LABELS = {
   USUARIOS:    'Usuário',
   CARONAS:     'Carona',
@@ -94,8 +62,6 @@ const TABELA_LABELS = {
   SUGESTOES:   'Sugestão',
 };
 
-// ACAO_LABELS: traduz códigos crus enviados pelo backend (SNAKE_CASE) para português.
-// Ações já traduzidas pelo backend passam direto sem modificação.
 const ACAO_LABELS = {
   // Caronas
   CARONA_CRIAR:          'Criação de Carona',
@@ -137,13 +103,21 @@ const ACAO_LABELS = {
   DENUNCIA_ARQUIVAR:     'Arquivamento de Denúncia',
 };
 
-// translateAcao: retorna a ação traduzida se for um código cru,
-// ou o valor original caso o backend já tenha enviado texto legível.
+// APP_ACOES: conjunto de ações originadas do app mobile.
+// Tudo que não está neste set é considerado ação do painel admin.
+const APP_ACOES = new Set([
+  'CARONA_CRIAR', 'CARONA_CANCELAR', 'CARONA_FINALIZAR', 'CARONA_ATUALIZAR',
+  'SOLICITACAO_ACEITAR', 'SOLICITACAO_REJEITAR', 'SOLICITACAO_CRIAR', 'SOLICITACAO_CANCELAR',
+]);
+
+function isAppAction(acao = '') {
+  return APP_ACOES.has(acao.toUpperCase());
+}
+
 function translateAcao(acao = '') {
   return ACAO_LABELS[acao] ?? ACAO_LABELS[acao.toUpperCase()] ?? acao;
 }
 
-// formatDate: converte uma string de data/hora para o padrão brasileiro sem segundos.
 function formatDate(dateStr) {
   if (!dateStr) return '—';
   try {
@@ -156,11 +130,10 @@ function formatDate(dateStr) {
   }
 }
 
-// getActionVariant: classifica uma ação em uma categoria de cor.
-// Aceita tanto texto traduzido quanto códigos crus.
+// Retorna o sufixo da classe global "badge-{variant}" do global.css
 function getActionVariant(acao = '') {
   const lower = translateAcao(acao).toLowerCase();
-  if (/suspensão|exclusão|remoção|falhado|rejeição|cancelamento|inativação/.test(lower)) return 'danger';
+  if (/suspensão|exclusão|remoção|falhado|rejeição|cancelamento|inativação/.test(lower)) return 'error';
   if (/penalidade|status|bloqueio|atualização|alteração/.test(lower)) return 'warning';
   if (/cadastro|criação|restauração|ativação|aceitação|nova solicitação/.test(lower)) return 'success';
   return 'info';
@@ -168,26 +141,21 @@ function getActionVariant(acao = '') {
 
 export function Auditoria() {
   const [logs, setLogs] = useState([]);
-  const [total, setTotal] = useState(0);    // total de registros (para calcular páginas)
-  const [page, setPage] = useState(1);      // página atual (começa em 1)
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [exporting, setExporting] = useState(false);    // spinner no botão de exportar CSV
-  const [exportingPdf, setExportingPdf] = useState(false); // spinner no botão de exportar PDF
+  const [exporting, setExporting] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
-  // Estados dos inputs de filtro (o que o usuário está digitando)
+  // activeTab: 'painel' = Admin/Dev, 'app' = usuários do app mobile
+  const [activeTab, setActiveTab] = useState('painel');
+
   const [filterAcao, setFilterAcao] = useState('');
   const [filterDataInicio, setFilterDataInicio] = useState('');
   const [filterDataFim, setFilterDataFim] = useState('');
-
-  // appliedFilters: filtros que estão efetivamente em vigor na consulta.
-  // Só são atualizados ao clicar "Filtrar" (handleFilterSubmit).
-  // Isso evita rebuscar a cada tecla digitada.
   const [appliedFilters, setAppliedFilters] = useState({ acao: '', dataInicio: '', dataFim: '' });
 
-  // useEffect: rebusca os logs sempre que a página ou os filtros aplicados mudarem.
-  // [page, appliedFilters] → lista de dependências; o efeito roda novamente se qualquer
-  // um desses valores mudar.
   useEffect(() => {
     setLoading(true);
     setError('');
@@ -195,19 +163,16 @@ export function Auditoria() {
       .getLogs({
         page,
         limit: PAGE_SIZE,
-        // || undefined: se a string for vazia, envia undefined (campo ignorado pela API)
         acao: appliedFilters.acao || undefined,
         dataInicio: appliedFilters.dataInicio || undefined,
         dataFim: appliedFilters.dataFim || undefined,
       })
       .then((data) => {
         setLogs(data.logs || []);
-        // ?? → usa 0 se data.totalGeral e data.total forem null/undefined
         setTotal(data.totalGeral ?? data.total ?? 0);
       })
       .catch((err) => {
         const msg = err.message ?? '';
-        // Detecta erro 403 (acesso negado) para exibir mensagem específica
         if (msg.includes('403') || msg.toLowerCase().includes('não autorizado')) {
           setError('O log de auditoria é restrito a desenvolvedores (role 2).');
         } else {
@@ -217,16 +182,12 @@ export function Auditoria() {
       .finally(() => setLoading(false));
   }, [page, appliedFilters]);
 
-  // handleFilterSubmit: aplica os filtros ao clicar "Filtrar".
-  // e.preventDefault() → evita o reload padrão do formulário HTML.
-  // setPage(1) → volta para a primeira página ao aplicar novos filtros.
   function handleFilterSubmit(e) {
     e.preventDefault();
     setPage(1);
     setAppliedFilters({ acao: filterAcao, dataInicio: filterDataInicio, dataFim: filterDataFim });
   }
 
-  // handleFilterReset: limpa todos os filtros e volta para a página 1.
   function handleFilterReset() {
     setFilterAcao('');
     setFilterDataInicio('');
@@ -235,7 +196,12 @@ export function Auditoria() {
     setAppliedFilters({ acao: '', dataInicio: '', dataFim: '' });
   }
 
-  // handleExport: solicita a exportação dos logs como CSV.
+  // handleTabChange: muda a aba ativa e volta para a primeira página.
+  function handleTabChange(tab) {
+    setActiveTab(tab);
+    setPage(1);
+  }
+
   async function handleExport() {
     setExporting(true);
     try {
@@ -245,11 +211,12 @@ export function Auditoria() {
     }
   }
 
-  // handleExportPdf: gera um PDF dos logs visíveis na página atual.
-  // jspdf-autotable 5.x não adiciona doc.autoTable via import ESM —
-  // é necessário chamar autoTable(doc, {...}) como função diretamente.
+  // handleExportPdf: exporta apenas os registros da aba ativa.
   async function handleExportPdf() {
-    if (logs.length === 0) return;
+    const tabLogs = logs.filter(log =>
+      activeTab === 'app' ? isAppAction(log.acao) : !isAppAction(log.acao)
+    );
+    if (tabLogs.length === 0) return;
     setExportingPdf(true);
     try {
       const hoje = new Date();
@@ -261,6 +228,7 @@ export function Auditoria() {
       const { autoTable } = await import('jspdf-autotable');
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       const pageW = doc.internal.pageSize.getWidth();
+      const tabLabel = activeTab === 'app' ? 'App — Usuários' : 'Painel Admin/Dev';
 
       doc.setFillColor(22, 163, 74);
       doc.rect(0, 0, pageW, 22, 'F');
@@ -277,20 +245,31 @@ export function Auditoria() {
       doc.setTextColor(30, 30, 30);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(12);
-      doc.text('Auditoria — Logs', 12, 31);
+      doc.text(`Auditoria — Logs · ${tabLabel}`, 12, 31);
 
-      const totalRows = logs.length;
+      const totalRows = tabLogs.length;
+      const isApp = activeTab === 'app';
+
       autoTable(doc, {
-        head: [['Data/Hora', 'Administrador', 'Escola', 'Ação', 'Registro']],
-        body: logs.map(log => [
-          formatDate(log.criado_em),
-          log.admin_nome ?? (log.usu_id ? `Admin #${log.usu_id}` : '—'),
-          log.admin_escola ?? '—',
-          translateAcao(log.acao),
-          log.registro_id != null
-            ? (log.registro_nome || `#${log.registro_id}`)
-            : '—'
-        ]),
+        head: [isApp
+          ? ['Data/Hora', 'Usuário', 'Ação', 'Registro']
+          : ['Data/Hora', 'Administrador', 'Escola', 'Ação', 'Registro']
+        ],
+        body: tabLogs.map(log => isApp
+          ? [
+              formatDate(log.criado_em),
+              log.usu_nome || (log.usu_id ? `Usuário #${log.usu_id}` : '—'),
+              translateAcao(log.acao),
+              log.alvo_nome || log.registro_nome || (log.registro_id != null ? `#${log.registro_id}` : '—')
+            ]
+          : [
+              formatDate(log.criado_em),
+              log.admin_nome ?? (log.usu_id ? `Admin #${log.usu_id}` : '—'),
+              log.admin_escola ?? '—',
+              translateAcao(log.acao),
+              log.alvo_nome || log.registro_nome || (log.registro_id != null ? `#${log.registro_id}` : '—')
+            ]
+        ),
         startY: 36,
         styles: { fontSize: 8, cellPadding: 3 },
         headStyles: { fillColor: [22, 163, 74], textColor: 255, fontStyle: 'bold' },
@@ -305,20 +284,25 @@ export function Auditoria() {
           doc.text(`Página ${hookData.pageNumber} de ${pageCount}`, pageW - 12, pageH - 6, { align: 'right' });
         }
       });
-      doc.save(`auditoria-p${page}.pdf`);
+      doc.save(`auditoria-${activeTab}-p${page}.pdf`);
     } finally {
       setExportingPdf(false);
     }
   }
 
-  // totalPages: número total de páginas.
-  // Math.ceil arredonda para cima: 21 registros com PAGE_SIZE=20 → 2 páginas.
-  // Math.max(1, ...) garante que sempre haverá pelo menos 1 página.
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Filtragem client-side: separa os logs da página atual por origem.
+  const visibleLogs = logs.filter(log =>
+    activeTab === 'app' ? isAppAction(log.acao) : !isAppAction(log.acao)
+  );
+  const painelCount = logs.filter(log => !isAppAction(log.acao)).length;
+  const appCount    = logs.filter(log =>  isAppAction(log.acao)).length;
 
   return (
     <div className={styles.container}>
-      {/* Toolbar: filtros + botões de export em uma única linha */}
+
+      {/* ── Toolbar: filtros + botões de export ────────────────── */}
       <div className={styles.toolbar}>
         <form className={styles.filters} onSubmit={handleFilterSubmit}>
           <input
@@ -351,7 +335,12 @@ export function Auditoria() {
         </form>
 
         <div className={styles.exportBtnGroup}>
-          <button className={styles.exportBtnSecondary} onClick={handleExportPdf} disabled={exportingPdf || logs.length === 0}>
+          <button
+            className={styles.exportBtnSecondary}
+            onClick={handleExportPdf}
+            disabled={exportingPdf || visibleLogs.length === 0}
+            title="Exportar PDF dos registros da aba ativa"
+          >
             {exportingPdf
               ? <IconLoader2 size={16} className={styles.spinIcon} />
               : <IconFileTypePdf size={16} />}
@@ -366,66 +355,95 @@ export function Auditoria() {
         </div>
       </div>
 
-      {/* Spinner de carregamento */}
+      {/* ── Abas de origem ─────────────────────────────────────── */}
+      <div className={styles.tabsRow}>
+        <div className="pill-group">
+          <button
+            className={`pill-btn ${activeTab === 'painel' ? 'pill-btn-active' : ''}`}
+            onClick={() => handleTabChange('painel')}
+          >
+            <IconLayoutDashboard size={14} />
+            Painel Admin/Dev
+          </button>
+          <button
+            className={`pill-btn ${activeTab === 'app' ? 'pill-btn-active' : ''}`}
+            onClick={() => handleTabChange('app')}
+          >
+            <IconDeviceMobile size={14} />
+            App — Usuários
+          </button>
+        </div>
+      </div>
+
+      {/* ── Spinner de carregamento ─────────────────────────────── */}
       {loading && <LoadingSpinner size={28} text="Carregando logs..." />}
 
-      {/* Caixa de erro (só exibe quando não está carregando E houve erro) */}
+      {/* ── Caixa de erro ──────────────────────────────────────── */}
       {!loading && error && (
         <div className={styles.errorBox}>{error}</div>
       )}
 
-      {/* Tabela e paginação (só exibe quando não está carregando E não houve erro) */}
+      {/* ── Tabela e paginação ─────────────────────────────────── */}
       {!loading && !error && (
-        // Fragment (<>) → agrupa elementos sem adicionar nó extra no DOM
         <>
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <thead>
                 <tr>
                   <th>Data/Hora</th>
-                  <th>Administrador</th>
-                  <th>Escola</th>
+                  {activeTab === 'painel' ? (
+                    <>
+                      <th>Administrador</th>
+                      <th>Escola</th>
+                    </>
+                  ) : (
+                    <th>Usuário</th>
+                  )}
                   <th>Ação</th>
                   <th>Registro</th>
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log, index) => (
+                {visibleLogs.map((log, index) => (
                   <tr
                     key={log.audit_id ?? index}
-                    // Efeito zebrado: aplica fundo diferente nas linhas pares
                     className={index % 2 === 0 ? styles.rowEven : ''}
                   >
                     <td className={styles.cellDateTime}>{formatDate(log.criado_em)}</td>
-                    <td className={styles.cellAdmin}>
-                      {log.admin_nome ?? (log.usu_id ? `Admin #${log.usu_id}` : '—')}
-                    </td>
-                    <td className={styles.cellEscola}>
-                      {log.admin_escola ?? '—'}
-                    </td>
+
+                    {activeTab === 'painel' ? (
+                      <>
+                        <td className={styles.cellAdmin}>
+                          {log.admin_nome ?? (log.usu_id ? `Admin #${log.usu_id}` : '—')}
+                        </td>
+                        <td className={styles.cellEscola}>
+                          {log.admin_escola ?? '—'}
+                        </td>
+                      </>
+                    ) : (
+                      <td className={styles.cellAdmin}>
+                        {log.usu_nome || (log.usu_id ? `Usuário #${log.usu_id}` : '—')}
+                      </td>
+                    )}
+
                     <td>
-                      {/* Badge de ação: cor dinâmica via styles[`badge_${variant}`]
-                          Isso usa template literal para montar o nome da classe CSS,
-                          ex: badge_danger, badge_success, etc. */}
-                      <span className={`${styles.actionBadge} ${styles[`badge_${getActionVariant(log.acao)}`]}`}>
+                      <span className={`badge badge-${getActionVariant(log.acao)}`}>
                         {translateAcao(log.acao)}
                       </span>
                     </td>
                     <td className={styles.cellRegistro}>
-                      {log.registro_id != null
-                        ? (log.registro_nome || `#${log.registro_id}`)
-                        : '—'}
+                      {log.alvo_nome || log.registro_nome || (log.registro_id != null ? `#${log.registro_id}` : '—')}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {logs.length === 0 && (
-              <p className={styles.emptyMsg}>Nenhum registro encontrado.</p>
+
+            {visibleLogs.length === 0 && (
+              <p className={styles.emptyMsg}>Nenhum registro encontrado nesta aba.</p>
             )}
           </div>
 
-          {/* Controles de paginação */}
           <Pagination
             page={page}
             totalPages={totalPages}
