@@ -21,9 +21,8 @@
 // ============================================================
 
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { IconBell, IconLogout, IconChevronDown, IconLifebuoy, IconMenu2 } from "@tabler/icons-react";
-import { notificationData } from "../data/mockData";
+import { useNavigate, useLocation } from "react-router-dom";
+import { IconLogout, IconChevronDown, IconLifebuoy, IconMenu2 } from "@tabler/icons-react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
 import { SupportChatPanel } from "./SupportChatPanel";
@@ -44,15 +43,26 @@ function getInitials(name = "") {
   );
 }
 
+const PAGE_INFO = {
+  '/dashboard': { title: 'Painel',                subtitle: 'Visão geral da plataforma TucTuc' },
+  '/usuarios':  { title: 'Usuários',              subtitle: 'Lista de usuários cadastrados' },
+  '/auditoria': { title: 'Auditoria',             subtitle: 'Registro de ações realizadas por administradores' },
+  '/caronas':   { title: 'Registros de Carona',   subtitle: 'Gerencie todas as caronas da plataforma' },
+  '/relatorios':{ title: 'Relatórios',            subtitle: null },
+  '/suporte':   { title: 'Suporte',               subtitle: 'Canal de comunicação entre administradores e desenvolvedores' },
+  '/cadastrar': { title: 'Nova Instituição',       subtitle: 'Cadastre uma nova instituição parceira na plataforma' },
+  '/instituicoes': { title: 'Instituições',        subtitle: 'Gerencie as instituições parceiras da plataforma TucTuc' },
+};
+
 export function Topbar({ onMenuToggle }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const { user, isDev, isAdmin, logout } = useAuth();
   const userName = user?.usu_nome || "Usuário";
   const userEmail = user?.usu_email || "";
 
-  const [openMenu, setOpenMenu] = useState(null); // 'notifications' | 'suporte' | 'user' | null
-  const [notifCount, setNotifCount] = useState(notificationData.count);
+  const [openMenu, setOpenMenu] = useState(null); // 'suporte' | 'user' | null
 
   // suporteNaoLidas: contador para o badge do botão de suporte.
   // Admin → respostas do Dev não lidas; Dev → mensagens de admins não lidas.
@@ -92,6 +102,28 @@ export function Topbar({ onMenuToggle }) {
     };
   }, [user?.usu_id, isDev, openMenu]);
 
+  const getPageInfo = () => {
+    if (pathname === '/contratos') {
+      return {
+        title: 'Contratos Institucionais',
+        subtitle: isAdmin
+          ? 'Visualize o contrato da sua instituição com a plataforma TucTuc'
+          : 'Contratos de todas as instituições parceiras da plataforma TucTuc',
+      };
+    }
+    if (pathname === '/sugestoes') {
+      return {
+        title: isAdmin ? 'Denúncias' : 'Sugestões e Denúncias',
+        subtitle: isAdmin
+          ? 'Gerencie as denúncias enviadas pelos usuários da sua instituição'
+          : 'Gerencie os feedbacks, dúvidas e denúncias enviados pelos usuários',
+      };
+    }
+    return PAGE_INFO[pathname] || null;
+  };
+
+  const pageInfo = getPageInfo();
+
   const toggleMenu = (menu) =>
     setOpenMenu((prev) => (prev === menu ? null : menu));
 
@@ -127,54 +159,18 @@ export function Topbar({ onMenuToggle }) {
             <IconMenu2 size={22} />
           </button>
         )}
+        {pageInfo && (
+          <div className={styles.pageInfo}>
+            <h1 className={styles.pageTitle}>{pageInfo.title}</h1>
+            {pageInfo.subtitle && (
+              <p className={styles.pageSubtitle}>{pageInfo.subtitle}</p>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Lado direito: notificações, usuário e ações */}
+      {/* Lado direito: usuário e ações */}
       <div className={styles.right} ref={rightRef}>
-        {/* Sino de notificações com dropdown de itens recentes */}
-        <div className={styles.notificationBell}>
-          <button
-            className={styles.bellBtn}
-            onClick={() => toggleMenu("notifications")}
-            aria-label="Notificações"
-          >
-            <IconBell size={20} />
-            {notifCount > 0 && (
-              <span className={styles.badge}>{notifCount}</span>
-            )}
-          </button>
-
-          {openMenu === "notifications" && (
-            <div className={styles.dropdown}>
-              <div className={styles.dropdownHeader}>
-                <span className={styles.dropdownTitle}>Notificações</span>
-                {notifCount > 0 && (
-                  <button
-                    className={styles.markReadBtn}
-                    onClick={() => setNotifCount(0)}
-                  >
-                    Marcar todas como lidas
-                  </button>
-                )}
-              </div>
-              {notificationData.items.map((n) => (
-                <div key={n.id} className={styles.notifItem}>
-                  <span
-                    className={`${styles.notifDot} ${notifCount === 0 ? styles.notifDotRead : ""}`}
-                  />
-                  <div>
-                    <p className={styles.notifMessage}>{n.message}</p>
-                    <span className={styles.notifTime}>{n.timestamp}</span>
-                  </div>
-                </div>
-              ))}
-              {notificationData.items.length === 0 && (
-                <p className={styles.emptyMsg}>Nenhuma notificação</p>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* Seção do usuário logado com mini-menu ao clicar */}
         <div className={styles.userSection}>
           <button

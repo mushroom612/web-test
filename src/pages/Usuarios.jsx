@@ -114,6 +114,7 @@ export function Usuarios() {
 
   // Estados de controle da interface:
   const [searchTerm, setSearchTerm] = useState('');       // texto digitado na busca
+  const [debouncedSearch, setDebouncedSearch] = useState(''); // busca após debounce
   const [page, setPage] = useState(1);                     // página atual
   const [users, setUsers] = useState([]);                  // lista de usuários da página atual
   const [total, setTotal] = useState(0);                   // total de usuários
@@ -130,18 +131,32 @@ export function Usuarios() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Debounce: espera 400ms após o usuário parar de digitar antes de buscar.
+  // Ao mudar a busca, reseta para página 1 junto com o debouncedSearch para
+  // evitar double-fetch (busca com página antiga + busca com página 1).
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setPage(1);
+      setDebouncedSearch(searchTerm);
+    }, 400);
+    return () => clearTimeout(id);
+  }, [searchTerm]);
+
   const loadUsers = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const data = await api.getUsers({ limit: PAGE_SIZE, page });
-      setUsers(data.usuarios || []);
-      setTotal(data.total ?? 0);
+      const data = await api.getUsers({ limit: PAGE_SIZE, page, q: debouncedSearch, order: 'desc' });
+      const lista = (data.usuarios || []).sort((a, b) => (b.usu_id ?? 0) - (a.usu_id ?? 0));
+      setUsers(lista);
+      // totalGeral = total de registros no banco (para paginação correta).
+      // data.total pode ser apenas a contagem da página atual.
+      setTotal(data.totalGeral ?? data.total ?? 0);
     } catch (err) {
       if (!silent) setError(err.message || 'Não foi possível carregar os usuários.');
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [page]);
+  }, [page, debouncedSearch]);
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
 
@@ -215,14 +230,6 @@ export function Usuarios() {
 
   return (
     <div className={styles.container}>
-      {/* Cabeçalho da página */}
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Usuários</h1>
-          <p className={styles.subtitle}>Lista de Usuários</p>
-        </div>
-      </div>
-
       {/* Barra de busca */}
       <div className={styles.actionBar}>
         <div className={styles.searchBox}>
@@ -243,8 +250,8 @@ export function Usuarios() {
       {/* Banner de erro: exibe quando o fetch inicial falha */}
       {!loading && error && <ErrorBanner error={error} />}
 
-      {/* Tabela de usuários: só aparece quando o carregamento termina */}
-      {!loading && (
+      {/* Tabela de usuários: só aparece quando há usuários para exibir */}
+      {!loading && users.length > 0 && (
         <>
           <div className={styles.tableWrapper}>
             <table className={styles.table}>

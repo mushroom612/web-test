@@ -170,6 +170,11 @@ export function Contratos() {
     return `${BASE_URL}/public/${arquivo}`;
   }
 
+  // getArquivo: retorna o caminho do arquivo de contrato, aceitando ambos os nomes de campo.
+  function getArquivo(school) {
+    return school.esc_contrato_arquivo || school.contrato_arquivo || null;
+  }
+
   // handleView: abre o PDF do contrato numa nova aba do browser.
   function handleView(arquivo) {
     window.open(getFileUrl(arquivo), '_blank', 'noopener,noreferrer');
@@ -275,15 +280,6 @@ export function Contratos() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Contratos Institucionais</h1>
-        <p className={styles.subtitle}>
-          {isAdmin
-            ? 'Visualize o contrato da sua instituição com a plataforma TucTuc'
-            : 'Contratos de todas as instituições parceiras da plataforma TucTuc'}
-        </p>
-      </div>
-
       {/* Busca e filtros: só fazem sentido para Dev (múltiplas escolas) */}
       {isDev && (
         <>
@@ -356,7 +352,7 @@ export function Contratos() {
           {filteredContracts.map((school) => {
             const status          = getContractStatus(school);
             const isRenewing      = renewState?.escId === school.esc_id;
-            const hasFile         = !!school.esc_contrato_arquivo; // sem arquivo ainda
+            const hasFile         = !!(school.esc_contrato_arquivo || school.contrato_arquivo);
 
             const isDownloading = downloadingId === school.esc_id;
 
@@ -556,8 +552,8 @@ export function Contratos() {
                   <button
                     className={styles.actionBtn}
                     disabled={!hasFile}
-                    title={hasFile ? 'Abrir PDF em nova aba' : 'Nenhum arquivo enviado ainda'}
-                    onClick={() => hasFile && handleView(school.esc_contrato_arquivo)}
+                    title={hasFile ? 'Abrir PDF em nova aba' : 'Nenhum arquivo de contrato enviado'}
+                    onClick={() => hasFile && handleView(getArquivo(school))}
                   >
                     <IconEye size={16} />
                     Visualizar
@@ -578,9 +574,9 @@ export function Contratos() {
                   <button
                     className={styles.downloadBtn}
                     disabled={!hasFile || isDownloading}
-                    title={hasFile ? 'Baixar PDF do contrato' : 'Nenhum arquivo enviado ainda'}
+                    title={hasFile ? 'Baixar PDF do contrato' : 'Nenhum arquivo de contrato enviado'}
                     onClick={() => hasFile && !isDownloading && handleDownload(
-                      school.esc_contrato_arquivo, school.esc_nome, school.esc_id
+                      getArquivo(school), school.esc_nome, school.esc_id
                     )}
                   >
                     {isDownloading

@@ -625,30 +625,6 @@ export const penaltiesData = {
   ]
 };
 
-// Notificações do sistema exibidas no sino da Topbar.
-// count: número no badge do sino.
-// items: lista de notificações recentes.
-export const notificationData = {
-  count: 3,
-  items: [
-    {
-      id: 1,
-      message: 'Nova denúncia recebida',
-      timestamp: '5 minutos atrás'
-    },
-    {
-      id: 2,
-      message: 'Usuário criou conta',
-      timestamp: '1 hora atrás'
-    },
-    {
-      id: 3,
-      message: 'Carona concluída com sucesso',
-      timestamp: '3 horas atrás'
-    }
-  ]
-};
-
 // ============================================================
 // Dados no formato de API — imitam a resposta real do backend
 //

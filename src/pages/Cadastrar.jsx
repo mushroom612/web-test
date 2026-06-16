@@ -273,19 +273,15 @@ export function Cadastrar() {
 
   return (
     <div className={styles.container} style={{ maxWidth: 720 }}>
-      <div className={styles.header} style={{ marginBottom: 20 }}>
-        <div>
-          <button
-            type="button"
-            className={styles.cancelBtn}
-            onClick={handleCancel}
-            style={{ marginBottom: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
-            <IconArrowLeft size={14} /> Voltar
-          </button>
-          <h1 className={styles.title}>Nova Instituição</h1>
-          <p className={styles.subtitle}>Cadastre uma nova instituição parceira na plataforma</p>
-        </div>
+      <div style={{ marginBottom: 20 }}>
+        <button
+          type="button"
+          className={styles.cancelBtn}
+          onClick={handleCancel}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
+          <IconArrowLeft size={14} /> Voltar
+        </button>
       </div>
 
       {pendingEscId && (

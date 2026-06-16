@@ -22,7 +22,7 @@
 // ============================================================
 
 import { useState, useRef, useEffect } from "react";
-import { IconEdit, IconShieldExclamation, IconEye, IconUserMinus, IconUserCheck } from "@tabler/icons-react";
+import { IconEdit, IconShieldExclamation, IconEye, IconUserMinus, IconUserCheck, IconDotsVertical } from "@tabler/icons-react";
 import styles from "./UserActionsMenu.module.css";
 
 export function UserActionsMenu({ user, onEdit, onPenalize, onView, onToggleStatus }) {
@@ -58,9 +58,9 @@ export function UserActionsMenu({ user, onEdit, onPenalize, onView, onToggleStat
         ref={btnRef}
         className={styles.menuBtn}
         onClick={handleOpen}
-        title="Mais opções"
+        title="Ações"
       >
-        ⋮
+        <IconDotsVertical size={16} />
       </button>
 
       {isOpen && (

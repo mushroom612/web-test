@@ -661,10 +661,6 @@ export function Relatorios() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Relatórios</h1>
-      </div>
-
       {/* ── Card de filtros ── */}
       <div className={styles.filterCard}>
         <div className={styles.filterHeader}>

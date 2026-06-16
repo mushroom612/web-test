@@ -153,15 +153,49 @@
 .listCard {
   background-color: var(--surface-primary);
   border: 1px solid var(--color-neutral-100);
-  border-left-width: 4px;
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--border-radius-2xl);
+  padding: var(--spacing-3) var(--spacing-4) var(--spacing-3) 36px;
   cursor: pointer;
+  position: relative;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.listCardSugestao  { border-left-color: var(--color-blue-500); }
-.listCardDenuncia  { border-left-color: var(--color-semantic-error); }
-.listCardArchived  { opacity: 0.6; border-left-color: var(--color-neutral-200); }
+.listCard:hover {
+  background-color: var(--color-neutral-50);
+}
+
+/* Linha vertical interna — posicionada dentro do card via ::before */
+.listCardSugestao::before,
+.listCardDenuncia::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  bottom: 16px;
+  width: 4px;
+  border-radius: 2px;
+}
+
+.listCardSugestao::before { background-color: var(--color-blue-500); }
+.listCardDenuncia::before { background-color: var(--color-semantic-error); }
+
+/* Arquivado: linha neutra sobrescreve a colorida */
+.listCardArchived.listCardSugestao::before,
+.listCardArchived.listCardDenuncia::before {
+  background-color: var(--color-neutral-300);
+}
+
+.listCardArchived { opacity: 0.6; }
+
+/* Card selecionado */
+.listCardSelected {
+  background-color: var(--color-green-50, #f0fdf4);
+  border-color: var(--color-green-200, #bbf7d0);
+}
+
+.listCardSelected:hover {
+  background-color: var(--color-green-50, #f0fdf4);
+}
 
 .listCardTop {
   display: flex;

@@ -9,22 +9,20 @@
 .menuBtn {
   width: 32px;
   height: 32px;
+  padding: 0;
   border: none;
   border-radius: var(--border-radius-md);
-  background: var(--color-neutral-50);
-  color: var(--text-secondary);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
   cursor: pointer;
-  font-size: var(--font-size-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s ease;
 }
 
 .menuBtn:hover {
-  background: var(--color-neutral-100);
-  color: var(--text-primary);
-  transform: rotate(90deg);
+  background: var(--btn-primary-bg-hover);
 }
 
 .overlay {

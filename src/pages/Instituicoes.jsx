@@ -188,10 +188,6 @@ export function Instituicoes() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Instituições</h1>
-          <p className={styles.subtitle}>Gerencie as instituições parceiras da plataforma TucTuc</p>
-        </div>
         <button
           type="button"
           className={styles.submitBtn}

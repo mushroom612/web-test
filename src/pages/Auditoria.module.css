@@ -3,14 +3,13 @@
   margin: 0 auto;
 }
 
-/* ── Header ─────────────────────────────────────────────────────────────── */
+/* ── Toolbar (filtros + export numa linha) ──────────────────────────────── */
 
-.header {
+.toolbar {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-6);
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-5);
 }
 
 .title {
@@ -89,14 +88,15 @@
 /* ── Filters ────────────────────────────────────────────────────────────── */
 
 .filters {
+  flex: 1;
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-3);
   align-items: center;
   background-color: var(--surface-primary);
-  padding: var(--spacing-4) var(--spacing-5);
+  padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--border-radius-lg);
-  margin-bottom: var(--spacing-5);
+  min-width: 0;
 }
 
 .filterInput {

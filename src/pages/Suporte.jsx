@@ -208,11 +208,6 @@ export function Suporte() {
   // ── Render ─────────────────────────────────────────────────────────────
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Suporte</h1>
-        <p className={styles.subtitle}>Converse com os administradores das escolas e responda dúvidas</p>
-      </div>
-
       <div className={styles.layout}>
         {/* ── Coluna esquerda: lista de conversas ── */}
         <aside className={styles.listPane}>

@@ -270,12 +270,6 @@ export function Caronas() {
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>Registros de Carona</h1>
-            <p className={styles.subtitle}>Gerencie todas as caronas da plataforma</p>
-          </div>
-        </div>
         <ErrorBanner
           error={error}
           title="Não foi possível carregar as caronas."
@@ -295,13 +289,6 @@ export function Caronas() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Registros de Carona</h1>
-          <p className={styles.subtitle}>Gerencie todas as caronas da plataforma</p>
-        </div>
-      </div>
-
       {/* Cards de resumo com totais por status (vindos de /api/admin/stats/caronas) */}
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
