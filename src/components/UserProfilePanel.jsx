@@ -89,7 +89,7 @@
 
 import { useState } from "react";
 import {
-  IconArrowLeft,
+  IconChevronLeft,
   IconEdit,
   IconDeviceFloppy,
   IconX,
@@ -255,8 +255,8 @@ export function UserProfilePanel({
       <div className={styles.panelHeader}>
         {/* Botão de voltar: chama onClose para fechar o painel */}
         <button className={styles.backBtn} onClick={onClose}>
-          <IconArrowLeft size={16} />
-          Voltar para Usuários
+          <IconChevronLeft size={18} />
+          Usuários
         </button>
 
         <div className={styles.headerActions}>

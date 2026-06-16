@@ -343,9 +343,11 @@ export function Auditoria() {
             title="Data fim"
           />
           <button className={styles.filterBtn} type="submit">Filtrar</button>
-          <button className={styles.filterBtnGhost} type="button" onClick={handleFilterReset}>
-            Limpar
-          </button>
+          {(appliedFilters.acao || appliedFilters.dataInicio || appliedFilters.dataFim) && (
+            <button className={styles.filterBtnGhost} type="button" onClick={handleFilterReset}>
+              Limpar
+            </button>
+          )}
         </form>
 
         <div className={styles.exportBtnGroup}>

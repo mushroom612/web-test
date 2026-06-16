@@ -36,7 +36,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { IconSearch } from '@tabler/icons-react';
+import { IconSearch, IconX } from '@tabler/icons-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { StatusBadge } from '../components/StatusBadge';
@@ -241,6 +241,15 @@ export function Usuarios() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
+          {searchTerm && (
+            <button
+              className={styles.clearBtn}
+              onClick={() => setSearchTerm('')}
+              title="Limpar busca"
+            >
+              <IconX size={16} />
+            </button>
+          )}
         </div>
       </div>
 

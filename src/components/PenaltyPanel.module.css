@@ -61,22 +61,25 @@
 .closeBtn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--color-neutral-200);
-  border-radius: 8px;
+  gap: 2px;
+  padding: 6px 8px;
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  color: var(--btn-primary-bg);
   font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
   font-family: inherit;
 }
 
 .closeBtn:hover {
-  background-color: var(--color-neutral-50);
-  color: var(--text-primary);
+  opacity: 0.75;
+}
+
+.closeBtn:active {
+  opacity: 0.5;
 }
 
 /* ── Conteúdo rolável ────────────────────────────────────── */
