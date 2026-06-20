@@ -11,10 +11,9 @@
 import { http, tokens } from './http';
 
 // statsCache: cache em memória das estatísticas por tipo.
-// TTL de 5 min evita refetch desnecessário ao navegar entre
-// Dashboard e Relatórios, que fazem as mesmas 3 chamadas.
+// TTL de 30s evita refetch em navegação rápida sem servir dados stale.
 const statsCache = {};
-const STATS_TTL_MS = 5 * 60 * 1000;
+const STATS_TTL_MS = 30 * 1000;
 
 // api: objeto exportado com todos os métodos da aplicação.
 // Os componentes importam este objeto e chamam seus métodos:

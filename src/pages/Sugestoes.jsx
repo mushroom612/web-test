@@ -211,6 +211,7 @@ export function Sugestoes() {
 
   const [sending, setSending] = useState(false);          // aguardando envio de resposta
   const [penaltyUser, setPenaltyUser] = useState(null);   // usuário a ser penalizado
+  const [penaltyLoading, setPenaltyLoading] = useState(false); // buscando motorista da carona
 
   // error: mensagem de erro quando o fetch falha. Quando preenchido,
   // a UI exibe um banner com botão "Tentar novamente" (via load()).
@@ -439,15 +440,36 @@ export function Sugestoes() {
   //
   // Para denúncias de usuário (den_tipo=1): usa usuarioAlvoId/Nome —
   // o usuário que foi denunciado, não quem fez a denúncia.
-  // Para denúncias de carona (den_tipo=0): usa userId/userName —
-  // o único usuário identificado é o denunciante.
-  function handlePenalizeFromComplaint() {
+  // Para denúncias de carona (den_tipo=0): busca o resumo da carona via
+  // api.getCaronaResumo para obter o motorista_id, já que a API de denúncias
+  // não inclui esse dado diretamente.
+  async function handlePenalizeFromComplaint() {
     if (!selectedItem) return;
-    setPenaltyUser({
-      usu_id:    selectedItem.usuarioAlvoId ?? selectedItem.userId,
-      usu_nome:  selectedItem.usuarioAlvoNome ?? selectedItem.userName,
-      usu_email: ''
-    });
+
+    // Denúncia de usuário: alvo já vem na denúncia
+    if (selectedItem.usuarioAlvoId) {
+      setPenaltyUser({
+        usu_id:    selectedItem.usuarioAlvoId,
+        usu_nome:  selectedItem.usuarioAlvoNome ?? '',
+        usu_email: ''
+      });
+      return;
+    }
+
+    // Denúncia de carona: busca o motorista via resumo da carona
+    if (selectedItem.caronaId) {
+      setPenaltyLoading(true);
+      try {
+        const resumo = await api.getCaronaResumo(selectedItem.caronaId);
+        const motorista_id   = resumo?.carona?.motorista_id;
+        const motorista_nome = resumo?.carona?.motorista ?? '';
+        if (motorista_id) {
+          setPenaltyUser({ usu_id: motorista_id, usu_nome: motorista_nome, usu_email: '' });
+        }
+      } catch { /* se falhar, não abre o painel */ }
+      finally { setPenaltyLoading(false); }
+      return;
+    }
   }
 
   if (loading) {
@@ -716,6 +738,7 @@ export function Sugestoes() {
 
               {/* Contexto de denúncia: só aparece para itens do tipo Denúncia */}
               {isDenuncia && (
+                <div className={styles.detailSection}>
                 <div className={styles.denunciaContext}>
                   <div className={styles.denunciaContextHeader}>
                     <IconAlertTriangle size={13} />
@@ -734,10 +757,15 @@ export function Sugestoes() {
                   </p>
                   <div className={styles.denunciaBtnRow}>
                     {!isArchived && (
-                      // Abre o PenaltyPanel para aplicar penalidade ao usuário alvo
-                      <button className={styles.penalizeBtn} onClick={handlePenalizeFromComplaint}>
-                        <IconShieldExclamation size={14} />
-                        Aplicar penalidade ao usuário relatado
+                      <button
+                        className={styles.penalizeBtn}
+                        onClick={handlePenalizeFromComplaint}
+                        disabled={penaltyLoading}
+                      >
+                        {penaltyLoading
+                          ? <><IconLoader2 size={14} className={styles.spin} /> Carregando...</>
+                          : <><IconShieldExclamation size={14} /> Aplicar penalidade ao usuário relatado</>
+                        }
                       </button>
                     )}
                     {/* Se a denúncia está vinculada a uma carona, navega até ela */}
@@ -751,6 +779,7 @@ export function Sugestoes() {
                       </button>
                     )}
                   </div>
+                </div>
                 </div>
               )}
 

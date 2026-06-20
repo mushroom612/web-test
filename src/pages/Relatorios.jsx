@@ -5,7 +5,7 @@
 // Cada botão "Baixar CSV" / "Ver Relatório" chama o endpoint real da API.
 //
 // RBAC:
-//   Admin (per_tipo=1) → vê Caronas e Atividade; Usuários e Penalidades ocultos
+//   Admin (per_tipo=1) → vê Caronas, Usuários e Atividade; Penalidades oculto
 //   Dev (per_tipo=2)   → vê todos os 4 relatórios
 //
 // Endpoints de download (retornam CSV bruto quando ?formato=csv):
@@ -141,7 +141,7 @@ const REPORT_CARDS = [
     icon:        'Users',
     title:       'Relatório de Usuários',
     description: 'Exporta dados de todos os usuários cadastrados na plataforma.',
-    devOnly:     true,
+    devOnly:     false,
     actionLabel: 'Baixar CSV',
   },
   {
@@ -577,26 +577,80 @@ export function Relatorios() {
           }
         });
 
-      } else {
-        // CSV-based: usuarios e penalidades
-        let csvText;
-        switch (report.id) {
-          case 'usuarios':
-            csvText = await api.downloadRelatorioUsuarios({ esc_id: selectedEscId });
-            break;
-          case 'penalidades':
-            csvText = await api.downloadRelatorioPenalidades({ esc_id: selectedEscId });
-            break;
-          default:
-            return;
+      } else if (report.id === 'usuarios') {
+        // Usa getUsers() (/api/admin/usuarios — funciona para Admin e Dev),
+        // pois /api/dev/relatorios/usuarios retorna 403 para Admin.
+        // Os valores numéricos do banco são traduzidos para texto legível.
+        const USU_STATUS = {
+          0: 'Inativo',
+          1: 'Ativo',
+        };
+        const USU_VERIFICACAO = {
+          0: 'Aguardando OTP',
+          1: 'Acesso Temporário',
+          2: 'Acesso Temporário c/ Veículo',
+          3: 'Matrícula Verificada',
+          4: 'Completo',
+        };
+        const PER_TIPO = {
+          0: 'Regular',
+          1: 'Administrador',
+          2: 'Desenvolvedor',
+        };
+
+        const usersData = await api.getUsers({
+          limit: 500,
+          ...(selectedEscId ? { esc_id: selectedEscId } : {})
+        });
+        const users = usersData?.usuarios ?? [];
+
+        if (!users.length) {
+          alert('Nenhum dado encontrado para os filtros selecionados.');
+          return;
         }
+
+        const pdfHeaders = ['Nome', 'E-mail', 'Status', 'Verificação', 'Instituição', 'Curso', 'Perfil'];
+        const pdfRows = users.map(u => [
+          u.usu_nome    || '—',
+          u.usu_email   || '—',
+          USU_STATUS[u.usu_status]           ?? String(u.usu_status       ?? '—'),
+          USU_VERIFICACAO[u.usu_verificacao]  ?? String(u.usu_verificacao  ?? '—'),
+          u.esc_nome    || '—',
+          u.cur_nome    || '—',
+          PER_TIPO[u.per_tipo]               ?? String(u.per_tipo         ?? '—'),
+        ]);
+
+        const totalRows = pdfRows.length;
+        autoTable(doc, {
+          head: [pdfHeaders],
+          body: pdfRows,
+          startY: tableStartY,
+          styles:      { fontSize: 8, cellPadding: 3 },
+          headStyles:  { fillColor: [22, 163, 74], textColor: 255, fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [245, 250, 246] },
+          didDrawPage: (hookData) => {
+            const pageCount = doc.internal.getNumberOfPages();
+            const pageH = doc.internal.pageSize.getHeight();
+            doc.setFontSize(7);
+            doc.setTextColor(130);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Total: ${totalRows} registro${totalRows !== 1 ? 's' : ''}`, 12, pageH - 6);
+            doc.text(`Página ${hookData.pageNumber} de ${pageCount}`, pageW - 12, pageH - 6, { align: 'right' });
+          }
+        });
+
+      } else {
+        // CSV-based: penalidades
+        if (report.id !== 'penalidades') return;
+
+        const csvText = await api.downloadRelatorioPenalidades({ esc_id: selectedEscId });
 
         if (typeof csvText !== 'string' || !csvText.trim()) {
           alert('Nenhum dado encontrado para os filtros selecionados.');
           return;
         }
 
-        const lines = csvText.replace(/^\uFEFF/, '').trim().split('\n');
+        const lines = csvText.replace(/^﻿/, '').trim().split('\n');
         const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
 
         // Índices das colunas visíveis (sem IDs internos do banco)
@@ -829,9 +883,9 @@ export function Relatorios() {
                 <IconLock size={22} />
               </div>
             </div>
-            <h3 className={styles.reportTitle}>Usuários &amp; Penalidades</h3>
+            <h3 className={styles.reportTitle}>Penalidades</h3>
             <p className={styles.reportDescription}>
-              Os relatórios de Usuários e Penalidades são exclusivos para Desenvolvedores.
+              O relatório de Penalidades é exclusivo para Desenvolvedores.
             </p>
           </div>
         )}

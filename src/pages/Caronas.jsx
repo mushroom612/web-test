@@ -299,7 +299,7 @@ export function Caronas() {
           </div>
         </div>
         <div className={styles.statCard}>
-          <IconCircleCheck size={16} className={styles.statIconGreen} />
+          <IconUsers size={16} className={styles.statIconGreen} />
           <div>
             <p className={styles.statValue}>{totalAtivas}</p>
             <p className={styles.statLabel}>Ativas</p>
