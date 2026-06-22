@@ -95,6 +95,7 @@ web-test/
 │   ├── IMPLEMENTATION_SUMMARY.md ← resumo do sistema de penalidades
 │   ├── SECURITY_BACKLOG.md       ← backlog de segurança
 │   ├── DESCRICOES_DFD_WEB.md     ← descrição do DFD
+│   ├── TucTuc-Politica-Privacidade-Termos-Uso.doc ← política de privacidade + termos de uso (TCC)
 │   └── estudo/                   ← trilha de estudo do projeto (16 módulos)
 │
 ├── public/
@@ -235,17 +236,22 @@ Compartilha o estado de autenticação com toda a aplicação sem repassar props
 
 ## 🎨 CORES E ESTILOS — `src/global.css`
 
-Concentra as **variáveis de cor e estilo** de todo o app.
+Concentra as **variáveis de cor e estilo** de todo o app, em duas camadas:
+primitivos (paleta bruta) → semânticos (intenção, ex.: `--btn-primary-bg`).
 
 ```css
---color-green-700: #4e8726;  /* verde principal (botões) */
---color-green-100: #e9f5df;  /* verde claro (fundos) */
---surface-page:    #ececec;  /* cor de fundo */
---text-primary:    #171717;  /* cor do texto */
+--color-green-700: #4d9d24;  /* verde principal da marca */
+--color-green-100: #dbf5ce;  /* verde claro (fundos) */
+--btn-primary-bg:  var(--color-green-700);  /* botões primários */
+--surface-page:    var(--color-neutral-100);  /* cor de fundo (#ececec) */
+--text-primary:    var(--color-neutral-900);  /* cor do texto (#171717) */
 ```
 
-Para alterar uma cor, mude o valor da variável em `global.css` — todas as telas
-se atualizam.
+Componentes consomem os tokens **semânticos** — para alterar um tom, mude o
+primitivo em `global.css` e todas as telas se atualizam.
+
+> ⚠️ A **paleta de verde** (`--color-green-*`) é a identidade visual da marca e
+> **não deve ser alterada**.
 
 ---
 
@@ -364,6 +370,7 @@ e, se necessário, os endpoints em `api.js`. As telas não mudam.
 
 - [Documentação técnica completa](docs/DOCUMENTACAO_PAINEL_WEB.md)
 - [Trilha de estudo (docs/estudo)](docs/estudo/README.md)
+- [Política de Privacidade e Termos de Uso (TCC)](docs/TucTuc-Politica-Privacidade-Termos-Uso.doc)
 - [React](https://react.dev) · [React Router](https://reactrouter.com) · [Vite](https://vitejs.dev) · [Tabler Icons](https://tabler.io/icons)
 
 ---
@@ -383,4 +390,4 @@ e, se necessário, os endpoints em `api.js`. As telas não mudam.
 
 **Desenvolvido com React 19 + Vite + React Router + Tabler Icons + Socket.io-client**
 
-Versão: 1.2 | Último update: Junho 2026
+Versão: 1.3 | Último update: Junho 2026
