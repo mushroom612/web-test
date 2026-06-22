@@ -102,7 +102,7 @@ inútil (a comparação sempre falha).
 Performance não é só render — **rede** pesa muito. O projeto tem dois caches caseiros:
 
 - **`statsCache`** ([api.js](../../src/services/api.js#L16-L173)): TTL de 5 min para
-  estatísticas. Dashboard e Relatórios pedem os mesmos números; o segundo pega do cache. Filtros
+  estatísticas. Painel e Relatórios pedem os mesmos números; o segundo pega do cache. Filtros
   fazem *bypass* (sempre buscam).
 - **`detailCache`** por `car_id` ([Caronas.jsx](../../src/pages/Caronas.jsx#L159-L234)): ao
   reabrir uma carona já vista, o `/resumo` **não** é refeito.
@@ -142,7 +142,7 @@ para esse `import()`. **Esse é o padrão de ouro** para libs pesadas e de uso e
 
 Hoje [routes.jsx](../../src/router/routes.jsx#L27-L38) importa **todas** as páginas
 estaticamente — o bundle inicial traz o código de todas as telas, incluindo as pesadas (Recharts
-no Dashboard/Relatórios). A melhoria seria `React.lazy` + `<Suspense>` por rota (Módulo 04,
+no Painel/Relatórios). A melhoria seria `React.lazy` + `<Suspense>` por rota (Módulo 04,
 seção 7). Para decidir, olhe o **relatório do `vite build`** (lista os chunks e tamanhos) e o
 Lighthouse: se o bundle inicial estiver grande e telas como Relatórios forem pouco acessadas,
 lazy compensa.

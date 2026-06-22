@@ -31,7 +31,6 @@
 // Interligação:
 //   - Importado por: Usuarios.jsx
 //   - Importa: api.js (getPenalidades, applyPenalidade, removePenalidade)
-//   - mockData.js (penaltiesData) como fallback se a API falhar
 //   - Lucide React: Ban, Loader2, AlertCircle, CheckCircle,
 //                   Trash2, Plus, X, ShieldAlert, Clock, UserX, ArrowLeft
 //
@@ -217,8 +216,7 @@ export function PenaltyPanel({ user, onClose }) {
   const [removeLoading, setRemoveLoading] = useState(null);
   const [removeError, setRemoveError] = useState("");
 
-  // userId: obtém o ID do usuário, suportando dois formatos de objeto
-  // (formato da API com usu_id, ou formato do mock com id)
+  // userId: obtém o ID do usuário, tolerando objetos com usu_id ou id
   const userId = user?.usu_id ?? user?.id;
 
   // loadPenalties: busca as penalidades do usuário na API.
@@ -337,7 +335,7 @@ export function PenaltyPanel({ user, onClose }) {
   // Guarda: se não há usuário, não renderiza nada
   if (!user) return null;
 
-  // Suporta dois formatos de objeto de usuário (API vs mock)
+  // Tolera objetos de usuário com campos usu_* ou name/email
   const userName = user.usu_nome ?? user.name;
   const userEmail = user.usu_email ?? user.email;
 

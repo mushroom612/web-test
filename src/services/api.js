@@ -93,9 +93,8 @@ export const api = {
   },
 
   // ── Suporte (chat Admin ↔ Desenvolvedor)  [v30] ───────────
-  // No backend real, o remetente e o escopo vêm do JWT; por isso os
-  // parâmetros `admin`/`role` abaixo são apenas dicas para o mock e
-  // somem na versão HTTP.
+  // O remetente e o escopo vêm do JWT no backend; eventuais parâmetros
+  // `admin`/`role` abaixo são apenas dicas de papel para o cliente.
 
   // Admin: thread da própria conversa de suporte.
   async getMinhaThreadSuporte() {
@@ -132,7 +131,7 @@ export const api = {
     return http.post('/api/admin/suporte/mensagens/lidas', usuId ? { usu_id: usuId } : {});
   },
 
-  // ── Estatísticas (Dashboard) ───────────────────────────────
+  // ── Estatísticas (Painel) ───────────────────────────────
   // Endpoints reais: GET /api/admin/stats/{usuarios,caronas,sugestoes}
   // O backend já filtra por escola quando per_tipo=1 (Admin) e devolve
   // dados globais quando per_tipo=2 (Dev). O front não precisa passar
@@ -449,8 +448,8 @@ export const api = {
   // Shape: { logs: [{ audit_id, criado_em, usu_id, acao, tabela, registro_id, ip }],
   //          totalGeral, page, limit }
   //
-  // Nota: os parâmetros de data usam snake_case (data_inicio / data_fim),
-  // diferente do que estava na versão mockada (dataInicio / dataFim).
+  // Nota: a query enviada à API usa snake_case (data_inicio / data_fim),
+  // enquanto os parâmetros JS desta função usam camelCase (dataInicio / dataFim).
   async getLogs({ page = 1, limit = 20, acao, dataInicio, dataFim } = {}) {
     return http.get('/api/dev/logs', {
       query: {

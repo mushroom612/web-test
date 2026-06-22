@@ -8,15 +8,15 @@
 // Bibliotecas usadas:
 //   - react-router-dom:
 //       useLocation → hook que retorna a URL atual
-//                     (ex: { pathname: '/dashboard' })
+//                     (ex: { pathname: '/painel' })
 //       useNavigate  → hook que retorna uma função para
 //                     navegar entre páginas via código
 //   - lucide-react → ícones SVG (Bell, Settings, LogOut)
 //
 // Dados consumidos:
 //   - useAuth() → usuário logado (nome, papel)
-//   - notificationData (mockData.js) → ainda mockado; será migrado
-//     junto com o endpoint de Notificações em rodada futura.
+//   - api.getNaoLidasSuporte() → contador de mensagens de suporte não lidas
+//   (notificações ainda não têm endpoint — recurso planejado para rodada futura)
 // Estilo: Topbar.module.css
 // ============================================================
 
@@ -44,7 +44,7 @@ function getInitials(name = "") {
 }
 
 const PAGE_INFO = {
-  '/dashboard': { title: 'Painel',                subtitle: 'Visão geral da plataforma TucTuc' },
+  '/painel': { title: 'Painel',                subtitle: 'Visão geral da plataforma TucTuc' },
   '/usuarios':  { title: 'Usuários',              subtitle: 'Lista de usuários cadastrados' },
   '/auditoria': { title: 'Auditoria',             subtitle: 'Registro de ações realizadas por administradores' },
   '/caronas':   { title: 'Registros de Carona',   subtitle: 'Gerencie todas as caronas da plataforma' },
@@ -66,7 +66,7 @@ export function Topbar({ onMenuToggle }) {
 
   // suporteNaoLidas: contador para o badge do botão de suporte.
   // Admin → respostas do Dev não lidas; Dev → mensagens de admins não lidas.
-  // Polling leve a cada 15s (a camada de dados ainda é mockada).
+  // Polling leve a cada 15s via api.getNaoLidasSuporte (backend real).
   const [suporteNaoLidas, setSuporteNaoLidas] = useState(0);
 
   const rightRef = useRef(null);

@@ -14,7 +14,7 @@
 //   - Arquivar itens sem excluí-los (persiste na API)
 //   - Aplicar penalidade ao usuário denunciado (abre PenaltyPanel)
 //   - Navegar para a carona vinculada (abre /caronas?id=N)
-//   - Auto-seleção via URL (?id=N) quando navegado do Dashboard
+//   - Auto-seleção via URL (?id=N) quando navegado do Painel
 //
 // RBAC (controle por papel):
 //   Admin (per_tipo=1) → vê só Denúncias da sua instituição.
@@ -268,7 +268,7 @@ export function Sugestoes() {
   }, [load]);
 
   // Auto-seleciona o item quando a URL contém ?id=sug-N ou ?id=den-N
-  // (navegado a partir do Dashboard).
+  // (navegado a partir do Painel).
   // Comparação direta de string — os IDs internos são compostos ("sug-1", "den-1").
   useEffect(() => {
     const itemId = searchParams.get('id');

@@ -38,7 +38,7 @@ function App() {
 }
 ```
 
-`BrowserRouter` usa URLs "limpas" (`/dashboard`). `useRoutes(routes)` recebe um **array de
+`BrowserRouter` usa URLs "limpas" (`/painel`). `useRoutes(routes)` recebe um **array de
 objetos de rota** e devolve o elemento certo para a URL atual. (Existe também a forma com
 `<Routes>`/`<Route>` em JSX; o projeto preferiu o array — mesma engine, estilo diferente.)
 
@@ -56,7 +56,7 @@ export const routes = [
   ]},
   { element: <PrivateRoute />, children: [
       { element: <AdminLayout />, children: [
-          { path: '/dashboard', element: <Dashboard /> },
+          { path: '/painel', element: <Painel /> },
           { path: '/usuarios',  element: <Usuarios /> },
           { path: '/caronas',   element: <Caronas /> },
           // ...
@@ -86,7 +86,7 @@ a página atual. Esse buraco é o **`<Outlet />`**. Veja o
 <div className={styles.mainArea}>
   <Topbar onMenuToggle={...} />
   <main className={styles.content}>
-    <Outlet />   {/* aqui entra Dashboard, Usuarios, Caronas... conforme a URL */}
+    <Outlet />   {/* aqui entra Painel, Usuarios, Caronas... conforme a URL */}
   </main>
 </div>
 ```
@@ -129,7 +129,7 @@ Aninhada **dentro** do `PrivateRoute`, então já pode assumir login feito
 ```jsx
 function DevRoute() {
   const { isDev } = useAuth();
-  if (!isDev) return <Navigate to="/dashboard" replace />;
+  if (!isDev) return <Navigate to="/painel" replace />;
   return <Outlet />;
 }
 ```
@@ -281,7 +281,7 @@ componente de página.
 **2. (Estudante) O que faz o `<Outlet />`?**
 <details><summary>Resposta-modelo</summary>
 É um espaço reservado dentro de um layout/rota-pai onde o React Router renderiza a rota
-**filha** correspondente à URL atual. No `AdminLayout`, o `<Outlet />` vira `Dashboard`,
+**filha** correspondente à URL atual. No `AdminLayout`, o `<Outlet />` vira `Painel`,
 `Usuarios`, etc., enquanto o menu e a topbar permanecem.
 </details>
 

@@ -174,7 +174,7 @@ const statsCache = {};
 const STATS_TTL_MS = 5 * 60 * 1000;   // 5 minutos
 ```
 
-Quando o Dashboard e a tela de Relatórios pedem as mesmas estatísticas sem filtro, a segunda
+Quando o Painel e a tela de Relatórios pedem as mesmas estatísticas sem filtro, a segunda
 chamada (dentro de 5 min) vem do cache, sem ir à rede. Com filtros, faz *bypass* (sempre
 busca). É um cache de **dado de servidor** feito à mão — exatamente o tipo de coisa que o
 React Query automatizaria (Módulos 05 e 13). Ainda assim, mostra a intenção: **nem todo dado

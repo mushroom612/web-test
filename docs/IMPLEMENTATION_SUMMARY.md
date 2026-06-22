@@ -1,389 +1,108 @@
-# 🎉 Resumo da Implementação - Sistema de Penalidades
+# Resumo da Implementação — Sistema de Penalidades
 
-## ✨ O que foi desenvolvido
+> ℹ️ **Atualização (jun/2026).** A primeira versão deste recurso foi prototipada como
+> um *modal* (`PenaltyModal`) com dados fictícios. A versão atual evoluiu para um
+> **painel lateral** ([`PenaltyPanel.jsx`](../src/components/PenaltyPanel.jsx))
+> **integrado à API real**. Este documento descreve o estado **atual**.
 
-### 🎯 Objetivo Principal
+## Objetivo
 
-Integrar uma funcionalidade completa de penalização de usuários acessível pelo menu de ações na tabela de usuários.
+Permitir que administradores/desenvolvedores apliquem, consultem e removam
+penalidades de um usuário, a partir do menu de ações da tabela de **Usuários**.
 
-### ✅ Resultado Alcançado
+## Componentes
 
-**Sistema completo e funcional** onde:
+### 1. PenaltyPanel.jsx ⭐ — Painel lateral de penalidades
 
-- Ao clicar no ícone **⋮ (três pontos)** de qualquer usuário, abre um **menu contextual**
-- No menu, há a opção **"Penalizar"** que abre um **modal interativo**
-- O modal permite **selecionar tipo, duração e motivo** da penalidade
-- A **interface é responsiva, animada e intuitiva**
+Painel que cobre a tela (posição `fixed` com overlay), aberto a partir de
+`Usuarios.jsx`. Responsável por todo o ciclo de vida das penalidades de um usuário.
 
----
-
-## 📦 Componentes Criados
-
-### 1. **PenaltyModal.jsx** ⭐
-
-**Componente Modal Principal de Penalidades**
-
-
-
-
+**Props:**
 
 ```jsx
-<PenaltyModal
-  isOpen={true}
-  user={selectedUser}
-  onClose={() => {}}
-  onSubmit={(penaltyData) => {}}
+<PenaltyPanel
+  user={selectedUser}   // objeto do usuário (usu_id, usu_nome, usu_email)
+  onClose={() => {}}    // fecha o painel e volta para Usuarios.jsx
 />
 ```
 
-**Features:**
+**Funcionalidades:**
 
-- Exibe informações do usuário
-- 4 opções de tipo de penalidade com ícones
-- Dropdown de duração (1 semana até 6 meses)
-- Campo de motivo (textarea)
-- Botões Cancelar/Aplicar
-- Animação suave (slideUp)
-- Overlay com backdrop blur
+- Exibe o usuário selecionado com **contador de penalidades ativas**
+- Lista o **histórico** com filtro: Todas / Ativas / Inativas
+- Formulário para **aplicar** nova penalidade: tipo (1–4), duração e motivo
+- Botão **Remover** individual para cada penalidade ativa
+- Aviso especial quando o tipo 4 (Suspensão) é selecionado
 
-**Estilos:**
+**Integração com a API** ([`api.js`](../src/services/api.js)):
 
-- `PenaltyModal.module.css` - 400+ linhas de CSS
-- Responsivo para mobile/tablet/desktop
-- Transições suaves (300-400ms)
-- Box shadows multi-camadas
+- `getPenalidades(userId, { ativas, page, limit })` → carrega o histórico
+- `applyPenalidade(userId, { pen_tipo, pen_duracao, pen_motivo })` → aplica
+- `removePenalidade(penId)` → remove
 
----
+**Estilo:** `PenaltyPanel.module.css` (overlay, painel fixed, formulário, lista).
 
-### 2. **UserActionsMenu.jsx**
+### 2. UserActionsMenu.jsx — Menu contextual (⋮) do usuário
 
-**Menu Contextual com Ações do Usuário**
+Menu aberto pelo ícone de três pontos em cada linha da tabela, com a opção
+**Penalizar** (entre outras ações como Ver detalhes e Editar). É ele que dispara a
+abertura do `PenaltyPanel`.
 
-```jsx
-<UserActionsMenu
-  user={user}
-  onPenalize={handlePenalize}
-  onEdit={handleEdit}
-  onDelete={handleDelete}
-  onView={handleView}
-/>
-```
+## Tipos de penalidade
 
-**Options:**
+| ID | Tipo | Duração | Ícone |
+|----|------|---------|-------|
+| 1 | Impedimento de **oferecer** caronas | obrigatória | ShieldAlert |
+| 2 | Impedimento de **solicitar** caronas | obrigatória | ShieldAlert |
+| 3 | Impedimento de **oferecer e solicitar** | obrigatória | Ban |
+| 4 | **Suspensão de conta** (bloqueia o login) | permanente (campo desabilitado) | UserX |
 
-- 👁️ Ver Detalhes
-- ✏️ Editar
-- 🛡️ **Penalizar** ← Principal
-- ➖ Divisor visual
-- 🗑️ Deletar (vermelho/perigo)
+> O tipo 4 é permanente: ao selecioná-lo, o campo "Duração" é desabilitado e
+> exibe "Permanente (suspensão)".
 
-**Features:**
-
-- Animação de rotação no ícone
-- Menu slide down com easing
-- Overlay para fechar ao clicar fora
-- Estados hover e active bem definidos
-
-**Estilos:**
-
-- `UserActionsMenu.module.css` - 100+ linhas
-
----
-
-## 🔄 Fluxo de Integração
+## Fluxo de integração
 
 ```
 Usuarios.jsx
-├── Estado: isPenaltyModalOpen
-├── Estado: selectedUser
+├── estado: usuário selecionado + painel aberto/fechado
 │
-├── UserActionsMenu (para cada linha)
-│   └── onPenalize() → abre modal com usuário
+├── UserActionsMenu (em cada linha)
+│   └── "Penalizar" → abre o PenaltyPanel com o usuário
 │
-└── PenaltyModal
-    ├── Recebe user (selectedUser)
-    ├── Permite preencher dados
-    └── onSubmit() → handlePenaltySubmit()
+└── PenaltyPanel
+    ├── getPenalidades()  → carrega o histórico
+    ├── applyPenalidade() → aplica nova penalidade
+    └── removePenalidade()→ remove penalidade ativa
 ```
 
----
-
-## 🎨 Design & Animações
-
-### Paleta de Cores Utilizada
-
-```css
-/* Primária */
---color-green-600: #6aa33c --color-green-700: #4e8726 /* Semântica */
-  --color-semantic-error: #b91c1c (para ações destrutivas) /* Fundo */
-  --surface-primary: #ffffff --color-neutral-50: #fafafa;
-```
-
-### Animações Implementadas
-
-```css
-@keyframes slideUp {
-  /* Modal entrada suave com Y transform */
-  from: opacity 0, translateY(20px)
-  to: opacity 1, translateY(0)
-}
-
-@keyframes fadeIn {
-  /* Overlay fade in */
-  from: opacity 0
-  to: opacity 1
-}
-
-@keyframes slideDown {
-  /* Menu contextual */
-  from: opacity 0, translateY(-10px)
-  to: opacity 1, translateY(0)
-}
-
-/* Hover effects */
-transform: translateY(-2px)  /* Elevação */
-transform: rotate(90deg)     /* Rotação do ⋮ */
-transform: translateX(2px)   /* Slide horizontal */
-```
-
-### Box Shadows
-
-
----
-
-## 📊 Dados da Penalidade
-
-### Estrutura do Objeto
-
-```javascript
-{
-  userId: 1,                      // ID do usuário
-  tipo: "1" | "2" | "3" | "4",   // Tipo de penalidade
-  duracao: "1semana" | ... | "6meses",
-  motivo: "Descrição do motivo"  // Campo obrigatório
-}
-```
-
-### Tipos Disponíveis
-
-| ID  | Tipo                             | Ícone          |
-| --- | -------------------------------- | -------------- |
-| 1   | Impedimento de oferecer caronas  | ⚠️ ShieldAlert |
-| 2   | Impedimento de solicitar caronas | ⚠️ ShieldAlert |
-| 3   | Impedimento oferecer E solicitar | 🚫 Ban         |
-| 4   | Suspensão de conta               | 👤❌ UserX     |
-
----
-
-## 🔌 Integração no Usuarios.jsx
-
-### Estados Adicionados
-
-```javascript
-const [selectedUser, setSelectedUser] = useState(null);
-const [isPenaltyModalOpen, setIsPenaltyModalOpen] = useState(false);
-```
-
-### Handlers Implementados
-
-```javascript
-const handlePenaltyClick = (user) => {
-  setSelectedUser(user);
-  setIsPenaltyModalOpen(true);
-};
-
-const handlePenaltySubmit = async (penaltyData) => {
-  // TODO: Integrar com API
-  // await api.post('/penalties', penaltyData)
-};
-
-const handleDeleteUser = (user) => {
-  // Confirmação antes de deletar
-};
-```
-
----
-
-## 🚀 Funcionalidades Adicionadas
-
-### ✅ Implementado
-
-- [x] Modal visual e responsivo
-- [x] Seleção de tipo com ícones
-- [x] Dropdown de duração
-- [x] Campo de motivo descritivo
-- [x] Menu contextual (⋮)
-- [x] Animações suaves
-- [x] Estados de loading
-- [x] Responsividade mobile/tablet/desktop
-- [x] Acessibilidade com titles
-
-### ⏳ Próximas Iterações
-
-- [ ] Toast notifications (sucesso/erro)
-- [ ] Histórico de penalidades
-- [ ] Revogação de penalidades
-- [ ] Email de notificação
-- [ ] Integração com API backend
-- [ ] Validações aprimoradas
-- [ ] Relatórios de penalidades
-
----
-
-## 📁 Arquivos Modificados/Criados
-
-### Novos Arquivos
+## Arquivos do recurso
 
 ```
-src/components/PenaltyModal.jsx
-src/components/PenaltyModal.module.css
+src/components/PenaltyPanel.jsx
+src/components/PenaltyPanel.module.css
 src/components/UserActionsMenu.jsx
 src/components/UserActionsMenu.module.css
-CHANGELOG.md
-GUIDE_PENALIDADES.md
-IMPLEMENTATION_SUMMARY.md (este arquivo)
+src/pages/Usuarios.jsx        (integra os componentes)
 ```
 
-### Arquivos Modificados
+## Casos de uso
 
-```
-src/pages/Usuarios.jsx - Integração dos componentes
-```
+**Comportamento inadequado** — Admin localiza o usuário → ⋮ → Penalizar →
+"Impedimento de oferecer caronas", duração 1 mês, motivo descrito → Aplicar.
 
----
+**Suspensão por fraude** — Usuário cria múltiplas contas falsas → Admin aplica
+"Suspensão de conta" com o motivo documentado.
 
-## 💻 Código-Exemplo de Uso
+## Boas práticas adotadas
 
-### Componente Usuarios.jsx
+- Confirmação/validação antes de ações destrutivas
+- Estados de *loading* e mensagens de erro claras
+- Feedback visual durante as operações
+- CSS Modules para escopo isolado de estilos
+- Responsividade (mobile / tablet / desktop)
 
-```jsx
-import {PenaltyModal} from "../components/PenaltyModal";
-import {UserActionsMenu} from "../components/UserActionsMenu";
+## Possíveis melhorias futuras
 
-export function Usuarios() {
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isPenaltyModalOpen, setIsPenaltyModalOpen] = useState(false);
-
-  const handlePenaltyClick = (user) => {
-    setSelectedUser(user);
-    setIsPenaltyModalOpen(true);
-  };
-
-  return (
-    <>
-      {/* Menu na tabela */}
-      <UserActionsMenu
-        user={user}
-        onPenalize={handlePenaltyClick}
-        {...otherProps}
-      />
-
-      {/* Modal */}
-      <PenaltyModal
-        isOpen={isPenaltyModalOpen}
-        user={selectedUser}
-        onClose={() => setIsPenaltyModalOpen(false)}
-        onSubmit={handlePenaltySubmit}
-      />
-    </>
-  );
-}
-```
-
----
-
-## 🎯 Casos de Uso
-
-### Cenário 1: Penalizar por Comportamento Inadequado
-
-1. Admin acessa "Usuários"
-2. Localiza usuário que teve comportamento inadequado
-3. Clica em ⋮ → "Penalizar"
-4. Seleciona "Impedimento de oferecer caronas"
-5. Define duração: "1 mês"
-6. Adiciona motivo: "Xingamento e comportamento agressivo"
-7. Clica "Aplicar Penalidade"
-
-### Cenário 2: Suspensão Temporária
-
-1. Usuario cria múltiplas contas falsas
-2. Admin acessa lista de usuários
-3. Penaliza com tipo "Suspensão de conta"
-4. Define duração: "3 meses"
-5. Documenta no motivo: "Múltiplas contas fraudulentas detectadas"
-
----
-
-## 📊 Estatísticas de Implementação
-
-| Métrica                  | Valor                 |
-| ------------------------ | --------------------- |
-| Componentes Novos        | 2                     |
-| Arquivos CSS             | 2                     |
-| Linhas de Código JSX     | ~200                  |
-| Linhas de CSS            | 500+                  |
-| Animações                | 4                     |
-| Tipos de Penalidade      | 4                     |
-| Durações Disponíveis     | 5                     |
-| Responsividade           | Mobile/Tablet/Desktop |
-| Tempo de Desenvolvimento | Otimizado             |
-
----
-
-## 🔐 Segurança & Boas Práticas
-
-- ✅ Confirmação antes de ações destrutivas
-- ✅ Estados desabilitados até validação completa
-- ✅ Mensagens de erro claras
-- ✅ Feedback visual durante operações
-- ✅ Acessibilidade com labels e titles
-- ✅ Sanitização de inputs (a implementar)
-
----
-
-## 📝 Próximas Etapas
-
-1. **Integração Backend**
-   - Conectar handlePenaltySubmit com API real
-   - Implementar validações no servidor
-   - Armazenar em banco de dados
-
-2. **Notificações**
-   - Toast notification ao aplicar
-   - Email para usuário penalizado
-   - Push notification em app mobile
-
-3. **Histórico**
-   - Página de histórico de penalidades
-   - Filtros por usuário/tipo/período
-   - Gráficos e estatísticas
-
-4. **Melhorias UX**
-   - Drag-and-drop para reordenar
-   - Exportar relatórios
-   - Batch operations
-
----
-
-## 🎓 Aprendizados Técnicos
-
-- Uso de React Hooks (useState)
-- CSS Modules para escopo isolado
-- Animações CSS avançadas
-- Responsividade com media queries
-- Componentes reutilizáveis
-- Fluxo de dados em React
-- Acessibilidade web (WCAG)
-
----
-
-## ✨ Conclusão
-
-O sistema de penalidades foi **implementado com sucesso**, oferecendo uma interface **intuitiva, responsiva e bem animada**. Está pronto para receber integração com backend e adições futuras conforme necessário.
-
-**Status**: ✅ Pronto para uso em produção (com API backend)
-
----
-
-_Desenvolvido em Maio de 2026_
-_Versão: 1.0.0_
+- Notificações (toast) de sucesso/erro mais ricas
+- E-mail/push ao usuário penalizado
+- Relatórios e estatísticas de penalidades por período

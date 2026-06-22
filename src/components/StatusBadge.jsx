@@ -9,7 +9,7 @@
 //   - Contratos: Ativo / Vencido / Pendente de Assinatura
 //
 // Interligação:
-//   - Importado por: Dashboard.jsx, Caronas.jsx, Sugestoes.jsx,
+//   - Importado por: Painel.jsx, Caronas.jsx, Sugestoes.jsx,
 //     Contratos.jsx, FeedbackCard.jsx, PenaltyPanel.jsx, Usuarios.jsx
 //
 // Props (parâmetros recebidos pelo componente):

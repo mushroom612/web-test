@@ -56,7 +56,7 @@ v6, Vite 5), a API pode ser **incompatível** — confirme antes de copiar códi
 | `react-router` | `^7.14.0` | Núcleo do roteamento |
 | `react-router-dom` | `^7.14.1` | Liga o roteamento ao DOM/navegador |
 | `@tabler/icons-react` | `^3.44.0` | Ícones SVG (componentes `Icon*`) |
-| `recharts` | `^3.8.1` | Gráficos do Dashboard/Relatórios |
+| `recharts` | `^3.8.1` | Gráficos do Painel/Relatórios |
 | `socket.io-client` | `^4.8.3` | WebSocket do chat de suporte |
 | `jspdf` | `^4.2.1` | Geração de PDF (export da Auditoria) |
 | `jspdf-autotable` | `^5.0.8` | Tabelas no PDF |

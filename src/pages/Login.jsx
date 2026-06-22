@@ -29,7 +29,7 @@ export function Login() {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+      navigate('/painel', { replace: true });
     }
   }, [authLoading, isAuthenticated, navigate]);
 
@@ -59,7 +59,7 @@ export function Login() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/dashboard');
+      navigate('/painel');
     } catch (err) {
       setError(err.message || 'Email ou senha inválidos.');
     } finally {

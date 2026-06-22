@@ -148,7 +148,7 @@ Reconhecer onde o desenho atual **encosta no teto** é o ápice deste módulo:
 | Todas as rotas no bundle inicial | Bundle grande, LCP ruim | Lazy por rota (Módulos 04/13) |
 | Tokens em localStorage | Requisito de segurança mais rígido | Cookies HttpOnly (Módulo 06) |
 | Sem testes | Refatorações arriscadas, regressões | Vitest + RTL (Módulo 15) |
-| Notificações/menu mockados parcialmente | Recurso precisa ir a produção | Endpoints reais + socket |
+| Notificações in-app removidas (sem endpoint) | Recurso ficou pendente | Endpoints reais + socket se for religar |
 | Sem Error Boundary/observabilidade | Erros silenciosos em produção | Sentry + boundary |
 
 Nenhum desses é "erro" — são **trade-offs conscientes** para o tamanho atual do produto. A

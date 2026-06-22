@@ -12,10 +12,9 @@
 // ele aparece como um painel que empurra visualmente o conteúdo.
 //
 // Como funciona enrichUser:
-//   Os dados da API (usu_*) são cruzados com os dados do mockData (usersData)
-//   usando o e-mail ou ID como chave de correspondência. Isso complementa
-//   campos que a API não retorna (instituição, curso, tipo).
-//   Enquanto a API não expõe todos esses campos, o mock preenche o restante.
+//   Normaliza o objeto de usuário vindo da API (campos usu_*, esc_nome,
+//   cur_nome, per_tipo) para o formato esperado pelo painel. Campos que a
+//   API não retorna aparecem como '—'.
 //
 // Componente interno InfoCard:
 //   Um "card de informação" simples com ícone, rótulo e valor.
@@ -29,12 +28,11 @@
 //
 // Dados consumidos:
 //   - user (via prop) → dados do usuário vindos de Usuarios.jsx
-//   - usersData (mockData) → dados complementares não disponíveis na API
 //   - api.updateUser() → chamada para salvar edições
 //
 // Interligação:
 //   - Importado por: Usuarios.jsx
-//   - Usa: api.js, mockData.js (usersData)
+//   - Usa: api.js
 //   - Callbacks: onClose (fecha o painel), onUserUpdated (atualiza a lista)
 //
 // Props (parâmetros recebidos pelo componente):
@@ -166,7 +164,7 @@ export function UserProfilePanel({
   onClose,
   onUserUpdated,
 }) {
-  // enriched: versão completa do usuário (API + mock fundidos)
+  // enriched: versão normalizada do usuário (somente dados da API)
   const enriched = enrichUser(user);
 
   // mode: alterna entre 'view' (visualização) e 'edit' (edição)

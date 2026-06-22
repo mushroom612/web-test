@@ -25,7 +25,7 @@ import { PublicLayout } from '../layouts/PublicLayout';
 
 // Páginas da aplicação — cada import representa uma tela:
 import { Login } from '../pages/Login';
-import { Dashboard } from '../pages/Dashboard';
+import { Painel } from '../pages/Painel';
 import { Usuarios } from '../pages/Usuarios';
 import { Caronas } from '../pages/Caronas';
 import { Sugestoes } from '../pages/Sugestoes';
@@ -42,7 +42,7 @@ import { Suporte } from '../pages/Suporte';
 //   1. PrivateRoute  → exige autenticação + papel >= 1 (Admin ou Dev)
 //   2. DevRoute      → exige papel === 2 (apenas Desenvolvedor)
 //
-// Páginas Admin+Dev:  /dashboard, /usuarios, /caronas,
+// Páginas Admin+Dev:  /painel, /usuarios, /caronas,
 //                     /sugestoes, /relatorios, /contratos
 // Páginas só Dev:     /cadastrar (Instituições), /cadastrar/novo (Nova Instituição), /auditoria
 //
@@ -85,7 +85,7 @@ function PrivateRoute() {
 // do Desenvolvedor. Já está aninhada dentro do PrivateRoute,
 // então pode assumir que o usuário está autenticado — só
 // precisa checar se o papel é Dev (2). Se não for, devolve
-// para /dashboard (onde o Admin pode estar).
+// para /painel (onde o Admin pode estar).
 //
 // Importante: também protege contra acesso direto via URL.
 // Mesmo que o item do menu fique oculto para o Admin, digitar
@@ -93,7 +93,7 @@ function PrivateRoute() {
 // eslint-disable-next-line react-refresh/only-export-components
 function DevRoute() {
   const { isDev } = useAuth();
-  if (!isDev) return <Navigate to="/dashboard" replace />;
+  if (!isDev) return <Navigate to="/painel" replace />;
   return <Outlet />;
 }
 
@@ -108,7 +108,7 @@ function DevRoute() {
 //  │
 //  └── PrivateRoute          ← porteiro: verifica login
 //      └── AdminLayout       ← moldura com menu + topbar
-//          ├── "/dashboard"  → <Dashboard />
+//          ├── "/painel"  → <Painel />
 //          ├── "/usuarios"   → <Usuarios />
 //          ├── "/cadastrar"  → <Instituicoes /> (lista de instituições)
 //          ├── "/cadastrar/novo" → <Cadastrar /> (nova instituição)
@@ -149,8 +149,8 @@ export const routes = [
           // Para Admin (per_tipo=1) o backend filtra os dados por
           // escola; para Dev (per_tipo=2) retorna todos.
           {
-            path: '/dashboard',
-            element: <Dashboard />
+            path: '/painel',
+            element: <Painel />
           },
           {
             path: '/usuarios',

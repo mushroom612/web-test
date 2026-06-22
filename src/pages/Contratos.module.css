@@ -120,6 +120,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: var(--spacing-4);
+  /* align-items: start → cada card mantém sua própria altura. Sem isso, o grid
+     usa o padrão "stretch" e os cards da mesma linha esticam para acompanhar o
+     mais alto — fazendo todos parecerem expandir ao abrir os administradores. */
+  align-items: start;
 }
 
 .contractCard {

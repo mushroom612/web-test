@@ -58,9 +58,8 @@ function statusLabel(status) {
 }
 
 // formatDateTime: combina car_data (YYYY-MM-DD) + car_hor_saida (HH:MM:SS)
-// no padrão brasileiro dd/mm/aaaa HH:MM. Diferente do mock antigo que
-// recebia uma string única "YYYY-MM-DD HH:MM", a API real retorna os
-// dois campos separados.
+// no padrão brasileiro dd/mm/aaaa HH:MM. A API retorna os dois campos
+// separados (data e hora).
 function formatDateTime(carData, carHorSaida) {
   if (!carData) return '—';
   // car_data pode vir como "YYYY-MM-DD" puro ou ISO completo — pegamos só os 10 primeiros chars.
@@ -160,7 +159,7 @@ export function Caronas() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState(null);
 
-  // useSearchParams: lê ?id=N da URL (vindo do Dashboard, por exemplo).
+  // useSearchParams: lê ?id=N da URL (vindo do Painel, por exemplo).
   const [searchParams] = useSearchParams();
 
   // load: dispara as 2 chamadas em paralelo — stats (cards do topo) e
@@ -197,7 +196,7 @@ export function Caronas() {
 
   // Auto-seleção via URL: se ?id=N existe e a carona está na lista,
   // abre o painel de detalhe automaticamente (ex: clique em um
-  // feedback no Dashboard que aponta para uma carona).
+  // feedback no Painel que aponta para uma carona).
   useEffect(() => {
     const rideId = searchParams.get('id');
     if (rideId && rides.length > 0) {

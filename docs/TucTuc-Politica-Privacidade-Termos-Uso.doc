@@ -1,0 +1,693 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>TucTuc — Política de Privacidade e Termos de Uso do Painel Web</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Normal</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotOptimizeForBrowser/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    @page {
+      size: A4;
+      margin: 3cm 2.5cm 2.5cm 3cm;
+    }
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      color: #000000;
+      line-height: 1.5;
+    }
+    h1 {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 16pt;
+      font-weight: bold;
+      text-align: center;
+      color: #000000;
+      margin-top: 24pt;
+      margin-bottom: 6pt;
+      page-break-after: avoid;
+    }
+    h2 {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 13pt;
+      font-weight: bold;
+      color: #000000;
+      margin-top: 18pt;
+      margin-bottom: 6pt;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      font-weight: bold;
+      color: #000000;
+      margin-top: 12pt;
+      margin-bottom: 4pt;
+      page-break-after: avoid;
+    }
+    p {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      text-align: justify;
+      margin-top: 6pt;
+      margin-bottom: 6pt;
+      color: #000000;
+    }
+    ul, ol {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      margin-top: 4pt;
+      margin-bottom: 8pt;
+      padding-left: 1.5cm;
+      color: #000000;
+    }
+    li {
+      margin-bottom: 4pt;
+      text-align: justify;
+    }
+    .titulo-principal {
+      font-size: 20pt;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 36pt;
+      margin-bottom: 4pt;
+    }
+    .subtitulo {
+      font-size: 13pt;
+      text-align: center;
+      font-style: italic;
+      margin-bottom: 6pt;
+    }
+    .versao {
+      font-size: 10pt;
+      text-align: center;
+      color: #444444;
+      margin-bottom: 30pt;
+    }
+    .separador {
+      border: none;
+      border-top: 2px solid #000000;
+      margin: 40pt 0;
+    }
+    .nota-rodape {
+      font-size: 10pt;
+      font-style: italic;
+      text-align: center;
+      color: #555555;
+      margin-top: 4pt;
+      margin-bottom: 12pt;
+    }
+    .quadro {
+      border: 1px solid #000000;
+      padding: 10pt 14pt;
+      margin: 12pt 0;
+    }
+    .quadro p {
+      margin: 4pt 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12pt 0;
+      font-size: 11pt;
+    }
+    table th {
+      background-color: #DDDDDD;
+      font-weight: bold;
+      border: 1px solid #000000;
+      padding: 6pt 8pt;
+      text-align: left;
+    }
+    table td {
+      border: 1px solid #000000;
+      padding: 5pt 8pt;
+      vertical-align: top;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     CAPA
+════════════════════════════════════ -->
+
+<p style="text-align:center; font-size:11pt; margin-top:0; margin-bottom:4pt;">
+  Trabalho de Conclusão de Curso — Documentação Legal
+</p>
+<p class="titulo-principal">TucTuc</p>
+<p class="subtitulo">Painel de Gestão Web — Plataforma de Carona Solidária</p>
+<p style="text-align:center; font-size:12pt; margin-bottom:6pt;">
+  <strong>Política de Privacidade e Termos de Uso</strong>
+</p>
+<p class="versao">
+  Versão 1.0 &nbsp;|&nbsp; Vigência a partir de: 21 de junho de 2026
+</p>
+
+<div class="quadro">
+  <p><strong>Escopo deste documento:</strong> Esta Política de Privacidade e estes
+  Termos de Uso aplicam-se exclusivamente ao <strong>Painel de Gestão Web TucTuc</strong>,
+  acessado por administradores e desenvolvedores habilitados. O aplicativo móvel TucTuc
+  possui documentação legal própria, disponível dentro do próprio aplicativo.</p>
+</div>
+
+<p><br></p>
+
+
+<!-- ════════════════════════════════════
+     PARTE I — POLÍTICA DE PRIVACIDADE
+════════════════════════════════════ -->
+
+<h1>PARTE I<br>POLÍTICA DE PRIVACIDADE</h1>
+<p class="nota-rodape">
+  Aplicável ao Painel de Gestão Web TucTuc, utilizado por administradores e
+  desenvolvedores da plataforma.
+</p>
+
+
+<h2>1. QUEM SOMOS</h2>
+
+<p>O <strong>Painel de Gestão Web TucTuc</strong> é um sistema de administração
+interna da plataforma de carona solidária TucTuc, desenvolvido e operado pela
+equipe responsável pela plataforma, doravante denominada <em>Controladora</em>.</p>
+
+<p>O painel destina-se exclusivamente a usuários habilitados — administradores
+vinculados a instituições de ensino parceiras e membros da equipe de desenvolvimento
+— sendo vedado o acesso por usuários finais (estudantes) do aplicativo móvel.</p>
+
+<p>Esta Política de Privacidade descreve como o painel trata os dados pessoais de
+seus usuários diretos (administradores e desenvolvedores) e os dados de terceiros
+acessados por meio dele (usuários do aplicativo), em conformidade com a
+<strong>Lei Geral de Proteção de Dados Pessoais (LGPD — Lei n.º 13.709/2018)</strong>
+e o <strong>Marco Civil da Internet (Lei n.º 12.965/2014)</strong>.</p>
+
+
+<h2>2. DADOS PESSOAIS TRATADOS PELO PAINEL</h2>
+
+<h3>2.1 Dados dos Usuários do Próprio Painel</h3>
+
+<p>Para viabilizar o acesso e o uso do painel, são coletados os seguintes dados dos
+administradores e desenvolvedores:</p>
+
+<ul>
+  <li><strong>Nome completo:</strong> exibido no painel e nos registros de auditoria;</li>
+  <li><strong>Endereço de e-mail:</strong> utilizado como credencial de acesso e para
+      comunicações do sistema;</li>
+  <li><strong>Senha:</strong> armazenada exclusivamente na forma de hash criptográfico
+      no servidor; nunca em texto simples;</li>
+  <li><strong>Nível de acesso (perfil):</strong> Administrador ou Desenvolvedor,
+      determinando quais funcionalidades estão disponíveis para cada usuário;</li>
+  <li><strong>Tokens de autenticação (JWT):</strong> gerados no login e armazenados
+      no navegador (localStorage) para manter a sessão ativa, com prazo de expiração
+      definido pelo sistema.</li>
+</ul>
+
+<h3>2.2 Dados de Terceiros Acessados pelo Painel</h3>
+
+<p>Por sua natureza de ferramenta de gestão, o painel permite que seus usuários
+visualizem e processem dados pessoais dos usuários do aplicativo móvel TucTuc,
+incluindo:</p>
+
+<ul>
+  <li>Nome, e-mail e telefone dos usuários do aplicativo;</li>
+  <li>Status da conta, nível de verificação e vínculo institucional;</li>
+  <li>Histórico de caronas, avaliações e penalidades;</li>
+  <li>Mensagens de suporte trocadas entre administradores e a equipe de desenvolvimento;</li>
+  <li>Denúncias e sugestões submetidas pelo aplicativo.</li>
+</ul>
+
+<p>A Controladora é responsável por garantir que o acesso a esses dados pelos
+usuários do painel ocorra em conformidade com a LGPD e com as finalidades descritas
+neste documento.</p>
+
+<h3>2.3 Dados Técnicos Gerados Automaticamente</h3>
+
+<ul>
+  <li><strong>Endereço IP:</strong> registrado nos logs de auditoria a cada ação
+      realizada no painel por usuários administradores ou desenvolvedores;</li>
+  <li><strong>Logs de auditoria:</strong> registro detalhado das operações realizadas
+      no painel, contendo data, hora, IP, tipo de ação, tabela afetada e identificador
+      do registro modificado — utilizados para rastreabilidade e segurança;</li>
+  <li><strong>Dados de sessão:</strong> tokens JWT armazenados localmente no
+      navegador, necessários para autenticação contínua sem nova inserção de
+      credenciais a cada requisição.</li>
+</ul>
+
+
+<h2>3. FINALIDADE DO TRATAMENTO</h2>
+
+<table>
+  <tr>
+    <th style="width:40%;">Dado</th>
+    <th>Finalidade</th>
+  </tr>
+  <tr>
+    <td>Nome e e-mail do usuário do painel</td>
+    <td>Autenticação, identificação, exibição no painel e comunicações do sistema</td>
+  </tr>
+  <tr>
+    <td>Senha (hash)</td>
+    <td>Verificação de credenciais no login</td>
+  </tr>
+  <tr>
+    <td>Perfil de acesso</td>
+    <td>Controle de acesso baseado em papéis (RBAC) — definir quais funcionalidades cada usuário pode acessar</td>
+  </tr>
+  <tr>
+    <td>Tokens JWT</td>
+    <td>Manutenção da sessão autenticada no navegador</td>
+  </tr>
+  <tr>
+    <td>Dados dos usuários do aplicativo (visualizados)</td>
+    <td>Gestão e moderação da plataforma, atendimento a solicitações, geração de relatórios administrativos</td>
+  </tr>
+  <tr>
+    <td>IP e logs de auditoria</td>
+    <td>Rastreabilidade de ações administrativas, segurança, prevenção a abusos e cumprimento legal</td>
+  </tr>
+</table>
+
+<p>O painel <strong>não utiliza dados pessoais para publicidade, perfilamento
+comercial ou qualquer finalidade além das descritas acima</strong>.</p>
+
+
+<h2>4. BASE LEGAL PARA O TRATAMENTO (LGPD — ART. 7.º)</h2>
+
+<ul>
+  <li><strong>Execução de contrato (inciso V):</strong> tratamento dos dados
+      necessários ao acesso e uso das funcionalidades do painel por administradores
+      e desenvolvedores habilitados;</li>
+  <li><strong>Legítimo interesse do controlador (inciso IX):</strong> manutenção
+      de logs de auditoria para segurança da plataforma e rastreabilidade de ações
+      administrativas, desde que não violem os direitos dos titulares;</li>
+  <li><strong>Cumprimento de obrigação legal (inciso II):</strong> retenção de
+      registros de acesso pelo período mínimo estabelecido pelo art. 15 do Marco
+      Civil da Internet.</li>
+</ul>
+
+
+<h2>5. COMPARTILHAMENTO DOS DADOS</h2>
+
+<p>Os dados tratados pelo painel não são compartilhados com terceiros, exceto nas
+seguintes hipóteses:</p>
+
+<ul>
+  <li><strong>Infraestrutura de hospedagem:</strong> o serviço de hospedagem
+      contratado armazena os dados do servidor em ambiente seguro, nos termos
+      de seu contrato de processamento de dados;</li>
+  <li><strong>Determinação legal:</strong> a Controladora poderá fornecer dados a
+      autoridades públicas, judiciais ou regulatórias quando obrigada por lei ou
+      ordem judicial, independentemente de aviso prévio ao titular.</li>
+</ul>
+
+<p>Os dados dos usuários do aplicativo visualizados no painel são acessados
+somente pelos usuários devidamente autenticados e com o nível de permissão adequado.
+Administradores acessam apenas os dados dos usuários vinculados à sua própria
+instituição; desenvolvedores têm acesso global à plataforma.</p>
+
+
+<h2>6. ARMAZENAMENTO E SEGURANÇA</h2>
+
+<p>Os dados são armazenados em servidores com padrões adequados de segurança.
+O painel adota as seguintes medidas de proteção:</p>
+
+<ul>
+  <li>Criptografia de senhas por algoritmo de hash seguro;</li>
+  <li>Autenticação via JWT com prazo de expiração e mecanismo de renovação
+      automática (<em>refresh token</em>);</li>
+  <li>Controle de acesso baseado em papéis (RBAC), impedindo que administradores
+      acessem dados além do escopo de sua instituição;</li>
+  <li>Revogação do token no logout, invalidando a sessão no servidor;</li>
+  <li>Logs de auditoria com registro de IP para rastreabilidade completa das
+      ações administrativas;</li>
+  <li>Sanitização de dados nas requisições para prevenção de injeção de código
+      (SQL injection, XSS e similares);</li>
+  <li>Comunicação via protocolo HTTPS em ambiente de produção.</li>
+</ul>
+
+<p>Em caso de incidente de segurança que possa causar risco ou dano relevante aos
+titulares, a Controladora notificará a Autoridade Nacional de Proteção de Dados
+(ANPD) e os titulares afetados nos prazos estabelecidos pela LGPD.</p>
+
+
+<h2>7. RETENÇÃO DOS DADOS</h2>
+
+<table>
+  <tr>
+    <th style="width:45%;">Categoria</th>
+    <th>Prazo de Retenção</th>
+  </tr>
+  <tr>
+    <td>Credenciais e perfil do usuário do painel</td>
+    <td>Enquanto a conta estiver ativa</td>
+  </tr>
+  <tr>
+    <td>Registros de acesso (logs de sessão)</td>
+    <td>Mínimo de 6 meses, conforme o art. 15 do Marco Civil da Internet</td>
+  </tr>
+  <tr>
+    <td>Logs de auditoria (ações no painel)</td>
+    <td>Pelo prazo mínimo exigido pela legislação aplicável</td>
+  </tr>
+  <tr>
+    <td>Tokens JWT</td>
+    <td>Excluídos no logout ou após expiração automática</td>
+  </tr>
+</table>
+
+<p>Após o término dos prazos aplicáveis, os dados são eliminados de forma segura
+ou anonimizados.</p>
+
+
+<h2>8. DIREITOS DOS TITULARES (LGPD — ART. 18)</h2>
+
+<p>Os usuários do painel, enquanto titulares de dados pessoais, podem exercer os
+seguintes direitos mediante solicitação pelo canal de contato da plataforma:</p>
+
+<ul>
+  <li><strong>Acesso:</strong> obter confirmação da existência do tratamento e
+      acessar os próprios dados;</li>
+  <li><strong>Correção:</strong> solicitar a atualização de dados incorretos ou
+      desatualizados;</li>
+  <li><strong>Eliminação:</strong> solicitar a exclusão dos dados, respeitados
+      os prazos legais de retenção;</li>
+  <li><strong>Portabilidade:</strong> receber os dados em formato estruturado e
+      interoperável, quando tecnicamente viável;</li>
+  <li><strong>Revogação do consentimento:</strong> retirar consentimento
+      anteriormente concedido;</li>
+  <li><strong>Informação sobre compartilhamento:</strong> saber com quais entidades
+      os dados foram compartilhados.</li>
+</ul>
+
+<p>As solicitações serão respondidas no prazo de até <strong>15 (quinze) dias
+úteis</strong>. Reclamações também podem ser encaminhadas à
+<strong>Autoridade Nacional de Proteção de Dados (ANPD)</strong>,
+pelo endereço www.gov.br/anpd.</p>
+
+
+<h2>9. COOKIES E ARMAZENAMENTO LOCAL</h2>
+
+<p>O Painel Web TucTuc utiliza <strong>armazenamento local do navegador
+(localStorage)</strong> para armazenar os tokens JWT de acesso e de renovação,
+necessários para manter a sessão autenticada. Esses dados ficam armazenados
+exclusivamente no dispositivo do próprio usuário e não são transmitidos a terceiros.</p>
+
+<p>O painel <strong>não utiliza cookies de rastreamento, publicidade ou análise
+comportamental</strong> e não possui integração com ferramentas de monitoramento
+externas.</p>
+
+<p>O usuário pode encerrar a sessão a qualquer momento por meio do botão de logout,
+o que revoga o token no servidor e limpa os dados de sessão do navegador. A limpeza
+manual do armazenamento local do navegador também encerra a sessão.</p>
+
+
+<h2>10. ALTERAÇÕES NESTA POLÍTICA</h2>
+
+<p>Esta Política de Privacidade pode ser atualizada a qualquer tempo. Alterações
+relevantes serão comunicadas aos usuários do painel com antecedência mínima de
+<strong>15 (quinze) dias</strong> antes de sua vigência, por e-mail ou por
+notificação no próprio painel.</p>
+
+<p>A versão vigente sempre estará disponível no painel. O uso continuado após
+a data de vigência da versão atualizada implica aceitação dos novos termos.</p>
+
+
+<h2>11. CONTATO</h2>
+
+<p>Solicitações relacionadas a esta Política de Privacidade ou ao tratamento de
+dados pessoais devem ser encaminhadas pelo canal de suporte disponível no painel.
+A resposta será fornecida no prazo de até <strong>15 (quinze) dias úteis</strong>.</p>
+
+
+<!-- ════════════════════════════════════
+     SEPARADOR
+════════════════════════════════════ -->
+
+<br>
+<hr class="separador">
+<br>
+
+
+<!-- ════════════════════════════════════
+     PARTE II — TERMOS DE USO
+════════════════════════════════════ -->
+
+<h1>PARTE II<br>TERMOS DE USO</h1>
+<p class="nota-rodape">
+  Aplicáveis ao Painel de Gestão Web TucTuc, acessado por administradores e
+  desenvolvedores da plataforma.
+</p>
+
+
+<h2>1. ACEITAÇÃO DOS TERMOS</h2>
+
+<p>Ao acessar e utilizar o <strong>Painel de Gestão Web TucTuc</strong>, o usuário
+declara que leu, compreendeu e concorda com estes Termos de Uso e com a Política
+de Privacidade constante na Parte I deste documento.</p>
+
+<p>Estes Termos constituem um acordo vinculante entre o usuário do painel e a
+equipe responsável pela plataforma, sendo sua aceitação renovada a cada acesso.</p>
+
+
+<h2>2. O QUE É O PAINEL DE GESTÃO WEB TUCTUC</h2>
+
+<p>O Painel de Gestão Web TucTuc é um sistema de administração interna da
+plataforma de carona solidária TucTuc. Suas principais funcionalidades são:</p>
+
+<ul>
+  <li><strong>Gestão de usuários:</strong> visualização, edição de dados cadastrais,
+      controle de status e aplicação de penalidades aos usuários do aplicativo;</li>
+  <li><strong>Gestão de caronas:</strong> visualização e acompanhamento dos registros
+      de caronas realizadas na plataforma;</li>
+  <li><strong>Relatórios:</strong> geração e download de relatórios em formato CSV
+      e PDF sobre usuários, caronas, penalidades e atividade da plataforma;</li>
+  <li><strong>Sugestões e denúncias:</strong> visualização e gerenciamento de
+      sugestões e denúncias submetidas pelos usuários do aplicativo;</li>
+  <li><strong>Suporte:</strong> canal de comunicação em tempo real entre
+      administradores e a equipe de desenvolvimento;</li>
+  <li><strong>Gestão de instituições e contratos</strong> (exclusivo para
+      Desenvolvedores): cadastro de novas instituições parceiras e gerenciamento
+      de contratos;</li>
+  <li><strong>Auditoria</strong> (exclusivo para Desenvolvedores): visualização e
+      exportação dos logs de todas as ações realizadas no painel.</li>
+</ul>
+
+<p>O painel é uma ferramenta de uso interno e não se destina ao acesso por
+usuários finais da plataforma (estudantes).</p>
+
+
+<h2>3. ACESSO E CREDENCIAIS</h2>
+
+<h3>3.1 Concessão de Acesso</h3>
+
+<p>O acesso ao painel é restrito a usuários previamente cadastrados pela equipe
+de desenvolvimento do TucTuc. Não há cadastro autônomo: as credenciais são criadas
+e fornecidas diretamente pela equipe responsável pela plataforma.</p>
+
+<h3>3.2 Perfis de Acesso</h3>
+
+<p>Existem dois perfis de acesso, com permissões distintas:</p>
+
+<ul>
+  <li><strong>Administrador:</strong> acesso às funcionalidades de gestão de
+      usuários, caronas, relatórios, sugestões, denúncias, contratos e suporte.
+      O escopo de dados é limitado à instituição à qual o administrador está
+      vinculado;</li>
+  <li><strong>Desenvolvedor:</strong> acesso total a todas as funcionalidades,
+      incluindo gestão de instituições, auditoria, relatórios globais e
+      configurações avançadas da plataforma.</li>
+</ul>
+
+<h3>3.3 Responsabilidade pelas Credenciais</h3>
+
+<p>O usuário é integralmente responsável pela guarda e sigilo de suas credenciais
+de acesso. É vedado compartilhar, transferir ou ceder o acesso ao painel a terceiros
+não autorizados. Em caso de suspeita de acesso indevido, o usuário deve alterar a
+senha imediatamente e notificar a equipe TucTuc pelo canal de suporte disponível
+no painel.</p>
+
+<h3>3.4 Sessão e Logout</h3>
+
+<p>Ao concluir o uso do painel, o usuário deve encerrar a sessão por meio do botão
+de <em>logout</em>, especialmente em dispositivos compartilhados. O sistema
+encerra sessões automaticamente após período de inatividade.</p>
+
+
+<h2>4. RESPONSABILIDADES DO USUÁRIO DO PAINEL</h2>
+
+<h3>4.1 Uso Adequado</h3>
+
+<p>O usuário do painel compromete-se a utilizá-lo exclusivamente para as finalidades
+previstas em suas atribuições administrativas ou de desenvolvimento e em conformidade
+com a legislação vigente, em especial a LGPD.</p>
+
+<h3>4.2 Tratamento de Dados de Terceiros</h3>
+
+<p>Ao acessar dados pessoais dos usuários do aplicativo por meio do painel, o
+usuário assume as seguintes obrigações:</p>
+
+<ul>
+  <li>Tratar os dados acessados com confidencialidade, não os divulgando a
+      terceiros não autorizados;</li>
+  <li>Utilizar os dados exclusivamente para finalidades administrativas e de
+      gestão da plataforma;</li>
+  <li>Não exportar, copiar ou armazenar dados pessoais fora dos sistemas
+      autorizados pela plataforma, salvo nos relatórios gerados pelo próprio painel
+      para fins de gestão institucional;</li>
+  <li>Reportar imediatamente à equipe TucTuc qualquer uso indevido, incidente de
+      segurança ou suspeita de violação de dados de que tenha conhecimento.</li>
+</ul>
+
+<h3>4.3 Condutas Proibidas</h3>
+
+<p>É expressamente proibido ao usuário do painel:</p>
+
+<ul>
+  <li>Acessar dados de usuários além do escopo de suas permissões;</li>
+  <li>Utilizar os dados acessados para finalidades pessoais, comerciais ou alheias
+      à gestão da plataforma;</li>
+  <li>Aplicar penalidades, suspender contas ou modificar dados de forma arbitrária,
+      sem fundamentação legítima;</li>
+  <li>Tentar contornar os mecanismos de controle de acesso da plataforma;</li>
+  <li>Realizar ataques ou tentativas de exploração de vulnerabilidades do sistema;</li>
+  <li>Compartilhar relatórios exportados contendo dados pessoais com pessoas não
+      autorizadas;</li>
+  <li>Utilizar ferramentas automatizadas para interagir com o painel sem
+      autorização prévia da equipe responsável.</li>
+</ul>
+
+
+<h2>5. RESPONSABILIDADES DA EQUIPE TUCTUC</h2>
+
+<p>A equipe responsável pela plataforma compromete-se a:</p>
+
+<ul>
+  <li>Manter o painel disponível e funcional, envidando esforços razoáveis para
+      minimizar interrupções;</li>
+  <li>Comunicar os usuários sobre manutenções programadas com antecedência
+      razoável;</li>
+  <li>Adotar medidas técnicas e organizacionais adequadas para a segurança dos
+      dados tratados pelo painel;</li>
+  <li>Fornecer documentação sobre o uso do painel e as obrigações de conformidade
+      com a LGPD;</li>
+  <li>Revogar imediatamente o acesso em caso de desligamento do usuário ou
+      violação destes Termos.</li>
+</ul>
+
+
+<h2>6. DISPONIBILIDADE DO SERVIÇO</h2>
+
+<p>A equipe TucTuc não garante disponibilidade ininterrupta do painel. O serviço
+pode ser temporariamente suspenso para manutenção, atualização ou por circunstâncias
+alheias ao controle da equipe (falhas de infraestrutura, caso fortuito ou força
+maior). Nesses casos, serão envidados esforços para restabelecer o serviço no
+menor prazo possível.</p>
+
+
+<h2>7. PROPRIEDADE INTELECTUAL</h2>
+
+<p>Todos os direitos de propriedade intelectual referentes ao Painel Web TucTuc —
+incluindo código-fonte, interface gráfica, marca, logotipo, textos e demais
+elementos — são de titularidade exclusiva da equipe responsável pela plataforma.</p>
+
+<p>É vedado ao usuário reproduzir, modificar, distribuir, realizar engenharia
+reversa ou criar obras derivadas a partir de qualquer elemento do painel sem
+autorização prévia e por escrito dos titulares.</p>
+
+
+<h2>8. LIMITAÇÃO DE RESPONSABILIDADE</h2>
+
+<p>A equipe TucTuc não se responsabiliza por:</p>
+
+<ul>
+  <li>Danos causados pelo uso indevido das funcionalidades do painel por seus
+      usuários;</li>
+  <li>Consequências decorrentes da aplicação inadequada de penalidades ou da
+      gestão incorreta de dados por administradores;</li>
+  <li>Perdas resultantes de acesso não autorizado à conta do usuário por falha
+      na guarda de suas credenciais;</li>
+  <li>Indisponibilidade do painel por causas alheias ao controle da equipe.</li>
+</ul>
+
+
+<h2>9. REVOGAÇÃO DE ACESSO</h2>
+
+<h3>9.1 Pelo Usuário</h3>
+
+<p>O usuário pode solicitar o encerramento de seu acesso ao painel a qualquer
+momento pelo canal de suporte da plataforma. O encerramento implicará a
+desativação imediata das credenciais e o tratamento dos dados conforme os
+prazos legais de retenção aplicáveis.</p>
+
+<h3>9.2 Pela Equipe TucTuc</h3>
+
+<p>O acesso de qualquer usuário pode ser revogado, com ou sem aviso prévio,
+nos seguintes casos:</p>
+
+<ul>
+  <li>Violação destes Termos de Uso;</li>
+  <li>Desligamento do usuário da instituição parceira ou da equipe;</li>
+  <li>Uso indevido ou abusivo das funcionalidades do painel;</li>
+  <li>Suspeita de comprometimento das credenciais;</li>
+  <li>Descontinuação da plataforma ou encerramento de parceria com a instituição.</li>
+</ul>
+
+
+<h2>10. CONTEXTO ACADÊMICO</h2>
+
+<p>O Painel Web TucTuc integra um projeto desenvolvido como
+<strong>Trabalho de Conclusão de Curso (TCC)</strong>. A plataforma pode
+encontrar-se em fase de desenvolvimento ou testes, e eventuais instabilidades
+são inerentes a esse período. Os usuários com acesso durante essa fase declaram
+ciência desse contexto.</p>
+
+
+<h2>11. ALTERAÇÕES NOS TERMOS</h2>
+
+<p>Estes Termos de Uso podem ser alterados a qualquer tempo. Alterações serão
+comunicadas aos usuários com antecedência mínima de <strong>15 (quinze)
+dias</strong>, por e-mail ou por notificação no próprio painel. O uso continuado
+após a data de vigência implica aceitação tácita das alterações.</p>
+
+
+<h2>12. LEGISLAÇÃO APLICÁVEL E FORO</h2>
+
+<p>Estes Termos de Uso são regidos pela legislação da <strong>República Federativa
+do Brasil</strong>, em especial pela LGPD (Lei n.º 13.709/2018) e pelo Marco Civil
+da Internet (Lei n.º 12.965/2014).</p>
+
+<p>Fica eleito o foro competente da comarca do responsável pela plataforma para
+dirimir quaisquer controvérsias decorrentes destes Termos, com renúncia a qualquer
+outro foro, por mais privilegiado que seja.</p>
+
+
+<h2>13. CONTATO</h2>
+
+<p>Dúvidas, solicitações ou comunicações relacionadas a estes Termos de Uso devem
+ser encaminhadas pelo canal de suporte disponível no painel. A resposta será
+fornecida no prazo de até <strong>15 (quinze) dias úteis</strong>.</p>
+
+
+<!-- ════════════════════════════════════
+     RODAPÉ
+════════════════════════════════════ -->
+
+<br>
+<hr class="separador">
+
+<p style="text-align:center; font-size:10pt; color:#444444;">
+  TucTuc — Painel de Gestão Web<br>
+  Política de Privacidade e Termos de Uso — Versão 1.0 — Vigência: 21 de junho de 2026<br>
+  Documento elaborado em conformidade com a LGPD (Lei n.º 13.709/2018)
+  e o Marco Civil da Internet (Lei n.º 12.965/2014).
+</p>
+
+</body>
+</html>

@@ -22,7 +22,7 @@ Cada DFD mostra **quem executa** a ação na entidade (retângulo): "Administrad
 | --- | --- | --- | --- |
 | 0 | Legenda | — | — |
 | 1 | Login do Painel | Admin / Dev | Acesso & Visão |
-| 2 | Ver Dashboard | Admin / Dev | Acesso & Visão |
+| 2 | Ver Painel | Admin / Dev | Acesso & Visão |
 | 3 | Gerenciar Usuário (ativar/desativar) | Admin / Dev | Moderação |
 | 4 | Aplicar Penalidade | Admin / Dev | Moderação |
 | 5 | Remover Penalidade | Admin / Dev | Moderação |
@@ -49,7 +49,7 @@ Cada DFD mostra **quem executa** a ação na entidade (retângulo): "Administrad
 - Administrador/Desenvolvedor → **(Validar Acesso)**; lê **USUARIOS** (senha e papel ≥ 1)
 - saídas: [Acesso negado (sem permissão)] (papel < 1) · [Painel liberado] (Admin ou Dev)
 
-### 2. Ver Dashboard — *Acesso & Visão*
+### 2. Ver Painel — *Acesso & Visão*
 **História:** o gestor abre o painel e o sistema soma os números para os gráficos.
 - Administrador/Desenvolvedor → **(Gerar Estatísticas)**; lê **USUARIOS**, **CARONAS** e **SUGESTOES_DENUNCIAS**
 - saída: [Painéis e gráficos] (escopo da escola para Admin; global para Dev)

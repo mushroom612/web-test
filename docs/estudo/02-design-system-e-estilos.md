@@ -8,9 +8,9 @@
 
 **Arquivos cobertos:**
 - [src/global.css](../../src/global.css) — reset + todos os tokens
-- [src/pages/Dashboard.module.css](../../src/pages/Dashboard.module.css) — exemplo de CSS Module
+- [src/pages/Painel.module.css](../../src/pages/Painel.module.css) — exemplo de CSS Module
 - [src/pages/Usuarios.module.css](../../src/pages/Usuarios.module.css) — outro exemplo
-- [src/pages/Dashboard.jsx](../../src/pages/Dashboard.jsx) — como o JSX consome `styles`
+- [src/pages/Painel.jsx](../../src/pages/Painel.jsx) — como o JSX consome `styles`
 - [index.html](../../index.html#L9-L12) — carregamento das fontes
 
 ---
@@ -19,15 +19,15 @@
 
 CSS comum é **global**: se dois arquivos definem `.card`, eles colidem. Em um app com
 dezenas de telas, isso vira pesadelo. **CSS Modules** resolve dando **escopo local** a cada
-arquivo: a classe `.metricCard` de `Dashboard.module.css` é renomeada no build para algo
-único como `Dashboard_metricCard_a1b2c`, impossível de colidir com a `.card` de outra tela.
+arquivo: a classe `.metricCard` de `Painel.module.css` é renomeada no build para algo
+único como `Painel_metricCard_a1b2c`, impossível de colidir com a `.card` de outra tela.
 
 A convenção é o sufixo **`.module.css`**. O Vite reconhece o sufixo e ativa o
 comportamento. Você importa o arquivo como um **objeto JavaScript**:
 
 ```jsx
-// Dashboard.jsx
-import styles from './Dashboard.module.css';
+// Painel.jsx
+import styles from './Painel.module.css';
 // ...
 <div className={styles.metricCard}> ... </div>
 ```
@@ -84,7 +84,7 @@ Há duas camadas de tokens, e essa separação é o ponto mais importante do mó
 ```
 
 Os componentes consomem **os semânticos**, não os primitivos. Veja
-[Dashboard.module.css](../../src/pages/Dashboard.module.css#L52-L57):
+[Painel.module.css](../../src/pages/Painel.module.css#L52-L57):
 
 ```css
 .metricCard {
@@ -139,7 +139,7 @@ títulos (`--font-family-heading`), aplicada em `h1..h6`.
 ## 4. Responsividade
 
 O projeto faz responsividade com **media queries** dentro de cada `.module.css`. Veja o fim
-do [Dashboard.module.css](../../src/pages/Dashboard.module.css#L203-L235):
+do [Painel.module.css](../../src/pages/Painel.module.css#L203-L235):
 
 ```css
 @media (max-width: 1024px) {
@@ -201,7 +201,7 @@ de status (`--status-success-bg`, etc.). Ou seja: o dado vem da API, mas a **dec
 
 1. Em [global.css](../../src/global.css), encontre o token semântico usado como **fundo dos
    cartões** e diga para qual primitivo ele aponta.
-2. Em [Dashboard.module.css](../../src/pages/Dashboard.module.css), liste **5** tokens
+2. Em [Painel.module.css](../../src/pages/Painel.module.css), liste **5** tokens
    diferentes em uso e o que cada um controla.
 3. Em [Auditoria.jsx](../../src/pages/Auditoria.jsx), ache a linha que monta o nome da classe
    de badge **dinamicamente** e explique o risco se uma variante não existir no CSS.
@@ -240,7 +240,7 @@ de status (`--status-success-bg`, etc.). Ou seja: o dado vem da API, mas a **dec
 <details><summary>Resposta-modelo</summary>
 É um "rótulo" reutilizável que agrupa regras de estilo (cor, tamanho, espaçamento) e pode ser
 aplicado a vários elementos via atributo `class` (no React, `className`). Ex.: `.metricCard`
-define a aparência dos cartões do Dashboard.
+define a aparência dos cartões do Painel.
 </details>
 
 **2. (Estudante) O que é uma variável CSS (custom property) e como se usa?**

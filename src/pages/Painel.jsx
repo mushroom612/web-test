@@ -1,5 +1,5 @@
 // ============================================================
-// pages/Dashboard.jsx — Página inicial do painel
+// pages/Painel.jsx — Página inicial do painel
 //
 // É a primeira tela vista após o login. Mostra um resumo
 // visual da plataforma: métricas, gráfico e feedbacks recentes.
@@ -27,10 +27,10 @@
 //       → GET /api/admin/stats/{tipo}, escopo automático por papel
 //   - api.getSugestoes({ limit }) → GET /api/sugestoes (top recentes)
 //
-// Ainda mockado: chartData (gráfico "Caronas por dia da semana").
-// Não há endpoint correspondente — o gráfico é decorativo por enquanto.
+// chartData (gráfico "Caronas por dia da semana") é montado a partir de
+// api.getCaronas dos últimos 7 dias — ver buildChartData() e a Fase 3 de load().
 //
-// Estilo: Dashboard.module.css
+// Estilo: Painel.module.css
 // ============================================================
 
 import { useCallback, useEffect, useState } from 'react';
@@ -44,21 +44,21 @@ import {
 } from 'recharts';
 import { api } from '../services/api';
 import { FeedbackCard } from '../components/FeedbackCard';
-import styles from './Dashboard.module.css';
+import styles from './Painel.module.css';
 
 // formatSugestao: converte o registro vindo de /api/sugestoes
 // para o formato que os componentes visuais esperam.
 //
 // Mapeamento de campos (API → UI):
-//   autor       → userName       (mock antigo usava usu_nome)
-//   sug_data    → date (BR)      (mock antigo usava criado_em)
+//   autor       → userName
+//   sug_data    → date (BR)
 //   sug_texto   → text
 //   sug_tipo    → type           (0 = Denúncia, 1 = Sugestão)  [v17 — API real]
 //   sug_status  → status         (0 = Resolvido, 1 = Pendente,
 //                                 2 = Arquivado, 3 = Em análise)
 //
-// Os fallbacks para usu_nome/criado_em existem para tolerar respostas
-// do mock antigo durante a transição — podem ser removidos depois.
+// Os fallbacks (usu_nome/criado_em) toleram variações no nome dos
+// campos retornados pela API.
 function formatSugestao(s) {
   const nome = s.autor || s.usu_nome || `Usuário #${s.usu_id ?? ''}`;
   const tipo = s.sug_tipo === 0 ? 'Denúncia' : 'Sugestão';
@@ -157,7 +157,7 @@ function buildChartData(caronas) {
   });
 }
 
-export function Dashboard() {
+export function Painel() {
   // isAdmin: lido do AuthContext para bifurcar o fetch de feedbacks.
   // Admin (per_tipo=1) não acessa /api/sugestoes — usa /api/denuncias.
   const { isAdmin } = useAuth();
@@ -188,7 +188,7 @@ export function Dashboard() {
   // Duas fases independentes:
   //   Fase 1 → stats em Promise.all (falha crítica — exibe banner de erro)
   //   Fase 2 → feedbacks recentes com try/catch próprio (falha tolerável —
-  //             seção fica vazia mas o Dashboard continua funcional)
+  //             seção fica vazia mas o Painel continua funcional)
   //
   // A separação resolve o problema do Admin: getSugestoes retorna 403
   // para per_tipo=1, pois /api/sugestoes é exclusivo do Desenvolvedor.
@@ -197,7 +197,7 @@ export function Dashboard() {
     if (!silent) { setLoading(true); setError(null); }
     try {
       // Fase 1: as 3 stats são críticas — se qualquer uma cair o
-      // Dashboard não tem conteúdo útil para exibir.
+      // Painel não tem conteúdo útil para exibir.
       const [statsUsuarios, statsCaronas, statsSugestoes] = await Promise.all([
         api.getStats('usuarios'),
         api.getStats('caronas'),
@@ -253,7 +253,7 @@ export function Dashboard() {
       // Fase 3: gráfico de caronas por dia (últimos 7 dias).
       // Admin: escopo automático à própria escola via JWT no backend.
       // Dev:   retorna caronas de todas as escolas.
-      // Falha aqui não derruba o dashboard — gráfico fica vazio.
+      // Falha aqui não derruba o painel — gráfico fica vazio.
       try {
         const hoje = new Date();
         const seteDiasAtras = new Date();
@@ -268,7 +268,7 @@ export function Dashboard() {
         setChartData([]);
       }
     } catch (err) {
-      if (!silent) setError(err.message || 'Não foi possível carregar o Dashboard.');
+      if (!silent) setError(err.message || 'Não foi possível carregar o Painel.');
     } finally {
       if (!silent) setLoading(false);
     }
@@ -330,7 +330,7 @@ export function Dashboard() {
   // Tela de carregamento: exibida enquanto a API não respondeu
   if (loading) {
     return (
-      <div className={styles.dashboard}>
+      <div className={styles.painel}>
         <LoadingSpinner size={32} />
       </div>
     );
@@ -339,10 +339,10 @@ export function Dashboard() {
   // Tela de erro: aparece quando qualquer chamada falhou.
   if (error) {
     return (
-      <div className={styles.dashboard}>
+      <div className={styles.painel}>
         <ErrorBanner
           error={error}
-          title="Não foi possível carregar o Dashboard."
+          title="Não foi possível carregar o Painel."
           onRetry={load}
         />
       </div>
@@ -350,7 +350,7 @@ export function Dashboard() {
   }
 
   return (
-    <div className={styles.dashboard}>
+    <div className={styles.painel}>
       <div className={styles.userFeedback}>
 {/* ── Grade de cards de métricas ───────────────────────────
           styles.metricsGrid = display: grid com 4 colunas

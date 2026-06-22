@@ -12,9 +12,8 @@
 //     novas (o backend real é REST; não há WebSocket).
 //   - Envia mensagens via api.enviarMensagemSuporte.
 //
-// Observação: a camada de dados ainda é mockada (data/supportMock.js
-// via services/api.js). Trocar o mock pelo backend não exige mudar
-// este componente.
+// Observação: a camada de dados é o backend REST real, acessado via
+// services/api.js (sem WebSocket — o componente faz polling).
 // ============================================================
 
 import { Fragment, useEffect, useRef, useState, useCallback } from 'react';
@@ -74,8 +73,8 @@ function formatDataSeparador(iso) {
 export function SupportChatPanel({ onClose }) {
   const { user } = useAuth();
 
-  // admin: dados que o mock usa para identificar a thread.
-  // No backend real isso vem do JWT — aqui montamos a partir do /me.
+  // admin: dados para identificar a thread no painel.
+  // No backend o remetente vem do JWT — aqui montamos a partir do /me.
   const admin = {
     usu_id: user?.usu_id,
     admin_nome: user?.usu_nome || 'Administrador',

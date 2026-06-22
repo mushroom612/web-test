@@ -2,7 +2,7 @@
 // layouts/AdminLayout.jsx — Layout para páginas internas
 //
 // Este é o layout usado em TODAS as páginas autenticadas
-// (Dashboard, Usuários, Caronas, etc.).
+// (Painel, Usuários, Caronas, etc.).
 //
 // Estrutura visual:
 //   ┌──────────┬───────────────────────────────┐

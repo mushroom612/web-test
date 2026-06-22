@@ -77,7 +77,7 @@ const handleSubmit = async (e) => {
   setError(''); setLoading(true);
   try {
     await login(email, password);   // vem do AuthContext
-    navigate('/dashboard');
+    navigate('/painel');
   } catch (err) {
     setError(err.message || 'Email ou senha inválidos.');
   } finally { setLoading(false); }

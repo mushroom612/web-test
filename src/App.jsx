@@ -7,7 +7,7 @@
 // Bibliotecas usadas:
 //   - react-router-dom → biblioteca de roteamento para React.
 //     "Rota" significa: qual página mostrar dependendo da URL.
-//     Ex: acessar "/dashboard" → mostra o Dashboard
+//     Ex: acessar "/painel" → mostra o Painel
 //         acessar "/"          → mostra o Login
 // ============================================================
 
@@ -25,7 +25,7 @@ import { BrowserRouter as Router, useRoutes } from 'react-router-dom';
 
 // routes: array com todas as rotas da aplicação.
 // Definido em ./router/routes.jsx — lá estão os caminhos
-// como "/dashboard", "/usuarios", etc.
+// como "/painel", "/usuarios", etc.
 import { routes } from './router/routes';
 
 // AuthProvider: fornece estado global de autenticação (usuário,

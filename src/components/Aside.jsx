@@ -19,7 +19,7 @@
 //   - lucide-react → ícones SVG prontos para usar como componentes
 //     React. Cada ícone é um componente (ex: <Home size={20} />).
 //
-// Dados consumidos: adminUser (de mockData.js)
+// Dados consumidos: user (via useAuth, vindo de GET /me)
 // Estilo: Aside.module.css
 // ============================================================
 
@@ -91,7 +91,7 @@ export function Aside({ isOpen, onClose }) {
   //                   rotas que o DevRoute bloqueia para Admins.
   //
   // Spec atual:
-  //   Admin (per_tipo=1) vê: Dashboard, Usuários, Caronas,
+  //   Admin (per_tipo=1) vê: Painel, Usuários, Caronas,
   //                          Sugestões, Relatórios, Contratos
   //   Dev (per_tipo=2)   vê: tudo (acrescenta Cadastrar,
   //                          Emitir Notificação e Auditoria)
@@ -102,7 +102,7 @@ export function Aside({ isOpen, onClose }) {
         {
           icon: IconHome,
           label: "Painel",
-          path: "/dashboard",
+          path: "/painel",
           developerOnly: false,
         },
         {
