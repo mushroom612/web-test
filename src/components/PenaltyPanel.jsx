@@ -230,7 +230,7 @@ export function PenaltyPanel({ user, onClose }) {
       const data = await api.getPenalidades(id);
       setPenalties(data.penalidades ?? []);
     } catch (err) {
-      setListError(err.message || 'Não foi possível carregar as penalidades.');
+      setListError(err.message || "Não foi possível carregar as penalidades.");
     } finally {
       setListLoading(false);
     }
@@ -494,8 +494,8 @@ export function PenaltyPanel({ user, onClose }) {
                   {/* Aviso especial para tipo 4 (Suspensão de conta) */}
                   {form.pen_tipo === "4" && (
                     <div className={styles.suspensionWarning}>
-                      <IconAlertCircle size={15} />A suspensão bloqueia o login do
-                      usuário e cancela todas as caronas ativas. Esta ação é
+                      <IconAlertCircle size={15} />A suspensão bloqueia o login
+                      do usuário e cancela todas as caronas ativas. Esta ação é
                       permanente até ser removida manualmente.
                     </div>
                   )}

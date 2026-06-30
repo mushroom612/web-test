@@ -1,5 +1,5 @@
-import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
-import styles from './Pagination.module.css';
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import styles from "./Pagination.module.css";
 
 /**
  * Pagination — controles de navegação entre páginas.
@@ -11,13 +11,22 @@ import styles from './Pagination.module.css';
  *   onNext     → callback chamado ao clicar em "Próximo"
  *   compact    → versão reduzida para painéis com pouco espaço (Caronas)
  */
-export function Pagination({ page, totalPages, total, itemLabel = 'item', onPrevious, onNext, compact = false }) {
-  const plural = total !== 1 ? 's' : '';
+export function Pagination({
+  page,
+  totalPages,
+  total,
+  itemLabel = "item",
+  onPrevious,
+  onNext,
+  compact = false,
+}) {
+  const plural = total !== 1 ? "s" : "";
 
   return (
-    <div className={`${styles.wrapper} ${compact ? styles.compact : ''}`}>
+    <div className={`${styles.wrapper} ${compact ? styles.compact : ""}`}>
       <span className={styles.info}>
-        Página {page} de {totalPages} · {total} {itemLabel}{plural}
+        Página {page} de {totalPages} · {total} {itemLabel}
+        {plural}
       </span>
       <div className={styles.controls}>
         <button
@@ -27,7 +36,7 @@ export function Pagination({ page, totalPages, total, itemLabel = 'item', onPrev
           disabled={page === 1}
         >
           <IconChevronLeft size={compact ? 13 : 15} />
-          {compact ? 'Ant.' : 'Anterior'}
+          {compact ? "Ant." : "Anterior"}
         </button>
         <button
           type="button"
@@ -35,7 +44,7 @@ export function Pagination({ page, totalPages, total, itemLabel = 'item', onPrev
           onClick={onNext}
           disabled={page === totalPages}
         >
-          {compact ? 'Prox.' : 'Próximo'}
+          {compact ? "Prox." : "Próximo"}
           <IconChevronRight size={compact ? 13 : 15} />
         </button>
       </div>

@@ -46,22 +46,22 @@ O **Painel de Gestão Web TucTuc** é a interface administrativa da plataforma d
 
 ### Objetivos Principais
 
-| Objetivo             | Descrição                                                                      |
-| -------------------- | ------------------------------------------------------------------------------ |
-| Gestão de usuários   | Visualizar, editar, controlar status e aplicar penalidades aos usuários do app |
-| Moderação            | Tratar sugestões e denúncias enviadas pelo app mobile                          |
-| Acompanhamento       | Visualizar caronas, métricas e relatórios da plataforma                        |
-| Gestão institucional | (Dev) Cadastrar instituições, contratos, cursos e administradores              |
-| Auditoria            | (Dev) Inspecionar e exportar logs de todas as ações realizadas                 |
-| Suporte              | Canal de comunicação em tempo real entre admins e desenvolvedores              |
+| Objetivo              | Descrição                                                                     |
+| --------------------- | ------------------------------------------------------------------------------- |
+| Gestão de usuários  | Visualizar, editar, controlar status e aplicar penalidades aos usuários do app |
+| Moderação           | Tratar sugestões e denúncias enviadas pelo app mobile                         |
+| Acompanhamento        | Visualizar caronas, métricas e relatórios da plataforma                       |
+| Gestão institucional | (Dev) Cadastrar instituições, contratos, cursos e administradores             |
+| Auditoria             | (Dev) Inspecionar e exportar logs de todas as ações realizadas                |
+| Suporte               | Canal de comunicação em tempo real entre admins e desenvolvedores             |
 
 ### Dois Perfis de Acesso (RBAC)
 
-| `per_tipo` | Papel         | Escopo no painel                                                                               |
-| ---------- | ------------- | ---------------------------------------------------------------------------------------------- |
-| `0`        | Usuário comum | **Bloqueado** — não pode logar no painel                                                       |
-| `1`        | Administrador | Escopo restrito à própria instituição (o backend filtra via JWT)                               |
-| `2`        | Desenvolvedor | Acesso global a todas as instituições e às telas exclusivas (Instituições, Auditoria, Suporte) |
+| `per_tipo` | Papel          | Escopo no painel                                                                                    |
+| ------------ | -------------- | --------------------------------------------------------------------------------------------------- |
+| `0`        | Usuário comum | **Bloqueado** — não pode logar no painel                                                    |
+| `1`        | Administrador  | Escopo restrito à própria instituição (o backend filtra via JWT)                                |
+| `2`        | Desenvolvedor  | Acesso global a todas as instituições e às telas exclusivas (Instituições, Auditoria, Suporte) |
 
 ### Fluxo Principal de Uso
 
@@ -125,31 +125,31 @@ Dev:   tudo acima + Instituições · Auditoria · Suporte
 
 ### Runtime e Build
 
-| Tecnologia | Papel                                                                           |
-| ---------- | ------------------------------------------------------------------------------- |
-| React 19   | Biblioteca de UI (function components + hooks)                                  |
-| Vite 8     | Bundler e dev server (porta 5173); usa `@vitejs/plugin-react`                   |
-| ESLint 9   | Lint (flat config); `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` |
+| Tecnologia | Papel                                                                              |
+| ---------- | ---------------------------------------------------------------------------------- |
+| React 19   | Biblioteca de UI (function components + hooks)                                     |
+| Vite 8     | Bundler e dev server (porta 5173); usa `@vitejs/plugin-react`                    |
+| ESLint 9   | Lint (flat config);`eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` |
 
 > **Renderização:** CSR puro (Client-Side Rendering). Não há SSR/SSG — o `index.html` carrega o bundle e o React monta tudo no `<div id="root">`.
 
 ### Roteamento e Comunicação
 
-| Biblioteca                            | Papel                                                              |
-| ------------------------------------- | ------------------------------------------------------------------ |
+| Biblioteca                                | Papel                                                                      |
+| ----------------------------------------- | -------------------------------------------------------------------------- |
 | `react-router` / `react-router-dom` 7 | Roteamento SPA (`BrowserRouter`, `useRoutes`, `Outlet`, `NavLink`) |
-| `fetch` (nativo)                      | Chamadas REST à API (encapsulado em `http.js`)                     |
-| `socket.io-client` 4                  | WebSocket para o chat de suporte em tempo real                     |
+| `fetch` (nativo)                        | Chamadas REST à API (encapsulado em `http.js`)                          |
+| `socket.io-client` 4                    | WebSocket para o chat de suporte em tempo real                             |
 
 ### UI / Gráficos / Documentos
 
-| Biblioteca                  | Papel                                                                                    |
-| --------------------------- | ---------------------------------------------------------------------------------------- |
-| `@tabler/icons-react`       | Ícones SVG (padrão do projeto — substituiu o lucide-react citado em comentários antigos) |
-| `recharts`                  | Gráfico de área do Painel (caronas por dia da semana)                                 |
-| `jspdf` + `jspdf-autotable` | Exportação de relatórios e logs em PDF (importação dinâmica / lazy)                      |
-| CSS Modules                 | Estilização escopada por componente (`*.module.css`)                                     |
-| CSS Custom Properties       | Design tokens em `global.css` (`:root { --... }`)                                        |
+| Biblioteca                      | Papel                                                                                        |
+| ------------------------------- | -------------------------------------------------------------------------------------------- |
+| `@tabler/icons-react`         | Ícones SVG (padrão do projeto — substituiu o lucide-react citado em comentários antigos) |
+| `recharts`                    | Gráfico de área do Painel (caronas por dia da semana)                                      |
+| `jspdf` + `jspdf-autotable` | Exportação de relatórios e logs em PDF (importação dinâmica / lazy)                    |
+| CSS Modules                     | Estilização escopada por componente (`*.module.css`)                                     |
+| CSS Custom Properties           | Design tokens em `global.css` (`:root { --... }`)                                        |
 
 ### Fontes
 
@@ -246,27 +246,27 @@ Componentes consomem os **semânticos**, nunca os primitivos diretamente. Trocar
 
 ### 5.2 Paleta de Cores (primitivos)
 
-| Família                    | Escala         | Uso                                            |
-| -------------------------- | -------------- | ---------------------------------------------- |
+| Família                     | Escala         | Uso                                              |
+| ---------------------------- | -------------- | ------------------------------------------------ |
 | `--color-green-50..900`    | verde da marca | Botões primários, status de sucesso, destaques |
 | `--color-blue-50..900`     | azul           | Informações, links                             |
-| `--color-neutral-0..950`   | cinzas         | Texto, superfícies, bordas                     |
-| `--color-semantic-error`   | `#b91c1c`      | Erros                                          |
-| `--color-semantic-warning` | `#d97706`      | Avisos                                         |
-| `--color-semantic-success` | `#2d5016`      | Sucesso                                        |
-| `--color-semantic-info`    | `#1e40af`      | Informação                                     |
+| `--color-neutral-0..950`   | cinzas         | Texto, superfícies, bordas                      |
+| `--color-semantic-error`   | `#b91c1c`    | Erros                                            |
+| `--color-semantic-warning` | `#d97706`    | Avisos                                           |
+| `--color-semantic-success` | `#2d5016`    | Sucesso                                          |
+| `--color-semantic-info`    | `#1e40af`    | Informação                                     |
 
 ### 5.3 Tokens Semânticos
 
-| Categoria   | Exemplos                                                                                             |
-| ----------- | ---------------------------------------------------------------------------------------------------- |
-| Superfícies | `--surface-page`, `--surface-primary`, `--surface-secondary`, `--surface-elevated`                   |
-| Texto       | `--text-primary`, `--text-secondary`, `--text-tertiary`, `--text-link`, `--text-accent`              |
+| Categoria    | Exemplos                                                                                                       |
+| ------------ | -------------------------------------------------------------------------------------------------------------- |
+| Superfícies | `--surface-page`, `--surface-primary`, `--surface-secondary`, `--surface-elevated`                     |
+| Texto        | `--text-primary`, `--text-secondary`, `--text-tertiary`, `--text-link`, `--text-accent`              |
 | Botões      | `--btn-primary-bg`, `--btn-primary-bg-hover`, `--btn-secondary-*`, `--btn-ghost-*`, `--btn-danger-*` |
-| Inputs      | `--input-bg`, `--input-border-color-focus`, `--input-radius`, `--input-placeholder`                  |
-| Cards       | `--card-bg`, `--card-radius-desktop`, `--card-padding-desktop`                                       |
-| Status      | `--status-success-bg/text`, `--status-error-bg/text`, `--status-warning-*`, `--status-info-*`        |
-| Foco        | `--focus-outline-color`, `--focus-outline-width`, `--focus-outline-offset`                           |
+| Inputs       | `--input-bg`, `--input-border-color-focus`, `--input-radius`, `--input-placeholder`                    |
+| Cards        | `--card-bg`, `--card-radius-desktop`, `--card-padding-desktop`                                           |
+| Status       | `--status-success-bg/text`, `--status-error-bg/text`, `--status-warning-*`, `--status-info-*`          |
+| Foco         | `--focus-outline-color`, `--focus-outline-width`, `--focus-outline-offset`                               |
 
 ### 5.4 Espaçamento, Radius e Tipografia
 
@@ -362,18 +362,18 @@ routes
 
 **`PrivateRoute`** — porteiro das páginas internas:
 
-| Estado                           | Comportamento                                                       |
-| -------------------------------- | ------------------------------------------------------------------- |
-| `loading === true`               | Mostra placeholder "Carregando..." (não redireciona prematuramente) |
-| `!isAuthenticated` ou `role < 1` | `<Navigate to="/" replace />` (volta ao Login)                      |
-| `role >= 1`                      | `<Outlet />` (libera a página filha)                                |
+| Estado                               | Comportamento                                                        |
+| ------------------------------------ | -------------------------------------------------------------------- |
+| `loading === true`                 | Mostra placeholder "Carregando..." (não redireciona prematuramente) |
+| `!isAuthenticated` ou `role < 1` | `<Navigate to="/" replace />` (volta ao Login)                     |
+| `role >= 1`                        | `<Outlet />` (libera a página filha)                              |
 
 **`DevRoute`** — guarda secundária aninhada (já assume autenticado):
 
-| Estado   | Comportamento                          |
-| -------- | -------------------------------------- |
+| Estado     | Comportamento                         |
+| ---------- | ------------------------------------- |
 | `!isDev` | `<Navigate to="/painel" replace />` |
-| `isDev`  | `<Outlet />`                           |
+| `isDev`  | `<Outlet />`                        |
 
 > **Importante:** o `DevRoute` protege contra acesso direto via URL. Mesmo que o item do menu fique oculto para o Admin, digitar `/auditoria` na barra cai aqui e é redirecionado. O backend reforça o RBAC independentemente (defesa em profundidade).
 
@@ -395,16 +395,16 @@ O **único** contexto global do projeto. Decisão correta para o tamanho da apli
 
 ### 7.1 Valor Exposto
 
-| Propriedade/Método       | Tipo             | Descrição                                                   |
-| ------------------------ | ---------------- | ----------------------------------------------------------- |
-| `user`                   | `object \| null` | Perfil do usuário autenticado (objeto da API)               |
-| `loading`                | `boolean`        | `true` enquanto valida o token salvo no boot                |
-| `isAuthenticated`        | `boolean`        | Atalho `!!user`                                             |
-| `role`                   | `number`         | `0/1/2` derivado de `per_tipo`                              |
-| `isAdmin`                | `boolean`        | `role === 1`                                                |
-| `isDev`                  | `boolean`        | `role === 2`                                                |
-| `login(email, password)` | `async fn`       | Autentica + valida papel; lança Error com mensagem amigável |
-| `logout()`               | `async fn`       | Encerra a sessão local + invalida no backend                |
+| Propriedade/Método        | Tipo              | Descrição                                                   |
+| -------------------------- | ----------------- | ------------------------------------------------------------- |
+| `user`                   | `object \| null` | Perfil do usuário autenticado (objeto da API)                |
+| `loading`                | `boolean`       | `true` enquanto valida o token salvo no boot                |
+| `isAuthenticated`        | `boolean`       | Atalho `!!user`                                             |
+| `role`                   | `number`        | `0/1/2` derivado de `per_tipo`                            |
+| `isAdmin`                | `boolean`       | `role === 1`                                                |
+| `isDev`                  | `boolean`       | `role === 2`                                                |
+| `login(email, password)` | `async fn`      | Autentica + valida papel; lança Error com mensagem amigável |
+| `logout()`               | `async fn`      | Encerra a sessão local + invalida no backend                 |
 
 ### 7.2 Padrão createContext / Provider / Hook
 
@@ -479,10 +479,10 @@ Serviço: **`services/api.js`** (métodos de auth) + **`services/http.js`** (tok
 
 Dois tokens guardados no **localStorage** via o helper `tokens` (em `http.js`):
 
-| Chave (localStorage) | Conteúdo                             |
-| -------------------- | ------------------------------------ |
-| `auth_token`         | JWT de acesso (`access_token`)       |
-| `refresh_token`      | Token de renovação (`refresh_token`) |
+| Chave (localStorage) | Conteúdo                                |
+| -------------------- | ---------------------------------------- |
+| `auth_token`       | JWT de acesso (`access_token`)         |
+| `refresh_token`    | Token de renovação (`refresh_token`) |
 
 ```js
 export const tokens = {
@@ -516,12 +516,12 @@ AuthContext: api.getMe() → GET /api/usuarios/me
 
 A tela de Login (`Login.jsx`) tem uma máquina de estados `forgotStep` (1→2→3→4):
 
-| Etapa                   | Ação                                       | Endpoint                                          |
-| ----------------------- | ------------------------------------------ | ------------------------------------------------- |
-| 1 — E-mail              | `api.forgotPassword(email)`                | `POST /api/usuarios/forgot-password`              |
+| Etapa                     | Ação                                       | Endpoint                                            |
+| ------------------------- | -------------------------------------------- | --------------------------------------------------- |
+| 1 — E-mail               | `api.forgotPassword(email)`                | `POST /api/usuarios/forgot-password`              |
 | 2 — OTP (6 dígitos)     | `api.verificarOtpReset(email, otp)`        | `POST /api/usuarios/reset-password/verificar-otp` |
 | 3 — Nova senha (mín. 8) | `api.resetPassword(email, otp, novaSenha)` | `POST /api/usuarios/reset-password`               |
-| 4 — Sucesso             | Auto-redireciona ao login após 2,5s        | —                                                 |
+| 4 — Sucesso              | Auto-redireciona ao login após 2,5s         | —                                                  |
 
 Detalhes da UI de OTP: 6 inputs individuais (`otpRefs.current[i]`), auto-foco ao digitar, backspace volta ao anterior, colar (paste) distribui os dígitos. O OTP expira em 15 minutos.
 
@@ -598,21 +598,21 @@ const STATS_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
 ### 9.4 Mapa de Métodos do `api.js`
 
-| Grupo       | Métodos                                                                                                                                                     | Endpoints (base)                                                          |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Auth        | `login`, `getMe`, `logout`, `forgotPassword`, `verificarOtpReset`, `resetPassword`                                                                          | `/api/usuarios/*`                                                         |
-| Suporte     | `getMinhaThreadSuporte`, `enviarMensagemSuporte`, `getConversasSuporte`, `getThreadSuporte`, `responderSuporte`, `getNaoLidasSuporte`, `marcarLidasSuporte` | `/api/admin/suporte/*`, `/api/dev/suporte/*`                              |
-| Stats       | `getStats(type, params)`                                                                                                                                    | `/api/admin/stats/{usuarios,caronas,sugestoes}`                           |
-| Escolas     | `getSchools`, `createSchool`, `updateSchool`, `deleteSchool`, `getMyContract`, `createContract`, `uploadContractFile`, `uploadOcrTemplate`                  | `/api/dev/escolas/*`, `/api/admin/contrato`                               |
-| Usuários    | `getUsers`, `getUser`, `updateUserStatus`, `updateUser`, `createUser`, `updateUserProfile`, `searchUsers`                                                   | `/api/admin/usuarios/*`, `/api/dev/*`, `/api/usuarios/:id`                |
-| Caronas     | `getCaronas`, `getCaronaResumo`                                                                                                                             | `/api/admin/caronas`, `/api/caronas/:id/resumo`                           |
-| Sugestões   | `getSugestoes`, `analisarSugestao`, `responderSugestao`, `arquivarSugestao`, `desarquivarSugestao`, `deleteSugestao`                                        | `/api/sugestoes/*`                                                        |
-| Denúncias   | `getDenuncias`, `analisarDenuncia`, `responderDenuncia`, `arquivarDenuncia`, `desarquivarDenuncia`, `deleteDenuncia`                                        | `/api/denuncias/*`                                                        |
-| Auditoria   | `getLogs`, `exportLogs`                                                                                                                                     | `/api/dev/logs`, `/api/dev/logs/exportar`                                 |
-| Penalidades | `getPenalidades`, `applyPenalidade`, `removePenalidade`                                                                                                     | `/api/admin/usuarios/:id/penalidades`, `/api/admin/penalidades/:id`       |
-| Cursos      | `getCourses`, `createCourse`, `updateCourse`, `deleteCourse`                                                                                                | `/api/infra/escolas/:id/cursos`, `/api/admin/cursos`, `/api/dev/cursos/*` |
-| Geocode     | `geocodeAddress`                                                                                                                                            | `/api/pontos/geocode` (Nominatim via backend)                             |
-| Relatórios  | `downloadRelatorioCaronas`, `downloadRelatorioUsuarios`, `downloadRelatorioPenalidades`, `getRelatorioAtividade`                                            | `/api/admin/relatorios/*`, `/api/dev/relatorios/*`                        |
+| Grupo       | Métodos                                                                                                                                                                  | Endpoints (base)                                                                |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Auth        | `login`, `getMe`, `logout`, `forgotPassword`, `verificarOtpReset`, `resetPassword`                                                                            | `/api/usuarios/*`                                                             |
+| Suporte     | `getMinhaThreadSuporte`, `enviarMensagemSuporte`, `getConversasSuporte`, `getThreadSuporte`, `responderSuporte`, `getNaoLidasSuporte`, `marcarLidasSuporte` | `/api/admin/suporte/*`, `/api/dev/suporte/*`                                |
+| Stats       | `getStats(type, params)`                                                                                                                                                | `/api/admin/stats/{usuarios,caronas,sugestoes}`                               |
+| Escolas     | `getSchools`, `createSchool`, `updateSchool`, `deleteSchool`, `getMyContract`, `createContract`, `uploadContractFile`, `uploadOcrTemplate`                | `/api/dev/escolas/*`, `/api/admin/contrato`                                 |
+| Usuários   | `getUsers`, `getUser`, `updateUserStatus`, `updateUser`, `createUser`, `updateUserProfile`, `searchUsers`                                                   | `/api/admin/usuarios/*`, `/api/dev/*`, `/api/usuarios/:id`                |
+| Caronas     | `getCaronas`, `getCaronaResumo`                                                                                                                                       | `/api/admin/caronas`, `/api/caronas/:id/resumo`                             |
+| Sugestões  | `getSugestoes`, `analisarSugestao`, `responderSugestao`, `arquivarSugestao`, `desarquivarSugestao`, `deleteSugestao`                                          | `/api/sugestoes/*`                                                            |
+| Denúncias  | `getDenuncias`, `analisarDenuncia`, `responderDenuncia`, `arquivarDenuncia`, `desarquivarDenuncia`, `deleteDenuncia`                                          | `/api/denuncias/*`                                                            |
+| Auditoria   | `getLogs`, `exportLogs`                                                                                                                                               | `/api/dev/logs`, `/api/dev/logs/exportar`                                   |
+| Penalidades | `getPenalidades`, `applyPenalidade`, `removePenalidade`                                                                                                             | `/api/admin/usuarios/:id/penalidades`, `/api/admin/penalidades/:id`         |
+| Cursos      | `getCourses`, `createCourse`, `updateCourse`, `deleteCourse`                                                                                                      | `/api/infra/escolas/:id/cursos`, `/api/admin/cursos`, `/api/dev/cursos/*` |
+| Geocode     | `geocodeAddress`                                                                                                                                                        | `/api/pontos/geocode` (Nominatim via backend)                                 |
+| Relatórios | `downloadRelatorioCaronas`, `downloadRelatorioUsuarios`, `downloadRelatorioPenalidades`, `getRelatorioAtividade`                                                  | `/api/admin/relatorios/*`, `/api/dev/relatorios/*`                          |
 
 > Os endpoints reais e as assinaturas detalhadas estão documentados inline em `services/api.js` — esta tabela é o índice.
 
@@ -774,14 +774,14 @@ Painel flutuante aberto pela Topbar para o Admin conversar com o Dev. Mesmo padr
 
 ### Componentes de feedback de UI
 
-| Componente       | Papel                                                              |
-| ---------------- | ------------------------------------------------------------------ |
-| `StatusBadge`    | Badge colorido a partir do rótulo de status (classe dinâmica)      |
+| Componente         | Papel                                                                 |
+| ------------------ | --------------------------------------------------------------------- |
+| `StatusBadge`    | Badge colorido a partir do rótulo de status (classe dinâmica)       |
 | `Pagination`     | Anterior/Próximo + contador; prop `compact` para layouts estreitos |
-| `LoadingSpinner` | Spinner com tamanho e texto opcional                               |
-| `EmptyState`     | Ícone + título + descrição + CTA opcional                          |
-| `ErrorBanner`    | Card de erro (título + `onRetry`) ou inline                        |
-| `FeedbackCard`   | Card de sugestão/denúncia clicável (Painel)                     |
+| `LoadingSpinner` | Spinner com tamanho e texto opcional                                  |
+| `EmptyState`     | Ícone + título + descrição + CTA opcional                         |
+| `ErrorBanner`    | Card de erro (título +`onRetry`) ou inline                         |
+| `FeedbackCard`   | Card de sugestão/denúncia clicável (Painel)                        |
 
 ---
 
@@ -802,17 +802,17 @@ import { IconUsers, IconCar, IconSearch } from "@tabler/icons-react";
 
 O painel usa **apenas localStorage** (não há SecureStore como no app mobile — é um ambiente de navegador).
 
-| Chave                    | Conteúdo                                                   | Definida em                          |
-| ------------------------ | ---------------------------------------------------------- | ------------------------------------ |
-| `auth_token`             | JWT de acesso                                              | `services/http.js` (helper `tokens`) |
+| Chave                      | Conteúdo                                                    | Definida em                              |
+| -------------------------- | ------------------------------------------------------------ | ---------------------------------------- |
+| `auth_token`             | JWT de acesso                                                | `services/http.js` (helper `tokens`) |
 | `refresh_token`          | Token de renovação                                         | `services/http.js` (helper `tokens`) |
-| `cadastrar_pendingEscId` | `esc_id` da escola em cadastro incompleto (sessionStorage) | `pages/Cadastrar.jsx`                |
+| `cadastrar_pendingEscId` | `esc_id` da escola em cadastro incompleto (sessionStorage) | `pages/Cadastrar.jsx`                  |
 
 **Caches em memória** (perdidos ao recarregar):
 
-| Cache         | TTL              | Onde                                      |
-| ------------- | ---------------- | ----------------------------------------- |
-| `statsCache`  | 5 min            | `services/api.js` (stats sem filtro)      |
+| Cache           | TTL                | Onde                                          |
+| --------------- | ------------------ | --------------------------------------------- |
+| `statsCache`  | 5 min              | `services/api.js` (stats sem filtro)        |
 | `detailCache` | sessão da página | `pages/Caronas.jsx` (resumo por `car_id`) |
 
 > **Segurança:** tokens em localStorage são acessíveis por JavaScript da página (risco de XSS). A `sanitizeErrorMessage` e o foco em não injetar HTML não confiável mitigam parte do risco. Migrar para cookie HttpOnly é item de backlog.
@@ -838,16 +838,16 @@ O hook retorna `{ socket, connected }` e cuida da limpeza (`s.disconnect()` no c
 
 ### Padrão Híbrido HTTP + Socket
 
-| Direção              | Transporte                                             | Motivo                                            |
-| -------------------- | ------------------------------------------------------ | ------------------------------------------------- |
+| Direção                  | Transporte                                                 | Motivo                                             |
+| -------------------------- | ---------------------------------------------------------- | -------------------------------------------------- |
 | **Enviar** mensagem  | HTTP POST (`responderSuporte`/`enviarMensagemSuporte`) | Confiável, persistido no banco antes do broadcast |
-| **Receber** mensagem | Socket (`mensagem_suporte_recebida`)                   | Tempo real                                        |
-| **Carga inicial**    | HTTP GET (`getThreadSuporte`)                          | Histórico completo                                |
+| **Receber** mensagem | Socket (`mensagem_suporte_recebida`)                     | Tempo real                                         |
+| **Carga inicial**    | HTTP GET (`getThreadSuporte`)                            | Histórico completo                                |
 
 ### Eventos
 
-| Evento                      | Direção            | Payload                                               |
-| --------------------------- | ------------------ | ----------------------------------------------------- |
+| Evento                        | Direção           | Payload                                                 |
+| ----------------------------- | ------------------- | ------------------------------------------------------- |
 | `entrar_suporte`            | Cliente → Servidor | `{ admin_usu_id }` (entra na sala da conversa)        |
 | `sair_suporte`              | Cliente → Servidor | `{ admin_usu_id }`                                    |
 | `mensagem_suporte_recebida` | Servidor → Cliente | `{ spm_id, spm_texto, spm_remetente, spm_criada_em }` |
@@ -864,12 +864,12 @@ Implementado no backend, gerenciado pelo painel via `PenaltyPanel`. Aplicar/remo
 
 ### Tipos de Penalidade (`pen_tipo`)
 
-| `pen_tipo` | Restrição                               | Severidade visual          |
-| ---------- | --------------------------------------- | -------------------------- |
-| 1          | Impedir de **oferecer** caronas         | warning (amarelo)          |
-| 2          | Impedir de **solicitar** caronas        | warning (amarelo)          |
-| 3          | Impedir oferecer **e** solicitar        | danger (vermelho)          |
-| 4          | **Suspensão de conta** (bloqueia login) | critical (vermelho escuro) |
+| `pen_tipo` | Restrição                                    | Severidade visual          |
+| ------------ | ---------------------------------------------- | -------------------------- |
+| 1            | Impedir de**oferecer** caronas           | warning (amarelo)          |
+| 2            | Impedir de**solicitar** caronas          | warning (amarelo)          |
+| 3            | Impedir oferecer**e** solicitar          | danger (vermelho)          |
+| 4            | **Suspensão de conta** (bloqueia login) | critical (vermelho escuro) |
 
 ### Regras
 
@@ -880,11 +880,11 @@ Implementado no backend, gerenciado pelo painel via `PenaltyPanel`. Aplicar/remo
 
 ### Endpoints
 
-| Operação | Endpoint                                                                             |
-| -------- | ------------------------------------------------------------------------------------ |
-| Listar   | `GET /api/admin/usuarios/:id/penalidades`                                            |
-| Aplicar  | `POST /api/admin/usuarios/:id/penalidades` `{ pen_tipo, pen_duracao?, pen_motivo? }` |
-| Remover  | `DELETE /api/admin/penalidades/:id`                                                  |
+| Operação | Endpoint                                                                                 |
+| ---------- | ---------------------------------------------------------------------------------------- |
+| Listar     | `GET /api/admin/usuarios/:id/penalidades`                                              |
+| Aplicar    | `POST /api/admin/usuarios/:id/penalidades` `{ pen_tipo, pen_duracao?, pen_motivo? }` |
+| Remover    | `DELETE /api/admin/penalidades/:id`                                                    |
 
 ---
 
@@ -903,11 +903,11 @@ A classe `ApiError` carrega `status` e `body`, permitindo a páginas decidirem o
 
 ### 16.2 Régua de Feedback na UI
 
-| Mecanismo                      | Quando                                                        |
-| ------------------------------ | ------------------------------------------------------------- |
-| **ErrorBanner** (card + retry) | Erro de carga de tela inteira (Painel, Caronas, Sugestões) |
-| **Estados inline**             | Loading (LoadingSpinner), vazio (EmptyState), erro de seção   |
-| **`window.confirm` / `alert`** | Ações destrutivas (excluir, desativar) e erros pontuais       |
+| Mecanismo                                | Quando                                                        |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| **ErrorBanner** (card + retry)     | Erro de carga de tela inteira (Painel, Caronas, Sugestões)   |
+| **Estados inline**                 | Loading (LoadingSpinner), vazio (EmptyState), erro de seção |
+| **`window.confirm` / `alert`** | Ações destrutivas (excluir, desativar) e erros pontuais     |
 
 > **Observação:** o painel usa `window.confirm`/`alert` nativos em vários pontos (funcional, mas não alinhado ao design system). Migrar para um componente de Dialog próprio é item de backlog.
 
@@ -955,12 +955,12 @@ O Vite separa essas libs em um chunk próprio que não entra no bundle inicial.
 
 Sem WebSocket para dados de servidor (exceto suporte), o painel usa **polling com checagem de visibilidade**:
 
-| Página                 | Intervalo | Detalhe                                       |
-| ---------------------- | --------- | --------------------------------------------- |
-| Painel              | 30s       | `load(true)` silencioso                       |
-| Sugestões              | 30s       | `load(true)` silencioso, mescla `archivedIds` |
-| Usuários               | 60s       | `loadUsers(true)` silencioso                  |
-| Topbar (badge suporte) | 15s       | `getNaoLidasSuporte`                          |
+| Página                | Intervalo | Detalhe                                           |
+| ---------------------- | --------- | ------------------------------------------------- |
+| Painel                 | 30s       | `load(true)` silencioso                         |
+| Sugestões             | 30s       | `load(true)` silencioso, mescla `archivedIds` |
+| Usuários              | 60s       | `loadUsers(true)` silencioso                    |
+| Topbar (badge suporte) | 15s       | `getNaoLidasSuporte`                            |
 
 Todos pausam quando `document.visibilityState !== 'visible'` (economia de recursos quando a aba está em segundo plano). O parâmetro `silent` evita piscar o spinner durante refreshes em background.
 
@@ -1000,15 +1000,15 @@ Todos pausam quando `document.visibilityState !== 'visible'` (economia de recurs
 
 ### 20.2 Escopo por Papel (resumo)
 
-| Recurso                                             | Admin (1)             | Dev (2)                  |
-| --------------------------------------------------- | --------------------- | ------------------------ |
-| Painel, Usuários, Caronas, Relatórios, Contratos | ✅ (escopo da escola) | ✅ (global)              |
-| Sugestões                                           | ❌ só Denúncias       | ✅ Sugestões + Denúncias |
-| Instituições, Cadastrar, Auditoria, Suporte         | ❌                    | ✅                       |
-| Alterar status de usuário                           | ❌                    | ✅                       |
-| Relatório de Penalidades                            | ❌                    | ✅                       |
-| Excluir sugestão/denúncia                           | ❌                    | ✅                       |
-| Renovar contrato / gerenciar admins                 | ❌                    | ✅                       |
+| Recurso                                            | Admin (1)             | Dev (2)                    |
+| -------------------------------------------------- | --------------------- | -------------------------- |
+| Painel, Usuários, Caronas, Relatórios, Contratos | ✅ (escopo da escola) | ✅ (global)                |
+| Sugestões                                         | ❌ só Denúncias     | ✅ Sugestões + Denúncias |
+| Instituições, Cadastrar, Auditoria, Suporte      | ❌                    | ✅                         |
+| Alterar status de usuário                         | ❌                    | ✅                         |
+| Relatório de Penalidades                          | ❌                    | ✅                         |
+| Excluir sugestão/denúncia                        | ❌                    | ✅                         |
+| Renovar contrato / gerenciar admins                | ❌                    | ✅                         |
 
 ### 20.3 Penalidades
 
@@ -1029,13 +1029,13 @@ O backend Express fica em `API-test/api-caronas/`. Todas as rotas têm prefixo `
 
 ### Rotas consumidas pelo painel (por arquivo de backend)
 
-| Arquivo de rotas                          | Cobre                                                                                       |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `usuarioRoutes.js`                        | login, refresh, logout, recuperação de senha, perfil/me, atualização                        |
-| `adminRoutes.js`                          | stats, usuários, penalidades, caronas, contrato, relatórios, suporte (base `/api/admin`)    |
-| `devRoutes.js`                            | escolas, cursos, cadastro de admin/dev, logs de auditoria, relatórios Dev (base `/api/dev`) |
-| `denunciaRoutes.js` / `sugestaoRoutes.js` | listar/analisar/responder/arquivar/excluir                                                  |
-| `pontoEncontroRoutes.js`                  | geocode (`/api/pontos/geocode`)                                                             |
+| Arquivo de rotas                              | Cobre                                                                                          |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `usuarioRoutes.js`                          | login, refresh, logout, recuperação de senha, perfil/me, atualização                       |
+| `adminRoutes.js`                            | stats, usuários, penalidades, caronas, contrato, relatórios, suporte (base `/api/admin`)   |
+| `devRoutes.js`                              | escolas, cursos, cadastro de admin/dev, logs de auditoria, relatórios Dev (base `/api/dev`) |
+| `denunciaRoutes.js` / `sugestaoRoutes.js` | listar/analisar/responder/arquivar/excluir                                                     |
+| `pontoEncontroRoutes.js`                    | geocode (`/api/pontos/geocode`)                                                              |
 
 ### Middlewares do Backend (resumo)
 
@@ -1050,19 +1050,19 @@ O backend Express fica em `API-test/api-caronas/`. Todas as rotas têm prefixo `
 
 ### Scripts (`package.json`)
 
-| Comando           | Ação                                                                      |
-| ----------------- | ------------------------------------------------------------------------- |
-| `npm run dev`     | Dev server (porta 5173, HMR)                                              |
+| Comando             | Ação                                                                          |
+| ------------------- | ------------------------------------------------------------------------------- |
+| `npm run dev`     | Dev server (porta 5173, HMR)                                                    |
 | `npm run build`   | Build de produção em `/dist` (minificação, tree-shaking, hashing, chunks) |
-| `npm run preview` | Serve o `/dist` localmente (com fallback de SPA)                          |
-| `npm run lint`    | ESLint (flat config)                                                      |
+| `npm run preview` | Serve o `/dist` localmente (com fallback de SPA)                              |
+| `npm run lint`    | ESLint (flat config)                                                            |
 
 ### Variáveis de Ambiente
 
 Só variáveis com prefixo **`VITE_`** são expostas ao bundle (regra de segurança do Vite — tudo no front é público). **Nunca** coloque segredos em `VITE_*`.
 
-| Variável       | Descrição                                                                                                                              |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Variável        | Descrição                                                                                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `VITE_API_URL` | Base da API. Default hardcoded `http://172.16.0.102:3000` é IP de **rede local** — em produção **defina explicitamente** uma URL HTTPS |
 
 Lida em tempo de build via `import.meta.env.VITE_API_URL` — mudar o `.env` exige reiniciar o dev/refazer o build.
@@ -1205,19 +1205,19 @@ Cadastrar.jsx: wizard 4 passos
 
 ## 26. Códigos de Erro HTTP
 
-| Código | Significado no painel                                       |
-| ------ | ----------------------------------------------------------- |
-| 200    | Sucesso                                                     |
-| 201    | Recurso criado                                              |
-| 204    | Sucesso sem body (DELETE) — `http.js` retorna `null`        |
-| 400    | Validação falhou / corpo inválido                           |
-| 401    | Token ausente/inválido/expirado → dispara refresh           |
-| 403    | Permissão negada (ex.: Admin tentando acessar endpoint Dev) |
-| 404    | Recurso não encontrado                                      |
-| 409    | Conflito (ex.: e-mail já existe)                            |
-| 410    | Recurso expirado (OTP)                                      |
-| 429    | Rate limit (tentativas de OTP)                              |
-| 500    | Erro interno → mensagem genérica na UI                      |
+| Código | Significado no painel                                        |
+| ------- | ------------------------------------------------------------ |
+| 200     | Sucesso                                                      |
+| 201     | Recurso criado                                               |
+| 204     | Sucesso sem body (DELETE) —`http.js` retorna `null`     |
+| 400     | Validação falhou / corpo inválido                         |
+| 401     | Token ausente/inválido/expirado → dispara refresh          |
+| 403     | Permissão negada (ex.: Admin tentando acessar endpoint Dev) |
+| 404     | Recurso não encontrado                                      |
+| 409     | Conflito (ex.: e-mail já existe)                            |
+| 410     | Recurso expirado (OTP)                                       |
+| 429     | Rate limit (tentativas de OTP)                               |
+| 500     | Erro interno → mensagem genérica na UI                     |
 
 ---
 
@@ -1225,16 +1225,16 @@ Cadastrar.jsx: wizard 4 passos
 
 As versões exatas vivem no `package.json` (não replicadas aqui para não envelhecer). Resumo das principais:
 
-| Dependência                           | Papel               |
-| ------------------------------------- | ------------------- |
+| Dependência                              | Papel               |
+| ----------------------------------------- | ------------------- |
 | `react` / `react-dom` 19              | UI                  |
 | `react-router` / `react-router-dom` 7 | Roteamento          |
 | `vite` 8 + `@vitejs/plugin-react`     | Build/dev           |
-| `@tabler/icons-react`                 | Ícones              |
-| `recharts`                            | Gráficos            |
-| `jspdf` + `jspdf-autotable`           | Exportação PDF      |
-| `socket.io-client`                    | WebSocket (suporte) |
-| `eslint` 9 + plugins                  | Lint                |
+| `@tabler/icons-react`                   | Ícones             |
+| `recharts`                              | Gráficos           |
+| `jspdf` + `jspdf-autotable`           | Exportação PDF    |
+| `socket.io-client`                      | WebSocket (suporte) |
+| `eslint` 9 + plugins                    | Lint                |
 
 > **Node:** o Vite 8 exige Node 20.19+/22.12+. Confirme a versão local antes de buildar.
 
@@ -1242,16 +1242,16 @@ As versões exatas vivem no `package.json` (não replicadas aqui para não envel
 
 ## 28. Roadmap e Limitações Conhecidas
 
-| Item                               | Status     | Observação                                                                           |
-| ---------------------------------- | ---------- | ------------------------------------------------------------------------------------ |
-| Sem testes automatizados           | Backlog    | Vitest + React Testing Library (setup descrito em `docs/estudo/15-testes.md`)        |
-| Sem TypeScript                     | Backlog    | `@types/react` presente; migração incremental possível                               |
-| Rotas sem lazy loading             | Otimização | Todas as páginas no bundle inicial; `React.lazy` + `Suspense` reduziria o first load |
-| `window.confirm`/`alert` nativos   | UX         | Migrar para componente de Dialog do design system                                    |
-| Tokens em localStorage             | Segurança  | Avaliar cookie HttpOnly (exige ajustes de CORS/CSRF no backend)                      |
-| Sem Error Boundary                 | Robustez   | Um erro de render derruba a tela; adicionar boundary no App.jsx                      |
-| Sem observabilidade                | Backlog    | Só `console.error`; avaliar Sentry                                                   |
-| Default `VITE_API_URL` é IP LAN    | Produção   | Definir HTTPS explícito antes de publicar                                            |
+| Item                                 | Status       | Observação                                                                             |
+| ------------------------------------ | ------------ | ---------------------------------------------------------------------------------------- |
+| Sem testes automatizados             | Backlog      | Vitest + React Testing Library (setup descrito em `docs/estudo/15-testes.md`)          |
+| Sem TypeScript                       | Backlog      | `@types/react` presente; migração incremental possível                              |
+| Rotas sem lazy loading               | Otimização | Todas as páginas no bundle inicial;`React.lazy` + `Suspense` reduziria o first load |
+| `window.confirm`/`alert` nativos | UX           | Migrar para componente de Dialog do design system                                        |
+| Tokens em localStorage               | Segurança   | Avaliar cookie HttpOnly (exige ajustes de CORS/CSRF no backend)                          |
+| Sem Error Boundary                   | Robustez     | Um erro de render derruba a tela; adicionar boundary no App.jsx                          |
+| Sem observabilidade                  | Backlog      | Só `console.error`; avaliar Sentry                                                    |
+| Default `VITE_API_URL` é IP LAN   | Produção   | Definir HTTPS explícito antes de publicar                                               |
 
 ---
 

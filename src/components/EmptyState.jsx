@@ -1,4 +1,4 @@
-import styles from './EmptyState.module.css';
+import styles from "./EmptyState.module.css";
 
 /**
  * EmptyState — exibido quando uma lista não tem itens.
@@ -14,7 +14,11 @@ export function EmptyState({ icon: Icon, title, description, action }) {
       <p className={styles.title}>{title}</p>
       {description && <p className={styles.description}>{description}</p>}
       {action && (
-        <button type="button" onClick={action.onClick} className={styles.actionBtn}>
+        <button
+          type="button"
+          onClick={action.onClick}
+          className={styles.actionBtn}
+        >
           {action.label}
         </button>
       )}

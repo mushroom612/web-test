@@ -1,5 +1,5 @@
-import { IconLoader2 } from '@tabler/icons-react';
-import styles from './LoadingSpinner.module.css';
+import { IconLoader2 } from "@tabler/icons-react";
+import styles from "./LoadingSpinner.module.css";
 
 export function LoadingSpinner({ size = 28, text }) {
   return (

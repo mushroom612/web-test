@@ -24,34 +24,49 @@ import { api } from '../services/api';
 import { EmptyState } from '../components/EmptyState';
 import styles from './CadastroInstituicoes.module.css';
 
+// EMPTY_COURSE: estado inicial do formulário de curso (campos vazios).
 const EMPTY_COURSE = { cur_nome: '', cur_descricao: '', cur_semestres: '' };
 
 export function Instituicoes() {
   const navigate  = useNavigate();
+  // useLocation: dá acesso ao state da navegação. A página Cadastrar redireciona
+  // para cá com { state: { success: '...' } } após concluir um cadastro.
   const location  = useLocation();
 
+  // institutions / listLoading / listError: a lista de escolas e seus estados de carga.
   const [institutions, setInstitutions]   = useState([]);
   const [listLoading, setListLoading]     = useState(true);
   const [listError, setListError]         = useState('');
+  // successMsg: mensagem verde de sucesso vinda do cadastro (state da navegação).
   const [successMsg, setSuccessMsg]       = useState(location.state?.success || '');
 
   // ── Gerenciamento de cursos por instituição ──────────────────
+  // expandedInstitution: esc_id da escola atualmente expandida (null = nenhuma).
   const [expandedInstitution, setExpandedInstitution]   = useState(null);
+  // institutionCourses: cache dos cursos por escola → { [escId]: [cursos] }.
+  // Evita rebuscar os cursos toda vez que a escola é reaberta.
   const [institutionCourses, setInstitutionCourses]     = useState({});
+  // instCourseLoading: flag de carregamento por escola → { [escId]: true/false }.
   const [instCourseLoading, setInstCourseLoading]       = useState({});
+  // instCourseAction: ação de curso em andamento → { type: 'add'|'edit', escId, course }.
   const [instCourseAction, setInstCourseAction]         = useState(null);
+  // instCourseForm: campos do formulário de curso (add/edit).
   const [instCourseForm, setInstCourseForm]             = useState(EMPTY_COURSE);
   const [instCourseError, setInstCourseError]           = useState('');
 
+  // Ao montar, carrega a lista de instituições.
   useEffect(() => { loadInstitutions(); }, []);
 
-  // Limpa o state de navegação para não reexibir a mensagem após F5
+  // Limpa o state de navegação para não reexibir a mensagem de sucesso após F5
+  // (sem isso, recarregar a página mostraria o "cadastrado com sucesso" de novo).
   useEffect(() => {
     if (location.state?.success) {
       window.history.replaceState({}, '');
     }
   }, [location.state]);
 
+  // loadInstitutions: busca todas as escolas na API. Aceita tanto a resposta
+  // no formato { escolas: [...] } quanto um array direto (tolerância de shape).
   async function loadInstitutions() {
     setListLoading(true);
     setListError('');
@@ -65,6 +80,8 @@ export function Instituicoes() {
     }
   }
 
+  // loadInstCourses: busca os cursos de uma escola específica e os guarda no
+  // cache institutionCourses[escId]. Chamado quando a escola é expandida.
   async function loadInstCourses(escId) {
     setInstCourseLoading(prev => ({ ...prev, [escId]: true }));
     try {
@@ -78,6 +95,8 @@ export function Instituicoes() {
     }
   }
 
+  // handleDeleteInstitution: remove a escola após confirmação. Se a escola
+  // removida estava expandida, fecha o painel e recarrega a lista.
   async function handleDeleteInstitution(id) {
     if (!window.confirm('Tem certeza que deseja remover esta instituição?')) return;
     try {
@@ -89,6 +108,9 @@ export function Instituicoes() {
     }
   }
 
+  // handleToggleInstitution: abre/fecha o painel de cursos de uma escola.
+  // Ao fechar, limpa qualquer formulário de curso aberto. Ao abrir, busca os
+  // cursos só na primeira vez (se ainda não estiverem no cache).
   function handleToggleInstitution(escId) {
     if (expandedInstitution === escId) {
       setExpandedInstitution(null);
@@ -104,12 +126,14 @@ export function Instituicoes() {
     if (!institutionCourses[escId]) loadInstCourses(escId);
   }
 
+  // handleStartAddInstCourse: abre o formulário em branco para adicionar um curso.
   function handleStartAddInstCourse(escId) {
     setInstCourseAction({ type: 'add', escId });
     setInstCourseForm(EMPTY_COURSE);
     setInstCourseError('');
   }
 
+  // handleStartEditInstCourse: abre o formulário preenchido com um curso existente.
   function handleStartEditInstCourse(escId, course) {
     setInstCourseAction({ type: 'edit', escId, course });
     setInstCourseForm({
@@ -120,17 +144,22 @@ export function Instituicoes() {
     setInstCourseError('');
   }
 
+  // handleCancelInstCourseAction: descarta a ação de curso e limpa o formulário.
   function handleCancelInstCourseAction() {
     setInstCourseAction(null);
     setInstCourseForm(EMPTY_COURSE);
     setInstCourseError('');
   }
 
+  // handleInstCourseFormChange: atualiza um campo do formulário de curso.
   function handleInstCourseFormChange(e) {
     const { name, value } = e.target;
     setInstCourseForm(prev => ({ ...prev, [name]: value }));
   }
 
+  // handleSaveInstCourse: salva o curso na API e atualiza o cache local sem
+  // refazer a busca. Em 'add' chama createCourse e acrescenta o novo curso;
+  // em 'edit' chama updateCourse e substitui o curso correspondente na lista.
   async function handleSaveInstCourse() {
     if (!instCourseForm.cur_nome.trim()) {
       setInstCourseError('Preencha o nome do curso.');
@@ -168,6 +197,8 @@ export function Instituicoes() {
     }
   }
 
+  // handleDeleteInstCourse: remove um curso após confirmação e tira-o do cache
+  // local. Se o curso estava sendo editado, também fecha o formulário.
   async function handleDeleteInstCourse(escId, courseId) {
     if (!window.confirm('Remover este curso?')) return;
     try {
@@ -231,13 +262,16 @@ export function Instituicoes() {
         />
       )}
 
+      {/* ── Lista de instituições (cada uma é um card expansível) ── */}
       {!listLoading && institutions.length > 0 && (
         <div className={styles.institutionsList}>
           {institutions.map(inst => {
-            const escId          = inst.esc_id ?? inst.id;
-            const isExpanded     = expandedInstitution === escId;
-            const courses        = institutionCourses[escId] || [];
-            const isLoadingCourses = instCourseLoading[escId];
+            // Variáveis derivadas para este card, calculadas a cada render:
+            const escId          = inst.esc_id ?? inst.id;          // id da escola
+            const isExpanded     = expandedInstitution === escId;   // painel aberto?
+            const courses        = institutionCourses[escId] || []; // cursos em cache
+            const isLoadingCourses = instCourseLoading[escId];      // buscando cursos?
+            // action: só "ativa" o formulário de curso se a ação pertence a ESTA escola.
             const action         = instCourseAction?.escId === escId ? instCourseAction : null;
 
             return (
@@ -289,6 +323,9 @@ export function Instituicoes() {
                   {isExpanded ? <IconChevronUp size={13} /> : <IconChevronDown size={13} />}
                 </button>
 
+                {/* Seção de cursos: só renderiza quando o card está expandido.
+                    Mostra loading, lista de cursos, formulário (add/edit) e o
+                    botão de adicionar — tudo dependendo do estado atual. */}
                 {isExpanded && (
                   <div className={styles.coursesSection}>
                     {isLoadingCourses && (

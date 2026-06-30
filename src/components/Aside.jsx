@@ -195,7 +195,7 @@ export function Aside({ isOpen, onClose }) {
   const [cardExpanded, setCardExpanded] = useState(false);
 
   return (
-    <aside className={`${styles.aside} ${isOpen ? styles.asideOpen : ''}`}>
+    <aside className={`${styles.aside} ${isOpen ? styles.asideOpen : ""}`}>
       {/* Cabeçalho com a logo do sistema */}
       <div className={styles.header}>
         <div className={styles.logo}>
@@ -206,7 +206,11 @@ export function Aside({ isOpen, onClose }) {
           />
         </div>
         {onClose && (
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Fechar menu">
+          <button
+            className={styles.closeBtn}
+            onClick={onClose}
+            aria-label="Fechar menu"
+          >
             <IconX size={20} />
           </button>
         )}

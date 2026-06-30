@@ -175,7 +175,10 @@ export function Caronas() {
       ]);
       setStats(statsResp?.stats || null);
       const lista = caronasResp?.caronas || [];
-      setTotal(caronasResp?.total ?? 0);
+      // A API devolve `total` = nº de itens da página (caronas.length) e
+      // `totalGeral` = contagem real que casa com o filtro. Usamos totalGeral
+      // para a paginação refletir todas as caronas, não apenas a página atual.
+      setTotal(caronasResp?.totalGeral ?? caronasResp?.total ?? 0);
       // Ordena do mais recente ao mais antigo antes de mapear.
       // Compara data + hora como string ISO — funciona porque o formato
       // YYYY-MM-DD garante ordenação lexicográfica correta.

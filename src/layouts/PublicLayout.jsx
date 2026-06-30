@@ -19,8 +19,8 @@
 //   componentes), evitando conflitos de estilo.
 // ============================================================
 
-import { Outlet } from 'react-router-dom';
-import styles from './PublicLayout.module.css';
+import { Outlet } from "react-router-dom";
+import styles from "./PublicLayout.module.css";
 
 export function PublicLayout() {
   return (

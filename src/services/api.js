@@ -291,19 +291,23 @@ export const api = {
   // updateUser: atualiza nome/telefone do usuário E/OU seu status.
   // Usado por UserProfilePanel ao salvar o formulário de edição.
   //
-  // Status → PATCH /api/admin/usuarios/:id/status (Admin endpoint, sempre funciona)
-  // Nome/telefone → PUT /api/usuarios/:id (best-effort: pode ser restrito a conta própria)
+  // Nome/telefone → PATCH /api/admin/usuarios/:id/perfil
+  //   Endpoint de moderação: Admin edita usuários da própria escola, Dev edita
+  //   qualquer um. Substitui o antigo PUT /api/usuarios/:id (que era restrito a
+  //   Dev/dono e barrava o Admin com 403). Não altera e-mail nem senha.
+  // Status → PATCH /api/admin/usuarios/:id/status (ativa/inativa)
+  //
+  // Erros NÃO são silenciados: se o backend recusar (ex.: aluno de outra
+  // escola), a exceção sobe para o componente exibir a mensagem real.
   async updateUser(userId, { usu_nome, usu_telefone, usu_status } = {}) {
-    if (usu_status !== undefined) {
-      await http.patch(`/api/admin/usuarios/${userId}/status`, { usu_status: Number(usu_status) });
-    }
     if (usu_nome !== undefined || usu_telefone !== undefined) {
       const body = {};
       if (usu_nome !== undefined) body.usu_nome = usu_nome;
       if (usu_telefone !== undefined) body.usu_telefone = usu_telefone;
-      try {
-        await http.put(`/api/usuarios/${userId}`, body);
-      } catch { /* backend pode restringir edição de perfil alheio */ }
+      await http.patch(`/api/admin/usuarios/${userId}/perfil`, body);
+    }
+    if (usu_status !== undefined) {
+      await http.patch(`/api/admin/usuarios/${userId}/status`, { usu_status: Number(usu_status) });
     }
     return { usu_id: userId, usu_nome, usu_telefone, usu_status };
   },

@@ -1,5 +1,5 @@
-import { IconAlertTriangle, IconAlertCircle } from '@tabler/icons-react';
-import styles from './ErrorBanner.module.css';
+import { IconAlertTriangle, IconAlertCircle } from "@tabler/icons-react";
+import styles from "./ErrorBanner.module.css";
 
 /**
  * ErrorBanner — exibe um erro de duas formas:

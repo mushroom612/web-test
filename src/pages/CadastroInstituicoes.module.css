@@ -481,6 +481,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
+  /* align-items: start impede que um card expandido (cursos abertos)
+     estique os cards vizinhos da mesma linha do grid. */
+  align-items: start;
 }
 
 .institutionCard {

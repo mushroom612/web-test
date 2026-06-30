@@ -102,6 +102,7 @@ import {
   IconLoader2,
 } from "@tabler/icons-react";
 import { api } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import styles from "./UserProfilePanel.module.css";
 
 // VERIFICACAO_LABELS: traduz o código numérico de verificação para texto e cor.
@@ -164,6 +165,11 @@ export function UserProfilePanel({
   onClose,
   onUserUpdated,
 }) {
+  // isAdmin: papel de QUEM está logado (não do usuário-alvo).
+  // Admin (per_tipo=1) edita apenas nome e telefone; o status da conta
+  // fica desabilitado e é gerenciado somente pelo Desenvolvedor.
+  const { isAdmin } = useAuth();
+
   // enriched: versão normalizada do usuário (somente dados da API)
   const enriched = enrichUser(user);
 
@@ -211,13 +217,29 @@ export function UserProfilePanel({
       return;
     }
 
+    // Monta o patch apenas com os campos que realmente mudaram.
+    // Enviar usu_status sem alteração faz o backend responder 409
+    // ("Usuário já está ativo/inativo"), o que abortava o salvamento
+    // do telefone. Comparando aqui, só enviamos o que de fato mudou.
+    const novoNome     = form.usu_nome.trim();
+    const novoTelefone = form.usu_telefone.trim() || null; // string vazia → null
+    const novoStatus   = Number(form.usu_status);
+
+    const patch = {};
+    if (novoNome !== enriched.usu_nome)                      patch.usu_nome     = novoNome;
+    if (novoTelefone !== (enriched.usu_telefone ?? null))    patch.usu_telefone = novoTelefone;
+    // Status só é editável pelo Dev — Admin nunca envia esse campo.
+    if (!isAdmin && novoStatus !== enriched.usu_status)      patch.usu_status   = novoStatus;
+
+    if (Object.keys(patch).length === 0) {
+      setSaveSuccess("Nenhuma alteração para salvar.");
+      setMode("view");
+      return;
+    }
+
     setSaving(true);
     try {
-      await api.updateUser(enriched.usu_id, {
-        usu_nome: form.usu_nome.trim(),
-        usu_telefone: form.usu_telefone.trim() || null, // string vazia → null
-        usu_status: Number(form.usu_status), // converte string → número
-      });
+      await api.updateUser(enriched.usu_id, patch);
       setSaveSuccess("Dados atualizados com sucesso.");
       setMode("view");
 
@@ -226,8 +248,9 @@ export function UserProfilePanel({
       // possa atualizar a tabela sem recarregar toda a lista da API.
       onUserUpdated?.({
         ...user,
-        usu_nome: form.usu_nome.trim(),
-        usu_status: Number(form.usu_status),
+        usu_nome:     novoNome,
+        usu_telefone: novoTelefone,
+        usu_status:   novoStatus,
       });
     } catch (err) {
       setSaveError(err.message || "Erro ao salvar alterações.");
@@ -414,7 +437,9 @@ export function UserProfilePanel({
                   />
                 </div>
 
-                {/* Campo: Status da conta (dropdown Ativo/Inativo) */}
+                {/* Campo: Status da conta (dropdown Ativo/Inativo).
+                    Editável apenas pelo Desenvolvedor — para o Admin fica
+                    desabilitado (ele só altera nome e telefone). */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
                     <IconShieldCheck size={14} /> Status da conta
@@ -424,6 +449,8 @@ export function UserProfilePanel({
                     className={styles.input}
                     value={form.usu_status}
                     onChange={handleFormChange}
+                    disabled={isAdmin}
+                    title={isAdmin ? "Apenas o Desenvolvedor pode alterar o status da conta" : undefined}
                   >
                     <option value={1}>Ativo</option>
                     <option value={0}>Inativo</option>
